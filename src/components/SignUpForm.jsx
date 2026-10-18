@@ -12,15 +12,18 @@ import {
   GraduationCap, 
   Briefcase, 
   Wrench,
-  ShieldCheck 
+  ShieldCheck,
+  AlertCircle
 } from 'lucide-react';
 import GoogleAuthButton from './GoogleAuthButton';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignUpForm({ 
   onSignUpSuccess, 
   onSwitchToLogin,
   onNotify 
 }) {
+  const { register } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [collegeId, setCollegeId] = useState('');
@@ -32,6 +35,7 @@ export default function SignUpForm({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState(null);
 
   const roleOptions = [
     {

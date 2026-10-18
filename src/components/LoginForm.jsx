@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Sparkles, UserCheck } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Sparkles, UserCheck, AlertCircle } from 'lucide-react';
 import GoogleAuthButton from './GoogleAuthButton';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginForm({ 
   onLoginSuccess, 
@@ -8,12 +9,14 @@ export default function LoginForm({
   onSwitchToSignUp,
   onNotify 
 }) {
+  const { login } = useAuth();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState(null);
 
   const validate = () => {
     const errs = {};
@@ -29,7 +32,7 @@ export default function LoginForm({
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
       if (onNotify) onNotify('Please review highlighted fields', 'error');
@@ -37,43 +40,37 @@ export default function LoginForm({
     }
 
     setIsLoading(true);
+    setServerError(null);
 
-    // Simulated authentic authentication response
-    setTimeout(() => {
+    try {
+      const data = await login(identifier, password);
       setIsLoading(false);
-      // Determine simulated role based on identifier or credentials
-      let role = 'Student';
-      let name = 'Alex Rivera';
-      if (identifier.toLowerCase().includes('tech') || identifier.toLowerCase().includes('admin')) {
-        role = 'Technician';
-        name = 'Marcus Vance (Senior Systems Engineer)';
-      } else if (identifier.toLowerCase().includes('fac') || identifier.toLowerCase().includes('prof')) {
-        role = 'Faculty / Staff';
-        name = 'Dr. Elena Rostova (Dept of CS)';
+      if (onLoginSuccess) {
+        onLoginSuccess(data.user);
       }
-
-      onLoginSuccess({
-        type: 'password',
-        identifier,
-        role,
-        name,
-        rememberMe,
-        token: 'CFX_AUTH_' + Math.random().toString(36).substring(2, 10).toUpperCase(),
-      });
-    }, 1100);
+    } catch (err) {
+      setIsLoading(false);
+      setServerError(err.message || 'Authentication failed. Please verify credentials.');
+      if (onNotify) onNotify(err.message || 'Authentication failed', 'error');
+    }
   };
 
   const handleQuickFill = (roleType) => {
     if (roleType === 'student') {
       setIdentifier('alex.student@campus.edu');
       setPassword('campus2026!');
-      if (onNotify) onNotify('Loaded verified Student credentials', 'info');
+      if (onNotify) onNotify('Loaded Student credentials', 'info');
     } else if (roleType === 'tech') {
       setIdentifier('m.vance.tech@campus.edu');
       setPassword('infraOps99#');
       if (onNotify) onNotify('Loaded Field Technician credentials', 'info');
+    } else if (roleType === 'admin') {
+      setIdentifier('admin@campus.edu');
+      setPassword('adminPass123!');
+      if (onNotify) onNotify('Loaded Administrator credentials', 'info');
     }
     setErrors({});
+    setServerError(null);
   };
 
   return (
@@ -89,7 +86,7 @@ export default function LoginForm({
       </div>
 
       {/* Quick Demo Pre-fill Chips */}
-      <div className="flex items-center justify-center gap-2 mb-5">
+      <div className="flex items-center justify-center gap-2 mb-5 flex-wrap">
         <span className="text-[11px] text-slate-400 font-medium">Quick Demo:</span>
         <button
           type="button"
@@ -107,7 +104,23 @@ export default function LoginForm({
         >
           🔧 Technician
         </button>
+        <button
+          type="button"
+          onClick={() => handleQuickFill('admin')}
+          className="text-[11px] px-2.5 py-1 rounded-full bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 hover:border-[#D99B7F]/60 text-slate-200 transition-all active:scale-95"
+          title="Autofill administrator account"
+        >
+          🛡️ Admin
+        </button>
       </div>
+
+      {/* Server Error Alert Banner */}
+      {serverError && (
+        <div className="mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-200 text-xs flex items-center gap-2 animate-fadeIn">
+          <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+          <span>{serverError}</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Identifier Field */}
