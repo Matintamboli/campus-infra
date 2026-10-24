@@ -12,15 +12,18 @@ import {
   GraduationCap, 
   Briefcase, 
   Wrench,
-  ShieldCheck 
+  ShieldCheck,
+  AlertCircle
 } from 'lucide-react';
 import GoogleAuthButton from './GoogleAuthButton';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignUpForm({ 
   onSignUpSuccess, 
   onSwitchToLogin,
   onNotify 
 }) {
+  const { register } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [collegeId, setCollegeId] = useState('');
@@ -32,6 +35,7 @@ export default function SignUpForm({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState(null);
 
   const roleOptions = [
     {
@@ -91,7 +95,7 @@ export default function SignUpForm({
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
       if (onNotify) onNotify('Please complete all required fields correctly', 'error');
@@ -99,17 +103,29 @@ export default function SignUpForm({
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      onSignUpSuccess({
-        type: 'registration',
-        name: fullName,
+    setServerError(null);
+
+    try {
+      const data = await register({
+        fullName,
         email,
         collegeId,
-        role,
-        token: 'CFX_NEW_' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+        password,
+        roleRequested: role,
       });
-    }, 1200);
+
+      setIsLoading(false);
+      if (onSignUpSuccess) {
+        onSignUpSuccess(data.user);
+      }
+      if (onNotify) {
+        onNotify(data.message || 'Registration complete! Welcome to CampusFix.', 'success');
+      }
+    } catch (err) {
+      setIsLoading(false);
+      setServerError(err.message || 'Registration failed. Please check your details.');
+      if (onNotify) onNotify(err.message || 'Registration failed', 'error');
+    }
   };
 
   const selectedRoleObj = roleOptions.find((r) => r.id === role) || roleOptions[0];
@@ -126,6 +142,14 @@ export default function SignUpForm({
           Get connected to your campus.
         </p>
       </div>
+
+      {/* Server Error Alert Banner */}
+      {serverError && (
+        <div className="mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-200 text-xs flex items-center gap-2 animate-fadeIn">
+          <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+          <span>{serverError}</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-3.5">
         {/* Full Name */}
@@ -293,6 +317,14 @@ export default function SignUpForm({
               })}
             </div>
           )}
+
+          {/* Security policy note for public registration */}
+          <div className="mt-1.5 px-2.5 py-1.5 rounded-lg bg-[#0F3040]/70 border border-[#A56F63]/30 flex items-start gap-2 text-[11px] text-slate-300/90 leading-tight">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#D99B7F] flex-shrink-0 mt-0.5" />
+            <span>
+              Campus Security Policy: Public registrations are assigned <strong className="text-white">Reporter</strong> permissions. Technician and Administrator access must be provisioned by campus IT operations.
+            </span>
+          </div>
         </div>
 
         {/* 2-Column Row: Password & Confirm Password */}
