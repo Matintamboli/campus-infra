@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   PlusCircle, 
   AlertCircle, 
@@ -12,14 +12,15 @@ import {
   Server,
   ShieldAlert,
   Send,
-  FileText
+  FileText,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
-  // New incident report form state (functional interactive preview)
+  // New incident report form state
   const [category, setCategory] = useState('network');
   const [priority, setPriority] = useState('Medium');
   const [title, setTitle] = useState('');
@@ -27,30 +28,8 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
   const [room, setRoom] = useState('Lab 304');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submittedTickets, setSubmittedTickets] = useState([
-    {
-      id: 'TKT-1082',
-      title: 'Lab 304 Wi-Fi access point dropping connection periodically',
-      category: 'Network',
-      priority: 'High',
-      status: 'In Progress',
-      building: 'Engineering Block B',
-      room: 'Lab 304',
-      date: 'Today, 11:20 AM',
-      technician: 'Marcus Vance (Assigned)',
-    },
-    {
-      id: 'TKT-1055',
-      title: 'Projector HDMI port flickering in Lecture Hall 2',
-      category: 'Classroom Equipment',
-      priority: 'Medium',
-      status: 'Open',
-      building: 'Science Concourse',
-      room: 'Hall 2',
-      date: 'Yesterday, 3:45 PM',
-      technician: 'Unassigned (In Dispatch Queue)',
-    },
-  ]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(true);
+  const [submittedTickets, setSubmittedTickets] = useState([]);
 
   const categories = [
     { id: 'network', name: 'Network Infrastructure', icon: Wifi, desc: 'Wi-Fi, Ethernet, routers' },
@@ -61,7 +40,31 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
     { id: 'servers', name: 'Campus Servers', icon: Server, desc: 'Virtual machines, LMS' },
   ];
 
-  const handleCreateReport = (e) => {
+  const fetchTickets = useCallback(async () => {
+    setIsLoadingTickets(true);
+    try {
+      const res = await fetch('/api/tickets', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSubmittedTickets(data.tickets || []);
+      }
+    } catch (err) {
+      console.error('Failed to load tickets:', err);
+      if (onNotify) onNotify('Unable to retrieve incidents from campus server', 'error');
+    } finally {
+      setIsLoadingTickets(false);
+    }
+  }, [token, onNotify]);
+
+  useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
+
+  const handleCreateReport = async (e) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
       if (onNotify) onNotify('Please provide a title and detailed problem description', 'error');
@@ -69,24 +72,40 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      const newTkt = {
-        id: `TKT-${Math.floor(1000 + Math.random() * 9000)}`,
-        title,
-        category: categories.find((c) => c.id === category)?.name || 'General',
-        priority,
-        status: 'Open',
-        building,
-        room,
-        date: 'Just now',
-        technician: 'Awaiting Administrator Assignment',
-      };
-      setSubmittedTickets([newTkt, ...submittedTickets]);
+    try {
+      const selectedCat = categories.find((c) => c.id === category)?.name || 'General';
+      const res = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim(),
+          category: selectedCat,
+          priority,
+          building: building.trim(),
+          room: room.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to submit incident ticket');
+      }
+
+      setSubmittedTickets((prev) => [data.ticket, ...prev]);
       setTitle('');
       setDescription('');
-      if (onNotify) onNotify(`Incident report filed successfully! Assigned Ticket #${newTkt.id}`, 'success');
-    }, 600);
+      if (onNotify) onNotify(`Incident report filed! Ticket #${data.ticket.ticket_number || data.ticket.id} registered`, 'success');
+    } catch (err) {
+      console.error('Submit error:', err);
+      if (onNotify) onNotify(err.message || 'Error filing incident report', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

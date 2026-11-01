@@ -7,6 +7,7 @@ import ForgotPasswordModal from './components/ForgotPasswordModal';
 import Toast from './components/Toast';
 import PlatformHeader from './components/dashboard/PlatformHeader';
 import RoleAccessTesterModal from './components/dashboard/RoleAccessTesterModal';
+import StudentDashboard from './components/dashboard/StudentDashboard';
 import ReporterDashboard from './components/dashboard/ReporterDashboard';
 import TechnicianDashboard from './components/dashboard/TechnicianDashboard';
 import AdminDashboard from './components/dashboard/AdminDashboard';
@@ -14,7 +15,7 @@ import bgImage from './assets/pinterest-bg.jpg';
 import { useAuth } from './context/AuthContext';
 
 export default function App() {
-  const { user, isAuthenticated, isLoading, role } = useAuth();
+  const { user, isAuthenticated, isLoading, effectiveRole } = useAuth();
 
   const [activeTab, setActiveTab] = useState('login');
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);

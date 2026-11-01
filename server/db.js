@@ -59,6 +59,53 @@ export function initDatabase() {
     );
   `);
 
+  // 4. Infrastructure Incident Tickets
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS tickets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ticket_number TEXT UNIQUE NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      category TEXT NOT NULL,
+      priority TEXT NOT NULL DEFAULT 'Medium' CHECK(priority IN ('Low', 'Medium', 'High', 'Critical')),
+      status TEXT NOT NULL DEFAULT 'Open' CHECK(status IN ('Open', 'Assigned', 'In Progress', 'Resolved', 'Closed')),
+      building TEXT NOT NULL,
+      room TEXT NOT NULL,
+      reporter_id INTEGER NOT NULL,
+      technician_id INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (technician_id) REFERENCES users(id) ON DELETE SET NULL
+    );
+  `);
+
+  // 5. Ticket Diagnostic Notes & Investigation Logs
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS ticket_notes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ticket_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      note TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  // 6. Password Resets (Secure recovery workflow)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS password_resets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      reset_token TEXT NOT NULL,
+      expires_at DATETIME NOT NULL,
+      used INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
   // Seed default categories
   const categoryCheck = db.prepare('SELECT COUNT(*) as count FROM categories').get();
   if (categoryCheck.count === 0) {
@@ -142,6 +189,92 @@ export function initDatabase() {
     );
 
     console.log('[Database] Initial users successfully created with hashed credentials.');
+  }
+
+  // Seed initial tickets and notes
+  const ticketCheck = db.prepare('SELECT COUNT(*) as count FROM tickets').get();
+  if (ticketCheck.count === 0) {
+    console.log('[Database] Seeding initial infrastructure tickets and diagnostics notes...');
+
+    // Retrieve user IDs for references
+    const reporter1 = db.prepare("SELECT id FROM users WHERE college_id = 'STU-8821'").get();
+    const reporter2 = db.prepare("SELECT id FROM users WHERE college_id = 'FAC-1044'").get();
+    const tech1 = db.prepare("SELECT id FROM users WHERE college_id = 'TECH-4402'").get();
+    const tech2 = db.prepare("SELECT id FROM users WHERE college_id = 'TECH-5120'").get();
+
+    if (reporter1 && reporter2 && tech1 && tech2) {
+      const insertTicket = db.prepare(`
+        INSERT INTO tickets (ticket_number, title, description, category, priority, status, building, room, reporter_id, technician_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const insertNote = db.prepare(`
+        INSERT INTO ticket_notes (ticket_id, user_id, note)
+        VALUES (?, ?, ?)
+      `);
+
+      // Ticket 1: Wi-Fi Access Point Issue
+      insertTicket.run(
+        'TKT-1082',
+        'Lab 304 Wi-Fi access point dropping connection periodically',
+        'Students and faculty in Lab 304 report that wireless connectivity drops every 15-20 minutes, particularly during high-bandwidth simulations.',
+        'Network Infrastructure',
+        'High',
+        'In Progress',
+        'Engineering Block B',
+        'Lab 304',
+        reporter1.id,
+        tech1.id
+      );
+      insertNote.run(1, tech1.id, 'Diagnosed Cisco AP 2802; beacon signal drops during heavy multicast traffic.');
+      insertNote.run(1, tech1.id, 'Swapped PoE power injector; conducting 4-hour channel saturation test.');
+
+      // Ticket 2: Datacenter UPS Alert
+      insertTicket.run(
+        'TKT-1049',
+        'Server Rack 4 UPS battery warning in CS Datacenter',
+        'Automated telemetry trigger: Battery health status degraded on secondary battery bank of Rack 4.',
+        'Power & Electrical',
+        'Critical',
+        'Assigned',
+        'Main Data Center',
+        'Server Room 1',
+        reporter2.id,
+        tech1.id
+      );
+      insertNote.run(2, tech1.id, 'Dispatched on-site with replacement APC battery pack modules.');
+
+      // Ticket 3: Workstation GPU failure
+      insertTicket.run(
+        'TKT-1033',
+        'Workstation 12 GPU failure in CAD Simulation Suite',
+        'Workstation displays artifacting and blue screen whenever Blender or SolidWorks initiates OpenGL rendering pipeline.',
+        'Hardware Systems',
+        'Medium',
+        'Assigned',
+        'Design & Tech Lab',
+        'Studio 4',
+        reporter2.id,
+        tech2.id
+      );
+      insertNote.run(3, tech2.id, 'RTX workstation display driver crashing on CUDA kernels; ordering replacement PCIe ribbon.');
+
+      // Ticket 4: Projector HDMI flickering
+      insertTicket.run(
+        'TKT-1055',
+        'Projector HDMI port flickering in Lecture Hall 2',
+        'The main ceiling projector loses HDMI signal periodically when laptops are plugged in via the podium plate.',
+        'Classroom Equipment',
+        'Medium',
+        'Open',
+        'Science Concourse',
+        'Hall 2',
+        reporter1.id,
+        null
+      );
+
+      console.log('[Database] Infrastructure incident tickets seeded successfully.');
+    }
   }
 }
 

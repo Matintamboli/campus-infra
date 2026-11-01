@@ -89,6 +89,26 @@ router.patch('/users/:id/role', (req, res) => {
 });
 
 /**
+ * GET /api/admin/technicians
+ * List of available technicians for work order dispatch
+ */
+router.get('/technicians', (req, res) => {
+  try {
+    const technicians = db.prepare(`
+      SELECT id, name, email, college_id, role, department
+      FROM users
+      WHERE role IN ('Technician', 'Administrator') AND status = 'active'
+      ORDER BY name ASC
+    `).all();
+
+    return res.json({ success: true, technicians });
+  } catch (err) {
+    console.error('[Admin Technicians Error]:', err);
+    return res.status(500).json({ error: 'SERVER_ERROR', message: 'Failed to retrieve technicians' });
+  }
+});
+
+/**
  * GET /api/admin/stats
  * Overview stats for the Administrator dashboard
  */
@@ -100,6 +120,11 @@ router.get('/stats', (req, res) => {
     const administrators = db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'Administrator'").get().count;
     const categoriesCount = db.prepare('SELECT COUNT(*) as count FROM categories').get().count;
 
+    const totalTickets = db.prepare('SELECT COUNT(*) as count FROM tickets').get().count;
+    const openTickets = db.prepare("SELECT COUNT(*) as count FROM tickets WHERE status = 'Open'").get().count;
+    const inProgressTickets = db.prepare("SELECT COUNT(*) as count FROM tickets WHERE status = 'In Progress'").get().count;
+    const resolvedTickets = db.prepare("SELECT COUNT(*) as count FROM tickets WHERE status = 'Resolved'").get().count;
+
     return res.json({
       success: true,
       stats: {
@@ -108,6 +133,10 @@ router.get('/stats', (req, res) => {
         technicians,
         administrators,
         categoriesCount,
+        totalTickets,
+        openTickets,
+        inProgressTickets,
+        resolvedTickets,
         systemHealth: 'Optimal',
         uptime: '99.98%',
       },

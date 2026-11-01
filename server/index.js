@@ -5,6 +5,7 @@ import { initDatabase } from './db.js';
 import authRoutes from './routes/auth.js';
 import protectedRoutes from './routes/protected.js';
 import adminRoutes from './routes/admin.js';
+import ticketRoutes from './routes/tickets.js';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/protected', protectedRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/tickets', ticketRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
