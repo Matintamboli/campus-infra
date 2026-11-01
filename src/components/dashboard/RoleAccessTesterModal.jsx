@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 import { 
   X, 
-  ShieldAlert, 
   CheckCircle2, 
   XCircle, 
   Terminal, 
-  Lock, 
-  ArrowRight,
-  ShieldCheck,
   RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -158,8 +154,8 @@ export default function RoleAccessTesterModal({ isOpen, onClose }) {
                       </span>
                     </div>
                     <p className="mt-0.5 text-slate-400 text-[11px]">{ep.description}</p>
-                    <div className="mt-1 flex items-center gap-1.5 text-[11px]">
-                      <span className="text-slate-400">Permitted Roles:</span>
+                    <div className="mt-1 flex items-center gap-1.5 text-[11px] flex-wrap">
+                      <span className="text-slate-400">Permitted:</span>
                       {ep.allowedRoles.map((r) => (
                         <span 
                           key={r} 
@@ -172,6 +168,10 @@ export default function RoleAccessTesterModal({ isOpen, onClose }) {
                           {r}
                         </span>
                       ))}
+                      <span className="text-slate-500">|</span>
+                      <span className="text-[10px] text-slate-400">
+                        Expected: <strong className={isAuthorized ? 'text-emerald-400' : 'text-amber-400'}>{isAuthorized ? '200 OK' : '403 Forbidden'}</strong>
+                      </span>
                     </div>
                   </div>
 

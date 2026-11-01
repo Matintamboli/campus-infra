@@ -20,9 +20,19 @@ function enrichTicket(ticket) {
     ORDER BY tn.created_at ASC
   `).all(ticket.id);
 
+  let parsedAttachments = [];
+  if (ticket.attachments) {
+    try {
+      parsedAttachments = typeof ticket.attachments === 'string' ? JSON.parse(ticket.attachments) : ticket.attachments;
+    } catch {
+      parsedAttachments = [];
+    }
+  }
+
   return {
     ...ticket,
     notes: notes || [],
+    attachments: parsedAttachments,
   };
 }
 
@@ -152,7 +162,17 @@ router.get('/:id', (req, res) => {
  */
 router.post('/', (req, res) => {
   try {
-    const { title, description, category, priority = 'Medium', building, room } = req.body;
+    const { 
+      title, 
+      description, 
+      category, 
+      priority = 'Medium', 
+      building, 
+      floor = 'Ground Floor',
+      room, 
+      affectedService = 'General Campus Service',
+      attachments = []
+    } = req.body;
     const user = req.user;
 
     if (!title || !title.trim()) {
@@ -174,14 +194,19 @@ router.post('/', (req, res) => {
     const validPriorities = ['Low', 'Medium', 'High', 'Critical'];
     const chosenPriority = validPriorities.includes(priority) ? priority : 'Medium';
 
-    // Generate unique readable ticket number (e.g. TKT-1085)
+    // Generate unique readable ticket number (e.g. INC-1085)
     const maxIdRow = db.prepare('SELECT MAX(id) as maxId FROM tickets').get();
     const nextSeq = (maxIdRow?.maxId || 0) + 1;
-    const ticketNumber = `TKT-${1080 + nextSeq}`;
+    const ticketNumber = `INC-${1080 + nextSeq}`;
+
+    const attachmentsJson = typeof attachments === 'string' ? attachments : JSON.stringify(attachments);
 
     const insertResult = db.prepare(`
-      INSERT INTO tickets (ticket_number, title, description, category, priority, status, building, room, reporter_id)
-      VALUES (?, ?, ?, ?, ?, 'Open', ?, ?, ?)
+      INSERT INTO tickets (
+        ticket_number, title, description, category, priority, status, 
+        building, floor, room, affected_service, attachments, reporter_id
+      )
+      VALUES (?, ?, ?, ?, ?, 'Open', ?, ?, ?, ?, ?, ?)
     `).run(
       ticketNumber,
       title.trim(),
@@ -189,7 +214,10 @@ router.post('/', (req, res) => {
       category.trim(),
       chosenPriority,
       building.trim(),
+      floor ? floor.trim() : 'Ground Floor',
       room.trim(),
+      affectedService ? affectedService.trim() : 'General Campus Infrastructure',
+      attachmentsJson,
       user.id
     );
 
@@ -201,7 +229,7 @@ router.post('/', (req, res) => {
       VALUES (?, 'CREATE_TICKET', ?)
     `).run(
       user.id,
-      `User ${user.name} (${user.role}) reported incident ${ticketNumber}: "${title.trim()}"`
+      `User ${user.name} (${user.role}) reported incident ${ticketNumber}: "${title.trim()}" in ${building} (${room})`
     );
 
     const createdTicket = db.prepare(`
@@ -440,3 +468,4 @@ router.patch('/:id/assign', requireRole(['Technician', 'Administrator']), (req, 
 });
 
 export default router;
+

@@ -70,7 +70,10 @@ export function initDatabase() {
       priority TEXT NOT NULL DEFAULT 'Medium' CHECK(priority IN ('Low', 'Medium', 'High', 'Critical')),
       status TEXT NOT NULL DEFAULT 'Open' CHECK(status IN ('Open', 'Assigned', 'In Progress', 'Resolved', 'Closed')),
       building TEXT NOT NULL,
+      floor TEXT DEFAULT 'Ground Floor',
       room TEXT NOT NULL,
+      affected_service TEXT DEFAULT 'General Campus Infrastructure',
+      attachments TEXT,
       reporter_id INTEGER NOT NULL,
       technician_id INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -79,6 +82,11 @@ export function initDatabase() {
       FOREIGN KEY (technician_id) REFERENCES users(id) ON DELETE SET NULL
     );
   `);
+
+  // Ensure migration columns exist on existing databases
+  try { db.exec('ALTER TABLE tickets ADD COLUMN floor TEXT DEFAULT "Ground Floor";'); } catch {}
+  try { db.exec('ALTER TABLE tickets ADD COLUMN affected_service TEXT DEFAULT "General Campus Infrastructure";'); } catch {}
+  try { db.exec('ALTER TABLE tickets ADD COLUMN attachments TEXT;'); } catch {}
 
   // 5. Ticket Diagnostic Notes & Investigation Logs
   db.exec(`

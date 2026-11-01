@@ -15,7 +15,7 @@ import bgImage from './assets/pinterest-bg.jpg';
 import { useAuth } from './context/AuthContext';
 
 export default function App() {
-  const { user, isAuthenticated, isLoading, effectiveRole } = useAuth();
+  const { isAuthenticated, isLoading, effectiveRole } = useAuth();
 
   const [activeTab, setActiveTab] = useState('login');
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
@@ -149,31 +149,38 @@ export default function App() {
         /* ========================================================
             2. AUTHENTICATED ROLE-BASED DASHBOARD APPLICATION
             ======================================================== */
-        <div className="relative z-10 flex-1 flex flex-col">
-          <PlatformHeader 
+        effectiveRole === 'Student' ? (
+          <StudentDashboard 
+            onNotify={triggerToast} 
             onOpenRoleTester={() => setIsRoleTesterOpen(true)}
-            onNotify={triggerToast}
           />
+        ) : (
+          <div className="relative z-10 flex-1 flex flex-col">
+            <PlatformHeader 
+              onOpenRoleTester={() => setIsRoleTesterOpen(true)}
+              onNotify={triggerToast}
+            />
 
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
-            {role === 'Administrator' ? (
-              <AdminDashboard 
-                onNotify={triggerToast} 
-                onOpenRoleTester={() => setIsRoleTesterOpen(true)}
-              />
-            ) : role === 'Technician' ? (
-              <TechnicianDashboard 
-                onNotify={triggerToast} 
-                onOpenRoleTester={() => setIsRoleTesterOpen(true)}
-              />
-            ) : (
-              <ReporterDashboard 
-                onNotify={triggerToast} 
-                onOpenRoleTester={() => setIsRoleTesterOpen(true)}
-              />
-            )}
-          </main>
-        </div>
+            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+              {effectiveRole === 'Administrator' ? (
+                <AdminDashboard 
+                  onNotify={triggerToast} 
+                  onOpenRoleTester={() => setIsRoleTesterOpen(true)}
+                />
+              ) : effectiveRole === 'Technician' ? (
+                <TechnicianDashboard 
+                  onNotify={triggerToast} 
+                  onOpenRoleTester={() => setIsRoleTesterOpen(true)}
+                />
+              ) : (
+                <ReporterDashboard 
+                  onNotify={triggerToast} 
+                  onOpenRoleTester={() => setIsRoleTesterOpen(true)}
+                />
+              )}
+            </main>
+          </div>
+        )
       ) : (
         /* ========================================================
             3. PRESERVED ORIGINAL LOGIN & SIGN-UP INTERFACE

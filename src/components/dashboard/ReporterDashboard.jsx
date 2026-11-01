@@ -16,9 +16,12 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import ReportIncidentModule from '../incident/ReportIncidentModule';
 
 export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
   const { user, token } = useAuth();
+
+  const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' | 'report'
 
   // New incident report form state
   const [category, setCategory] = useState('network');
@@ -136,6 +139,17 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
           <div className="flex items-center gap-3">
             <button
               type="button"
+              onClick={() => setViewMode(viewMode === 'report' ? 'dashboard' : 'report')}
+              className="px-4 py-2.5 rounded-xl font-bold text-xs text-[#0F3040] transition-all hover:brightness-105 active:scale-95 flex items-center gap-2 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)',
+              }}
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>{viewMode === 'report' ? 'Return to Dashboard' : 'Report an Incident'}</span>
+            </button>
+            <button
+              type="button"
               onClick={onOpenRoleTester}
               className="px-4 py-2.5 rounded-xl bg-[#464858]/50 hover:bg-[#464858] border border-[#A56F63]/40 text-slate-200 text-xs font-semibold transition-all active:scale-95 flex items-center gap-2 shadow-sm"
             >
@@ -146,7 +160,22 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
         </div>
       </div>
 
-      {/* Metrics Row */}
+      {viewMode === 'report' ? (
+        <ReportIncidentModule
+          onIncidentCreated={(ticket) => {
+            setSubmittedTickets((prev) => [ticket, ...prev]);
+          }}
+          onViewIncident={() => {
+            setViewMode('dashboard');
+          }}
+          onReturnToDashboard={() => {
+            setViewMode('dashboard');
+          }}
+          onNotify={onNotify}
+        />
+      ) : (
+        <>
+          {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-4 rounded-xl bg-[#202733]/60 border border-slate-300/20 backdrop-blur-md">
           <div className="flex items-center justify-between">
@@ -327,9 +356,19 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
               <FileText className="w-5 h-5 text-[#D99B7F]" />
               <h2 className="text-lg font-bold text-white font-heading">My Reported Incidents</h2>
             </div>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-[#D99B7F]/20 text-[#D99B7F] font-bold">
-              {submittedTickets.length} Active
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={fetchTickets}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-[#464858]/50 transition-colors"
+                title="Refresh incident list"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingTickets ? 'animate-spin text-[#D99B7F]' : ''}`} />
+              </button>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-[#D99B7F]/20 text-[#D99B7F] font-bold">
+                {submittedTickets.length} Active
+              </span>
+            </div>
           </div>
 
           <div className="space-y-3 flex-1 overflow-y-auto pr-1">
@@ -373,6 +412,8 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }
