@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, ShieldCheck, User, LogOut, ArrowRight, Activity, Clock } from 'lucide-react';
+import { CheckCircle2, LogOut, Activity } from 'lucide-react';
 
 export default function AuthSuccessModal({ authData, onSignOut }) {
   if (!authData) return null;

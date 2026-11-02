@@ -7,14 +7,19 @@ import ForgotPasswordModal from './components/ForgotPasswordModal';
 import Toast from './components/Toast';
 import PlatformHeader from './components/dashboard/PlatformHeader';
 import RoleAccessTesterModal from './components/dashboard/RoleAccessTesterModal';
+import StudentDashboard from './components/dashboard/StudentDashboard';
 import ReporterDashboard from './components/dashboard/ReporterDashboard';
 import TechnicianDashboard from './components/dashboard/TechnicianDashboard';
 import AdminDashboard from './components/dashboard/AdminDashboard';
+import NotificationCenterModal from './components/notifications/NotificationCenterModal';
 import bgImage from './assets/pinterest-bg.jpg';
 import { useAuth } from './context/AuthContext';
 
+// Computed once at module load — avoids calling impure Date() during render
+const CURRENT_YEAR = new Date().getFullYear();
+
 export default function App() {
-  const { user, isAuthenticated, isLoading, role } = useAuth();
+  const { isAuthenticated, isLoading, effectiveRole } = useAuth();
 
   const [activeTab, setActiveTab] = useState('login');
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
@@ -131,6 +136,9 @@ export default function App() {
         onClose={() => setIsRoleTesterOpen(false)}
       />
 
+      {/* Complete Notification Center & Activity Engine Modal */}
+      <NotificationCenterModal />
+
       {/* ========================================================
           INITIAL SESSION LOADING STATE
           ======================================================== */}
@@ -148,31 +156,36 @@ export default function App() {
         /* ========================================================
             2. AUTHENTICATED ROLE-BASED DASHBOARD APPLICATION
             ======================================================== */
-        <div className="relative z-10 flex-1 flex flex-col">
-          <PlatformHeader 
+        effectiveRole === 'Student' ? (
+          <StudentDashboard 
+            onNotify={triggerToast} 
             onOpenRoleTester={() => setIsRoleTesterOpen(true)}
-            onNotify={triggerToast}
           />
+        ) : effectiveRole === 'Technician' ? (
+          <TechnicianDashboard 
+            onNotify={triggerToast} 
+            onOpenRoleTester={() => setIsRoleTesterOpen(true)}
+          />
+        ) : effectiveRole === 'Administrator' ? (
+          <AdminDashboard 
+            onNotify={triggerToast} 
+            onOpenRoleTester={() => setIsRoleTesterOpen(true)}
+          />
+        ) : (
+          <div className="relative z-10 flex-1 flex flex-col">
+            <PlatformHeader 
+              onOpenRoleTester={() => setIsRoleTesterOpen(true)}
+              onNotify={triggerToast}
+            />
 
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
-            {role === 'Administrator' ? (
-              <AdminDashboard 
-                onNotify={triggerToast} 
-                onOpenRoleTester={() => setIsRoleTesterOpen(true)}
-              />
-            ) : role === 'Technician' ? (
-              <TechnicianDashboard 
-                onNotify={triggerToast} 
-                onOpenRoleTester={() => setIsRoleTesterOpen(true)}
-              />
-            ) : (
+            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
               <ReporterDashboard 
                 onNotify={triggerToast} 
                 onOpenRoleTester={() => setIsRoleTesterOpen(true)}
               />
-            )}
-          </main>
-        </div>
+            </main>
+          </div>
+        )
       ) : (
         /* ========================================================
             3. PRESERVED ORIGINAL LOGIN & SIGN-UP INTERFACE
@@ -286,7 +299,7 @@ export default function App() {
       {/* Global Footer */}
       <footer className="relative z-10 w-full max-w-7xl mx-auto px-4 py-4 text-center text-xs text-slate-400/80 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-[#A56F63]/15">
         <p className="tracking-wide">
-          © {new Date().getFullYear()} CampusFix™ Systems. Built for Campus IT Infrastructure Operations.
+          © {CURRENT_YEAR} CampusFix™ Systems. Built for Campus IT Infrastructure Operations.
         </p>
         <div className="flex items-center gap-4 text-[11px]">
           <a href="#privacy" onClick={(e) => { e.preventDefault(); triggerToast('Privacy Policy: All campus telemetry is encrypted.'); }} className="hover:text-[#D99B7F] transition-colors">

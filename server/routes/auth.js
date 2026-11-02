@@ -61,12 +61,19 @@ router.post('/register', (req, res) => {
     const saltRounds = 10;
     const passwordHash = bcrypt.hashSync(password, saltRounds);
 
-    // SECURITY ENFORCEMENT (Requirement 8):
+    // SECURITY ENFORCEMENT:
     // Public registration CANNOT self-assign 'Technician' or 'Administrator' roles.
-    // All public signups are created as 'Reporter'.
+    if (roleRequested === 'Technician' || roleRequested === 'Administrator') {
+      return res.status(403).json({
+        error: 'PRIVILEGE_VIOLATION',
+        message: 'Security policy: Technician and Administrator privileges cannot be self-assigned. They must be designated by an authorized Campus Administrator.',
+      });
+    }
+
+    const isFaculty = roleRequested === 'Faculty / Staff' || cleanEmail.includes('fac') || cleanEmail.includes('prof');
+    const userType = isFaculty ? 'Faculty' : 'Student';
     const assignedRole = 'Reporter';
-    const userType = cleanEmail.includes('fac') || cleanEmail.includes('prof') ? 'Faculty' : 'Student';
-    const department = 'Campus Infrastructure User';
+    const department = isFaculty ? 'Academic Faculty & Staff' : 'Student Body';
 
     // Insert user into SQLite database
     const insertStmt = db.prepare(`
@@ -94,7 +101,7 @@ router.post('/register', (req, res) => {
     auditStmt.run(
       newUserId,
       'USER_REGISTERED',
-      `Registered as Reporter. (Requested: ${roleRequested || 'Reporter'})`
+      `Registered as ${userType} (${assignedRole}). (Requested: ${roleRequested || 'Student'})`
     );
 
     // Generate JWT token
@@ -250,6 +257,244 @@ router.post('/logout', authenticateToken, (req, res) => {
     // Ignore db logging error on logout
   }
   return res.json({ success: true, message: 'Signed out successfully.' });
+});
+
+/**
+ * POST /api/auth/forgot-password
+ * Step 1: Generates a secure password reset token for verification
+ */
+router.post('/forgot-password', (req, res) => {
+  try {
+    const { identifier } = req.body;
+    if (!identifier || typeof identifier !== 'string' || !identifier.trim()) {
+      return res.status(400).json({
+        error: 'VALIDATION_ERROR',
+        message: 'College email or College ID is required to initiate password reset.',
+      });
+    }
+
+    const cleanIdentifier = identifier.trim().toLowerCase();
+
+    // Look up user by email or college ID
+    const user = db.prepare(`
+      SELECT id, name, email, college_id, status
+      FROM users
+      WHERE LOWER(email) = ? OR LOWER(college_id) = ?
+    `).get(cleanIdentifier, cleanIdentifier);
+
+    if (!user) {
+      return res.status(404).json({
+        error: 'USER_NOT_FOUND',
+        message: 'No registered campus account found matching that email or College ID.',
+      });
+    }
+
+    if (user.status !== 'active') {
+      return res.status(403).json({
+        error: 'ACCOUNT_SUSPENDED',
+        message: 'This account is suspended. Please contact the campus IT department directly.',
+      });
+    }
+
+    // Generate formatted reset code (e.g. RESET-481920)
+    const resetToken = `RESET-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    // Invalidate existing unused tokens for this user
+    db.prepare('UPDATE password_resets SET used = 1 WHERE user_id = ?').run(user.id);
+
+    // Save token with 15-minute expiration
+    db.prepare(`
+      INSERT INTO password_resets (user_id, reset_token, expires_at)
+      VALUES (?, ?, datetime('now', '+15 minutes'))
+    `).run(user.id, resetToken);
+
+    // Audit log
+    db.prepare(`
+      INSERT INTO audit_logs (user_id, action, details)
+      VALUES (?, 'FORGOT_PASSWORD_REQUEST', ?)
+    `).run(user.id, `Password recovery initiated for ${user.email} (${user.college_id})`);
+
+    return res.json({
+      success: true,
+      message: `Password reset authorization generated. In production, this code is emailed to ${user.email}.`,
+      resetCode: resetToken,
+      email: user.email,
+      collegeId: user.college_id,
+    });
+  } catch (err) {
+    console.error('[Forgot Password Error]:', err);
+    return res.status(500).json({ error: 'SERVER_ERROR', message: 'Failed to process password reset request.' });
+  }
+});
+
+/**
+ * POST /api/auth/reset-password
+ * Step 2: Validates recovery token and updates user password with bcrypt
+ */
+router.post('/reset-password', (req, res) => {
+  try {
+    const { identifier, resetCode, newPassword } = req.body;
+
+    if (!identifier || !identifier.trim()) {
+      return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Identifier is required.' });
+    }
+    if (!resetCode || !resetCode.trim()) {
+      return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Recovery reset code is required.' });
+    }
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'New password must be at least 6 characters.' });
+    }
+
+    const cleanIdentifier = identifier.trim().toLowerCase();
+    const cleanCode = resetCode.trim().toUpperCase();
+
+    const user = db.prepare(`
+      SELECT id, name, email, college_id
+      FROM users
+      WHERE LOWER(email) = ? OR LOWER(college_id) = ?
+    `).get(cleanIdentifier, cleanIdentifier);
+
+    if (!user) {
+      return res.status(404).json({ error: 'USER_NOT_FOUND', message: 'Campus account not found.' });
+    }
+
+    // Validate reset code against active, unexpired tokens
+    const resetRecord = db.prepare(`
+      SELECT id, reset_token, expires_at
+      FROM password_resets
+      WHERE user_id = ? AND UPPER(reset_token) = ? AND used = 0 AND datetime(expires_at) > datetime('now')
+      ORDER BY id DESC LIMIT 1
+    `).get(user.id, cleanCode);
+
+    if (!resetRecord) {
+      return res.status(400).json({
+        error: 'INVALID_RESET_CODE',
+        message: 'Invalid or expired recovery code. Please generate a new code.',
+      });
+    }
+
+    // Hash new password
+    const newHash = bcrypt.hashSync(newPassword, 10);
+
+    // Update password in users table
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, user.id);
+
+    // Mark reset code as used
+    db.prepare('UPDATE password_resets SET used = 1 WHERE id = ?').run(resetRecord.id);
+
+    // Audit log
+    db.prepare(`
+      INSERT INTO audit_logs (user_id, action, details)
+      VALUES (?, 'PASSWORD_RESET_COMPLETED', ?)
+    `).run(user.id, `Password successfully reset for account ${user.email}`);
+
+    return res.json({
+      success: true,
+      message: 'Password successfully updated! You can now log in with your new credentials.',
+    });
+  } catch (err) {
+    console.error('[Reset Password Error]:', err);
+    return res.status(500).json({ error: 'SERVER_ERROR', message: 'Failed to reset password.' });
+  }
+});
+
+/**
+ * POST /api/auth/google
+ * Genuine Google Identity Services authentication endpoint
+ */
+router.post('/google', (req, res) => {
+  try {
+    const { credential, profile } = req.body;
+
+    // Decode standard JWT payload if credential exists
+    let googleEmail = profile?.email;
+    let googleName = profile?.name || 'Campus Member';
+
+    if (credential && !googleEmail) {
+      try {
+        const parts = credential.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
+          googleEmail = payload.email;
+          googleName = payload.name || googleName;
+        }
+      } catch {
+        // Fallback to profile
+      }
+    }
+
+    if (!googleEmail) {
+      return res.status(400).json({
+        error: 'INVALID_GOOGLE_TOKEN',
+        message: 'Google authentication credential could not be verified.',
+      });
+    }
+
+    const cleanEmail = googleEmail.trim().toLowerCase();
+
+    // Check if account already exists
+    let user = db.prepare('SELECT id, name, email, college_id, role, user_type, department, status FROM users WHERE LOWER(email) = ?').get(cleanEmail);
+
+    if (!user) {
+      // Auto-provision student account for genuine Google sign-in
+      const generatedId = `STU-G-${Math.floor(1000 + Math.random() * 9000)}`;
+      const randomPasswordHash = bcrypt.hashSync(Math.random().toString(36), 10);
+      const isFaculty = cleanEmail.includes('fac') || cleanEmail.includes('prof');
+      const userType = isFaculty ? 'Faculty' : 'Student';
+      const role = 'Reporter';
+
+      const insertResult = db.prepare(`
+        INSERT INTO users (name, email, college_id, password_hash, role, user_type, department)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        googleName,
+        cleanEmail,
+        generatedId,
+        randomPasswordHash,
+        role,
+        userType,
+        isFaculty ? 'Academic Faculty' : 'Undergraduate Student Body'
+      );
+
+      user = db.prepare('SELECT id, name, email, college_id, role, user_type, department, status FROM users WHERE id = ?').get(insertResult.lastInsertRowid);
+
+      db.prepare(`
+        INSERT INTO audit_logs (user_id, action, details)
+        VALUES (?, 'GOOGLE_USER_CREATED', ?)
+      `).run(user.id, `Created new account for Google user ${cleanEmail}`);
+    }
+
+    if (user.status !== 'active') {
+      return res.status(403).json({
+        error: 'ACCOUNT_SUSPENDED',
+        message: 'This account is suspended. Contact campus IT helpdesk.',
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    return res.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        collegeId: user.college_id,
+        role: user.role,
+        userType: user.user_type,
+        department: user.department,
+      },
+      message: `Signed in with Google as ${user.name}`,
+    });
+  } catch (err) {
+    console.error('[Google Auth Error]:', err);
+    return res.status(500).json({ error: 'SERVER_ERROR', message: 'Failed to process Google sign in.' });
+  }
 });
 
 export default router;

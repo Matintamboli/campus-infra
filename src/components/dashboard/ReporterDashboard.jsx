@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   PlusCircle, 
   AlertCircle, 
@@ -12,14 +12,20 @@ import {
   Server,
   ShieldAlert,
   Send,
-  FileText
+  FileText,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import ReportIncidentModule from '../incident/ReportIncidentModule';
+import MyIncidentsModule from '../incident/MyIncidentsModule';
 
 export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
-  // New incident report form state (functional interactive preview)
+  const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' | 'report' | 'my-incidents'
+  const [selectedIncident, setSelectedIncident] = useState(null);
+
+  // New incident report form state
   const [category, setCategory] = useState('network');
   const [priority, setPriority] = useState('Medium');
   const [title, setTitle] = useState('');
@@ -27,30 +33,8 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
   const [room, setRoom] = useState('Lab 304');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submittedTickets, setSubmittedTickets] = useState([
-    {
-      id: 'TKT-1082',
-      title: 'Lab 304 Wi-Fi access point dropping connection periodically',
-      category: 'Network',
-      priority: 'High',
-      status: 'In Progress',
-      building: 'Engineering Block B',
-      room: 'Lab 304',
-      date: 'Today, 11:20 AM',
-      technician: 'Marcus Vance (Assigned)',
-    },
-    {
-      id: 'TKT-1055',
-      title: 'Projector HDMI port flickering in Lecture Hall 2',
-      category: 'Classroom Equipment',
-      priority: 'Medium',
-      status: 'Open',
-      building: 'Science Concourse',
-      room: 'Hall 2',
-      date: 'Yesterday, 3:45 PM',
-      technician: 'Unassigned (In Dispatch Queue)',
-    },
-  ]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(true);
+  const [submittedTickets, setSubmittedTickets] = useState([]);
 
   const categories = [
     { id: 'network', name: 'Network Infrastructure', icon: Wifi, desc: 'Wi-Fi, Ethernet, routers' },
@@ -61,7 +45,31 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
     { id: 'servers', name: 'Campus Servers', icon: Server, desc: 'Virtual machines, LMS' },
   ];
 
-  const handleCreateReport = (e) => {
+  const fetchTickets = useCallback(async () => {
+    setIsLoadingTickets(true);
+    try {
+      const res = await fetch('/api/tickets', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSubmittedTickets(data.tickets || []);
+      }
+    } catch (err) {
+      console.error('Failed to load tickets:', err);
+      if (onNotify) onNotify('Unable to retrieve incidents from campus server', 'error');
+    } finally {
+      setIsLoadingTickets(false);
+    }
+  }, [token, onNotify]);
+
+  useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
+
+  const handleCreateReport = async (e) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
       if (onNotify) onNotify('Please provide a title and detailed problem description', 'error');
@@ -69,24 +77,40 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      const newTkt = {
-        id: `TKT-${Math.floor(1000 + Math.random() * 9000)}`,
-        title,
-        category: categories.find((c) => c.id === category)?.name || 'General',
-        priority,
-        status: 'Open',
-        building,
-        room,
-        date: 'Just now',
-        technician: 'Awaiting Administrator Assignment',
-      };
-      setSubmittedTickets([newTkt, ...submittedTickets]);
+    try {
+      const selectedCat = categories.find((c) => c.id === category)?.name || 'General';
+      const res = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim(),
+          category: selectedCat,
+          priority,
+          building: building.trim(),
+          room: room.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to submit incident ticket');
+      }
+
+      setSubmittedTickets((prev) => [data.ticket, ...prev]);
       setTitle('');
       setDescription('');
-      if (onNotify) onNotify(`Incident report filed successfully! Assigned Ticket #${newTkt.id}`, 'success');
-    }, 600);
+      if (onNotify) onNotify(`Incident report filed! Ticket #${data.ticket.ticket_number || data.ticket.id} registered`, 'success');
+    } catch (err) {
+      console.error('Submit error:', err);
+      if (onNotify) onNotify(err.message || 'Error filing incident report', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -114,7 +138,38 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedIncident(null);
+                setViewMode(viewMode === 'report' ? 'dashboard' : 'report');
+              }}
+              className="px-4 py-2.5 rounded-xl font-bold text-xs text-[#0F3040] transition-all hover:brightness-105 active:scale-95 flex items-center gap-2 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)',
+              }}
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>{viewMode === 'report' ? 'Return to Dashboard' : 'Report an Incident'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedIncident(null);
+                setViewMode(viewMode === 'my-incidents' ? 'dashboard' : 'my-incidents');
+              }}
+              className={`px-4 py-2.5 rounded-xl border text-xs font-semibold transition-all active:scale-95 flex items-center gap-2 shadow-sm ${
+                viewMode === 'my-incidents'
+                  ? 'bg-[#D99B7F] text-[#0F3040] border-[#D99B7F] font-bold'
+                  : 'bg-[#464858]/50 hover:bg-[#464858] border-[#A56F63]/40 text-slate-200'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              <span>{viewMode === 'my-incidents' ? 'Overview Dashboard' : 'My Incidents'}</span>
+            </button>
+
             <button
               type="button"
               onClick={onOpenRoleTester}
@@ -127,7 +182,40 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
         </div>
       </div>
 
-      {/* Metrics Row */}
+      {viewMode === 'report' ? (
+        <ReportIncidentModule
+          onIncidentCreated={(ticket) => {
+            setSubmittedTickets((prev) => [ticket, ...prev]);
+          }}
+          onViewIncident={(ticket) => {
+            setSelectedIncident(ticket);
+            setViewMode('my-incidents');
+          }}
+          onReturnToDashboard={() => {
+            setViewMode('dashboard');
+          }}
+          onNotify={onNotify}
+        />
+      ) : viewMode === 'my-incidents' ? (
+        <MyIncidentsModule
+          tickets={submittedTickets}
+          onRefreshTickets={fetchTickets}
+          onReportNew={() => {
+            setSelectedIncident(null);
+            setViewMode('report');
+          }}
+          selectedIncident={selectedIncident}
+          onSelectIncident={(tkt) => {
+            setSelectedIncident(tkt);
+            if (tkt) {
+              setSubmittedTickets((prev) => prev.map((item) => (item.id === tkt.id ? tkt : item)));
+            }
+          }}
+          onNotify={onNotify}
+        />
+      ) : (
+        <>
+          {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-4 rounded-xl bg-[#202733]/60 border border-slate-300/20 backdrop-blur-md">
           <div className="flex items-center justify-between">
@@ -308,9 +396,19 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
               <FileText className="w-5 h-5 text-[#D99B7F]" />
               <h2 className="text-lg font-bold text-white font-heading">My Reported Incidents</h2>
             </div>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-[#D99B7F]/20 text-[#D99B7F] font-bold">
-              {submittedTickets.length} Active
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={fetchTickets}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-[#464858]/50 transition-colors"
+                title="Refresh incident list"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingTickets ? 'animate-spin text-[#D99B7F]' : ''}`} />
+              </button>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-[#D99B7F]/20 text-[#D99B7F] font-bold">
+                {submittedTickets.length} Active
+              </span>
+            </div>
           </div>
 
           <div className="space-y-3 flex-1 overflow-y-auto pr-1">
@@ -321,7 +419,7 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-xs text-[#D99B7F]">{tkt.id}</span>
+                    <span className="font-mono font-bold text-xs text-[#D99B7F]">{tkt.ticket_number || `INC-${tkt.id}`}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                       tkt.priority === 'Critical' ? 'bg-red-500/20 text-red-300 border border-red-500/40' :
                       tkt.priority === 'High' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
@@ -333,6 +431,7 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     tkt.status === 'In Progress' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' :
                     tkt.status === 'Resolved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
+                    tkt.status === 'Closed' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' :
                     'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                   }`}>
                     {tkt.status}
@@ -342,18 +441,20 @@ export default function ReporterDashboard({ onNotify, onOpenRoleTester }) {
                 <p className="text-xs font-semibold text-white leading-snug">{tkt.title}</p>
 
                 <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-600/20">
-                  <span>📍 {tkt.building} • {tkt.room}</span>
-                  <span>{tkt.date}</span>
+                  <span>📍 {tkt.building || '—'}{tkt.room ? ` • ${tkt.room}` : ''}</span>
+                  <span>{tkt.created_at ? new Date(tkt.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '—'}</span>
                 </div>
 
                 <div className="text-[11px] bg-[#0F3040]/70 px-2.5 py-1 rounded text-slate-300 flex items-center justify-between">
-                  <span>Assigned: <strong>{tkt.technician}</strong></span>
+                  <span>Assigned: <strong>{tkt.technician_name || 'Awaiting Assignment'}</strong></span>
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

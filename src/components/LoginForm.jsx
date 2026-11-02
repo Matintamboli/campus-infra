@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Sparkles, UserCheck, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
 import GoogleAuthButton from './GoogleAuthButton';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,10 +10,14 @@ export default function LoginForm({
   onNotify 
 }) {
   const { login } = useAuth();
-  const [identifier, setIdentifier] = useState('');
+  const [identifier, setIdentifier] = useState(() => {
+    return localStorage.getItem('campusfix_remembered_identifier') || '';
+  });
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(() => {
+    return localStorage.getItem('campusfix_remember_me') !== 'false';
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState(null);
@@ -43,7 +47,8 @@ export default function LoginForm({
     setServerError(null);
 
     try {
-      const data = await login(identifier, password);
+      localStorage.setItem('campusfix_remember_me', rememberMe ? 'true' : 'false');
+      const data = await login(identifier, password, rememberMe);
       setIsLoading(false);
       if (onLoginSuccess) {
         onLoginSuccess(data.user);
@@ -60,6 +65,10 @@ export default function LoginForm({
       setIdentifier('alex.student@campus.edu');
       setPassword('campus2026!');
       if (onNotify) onNotify('Loaded Student credentials', 'info');
+    } else if (roleType === 'faculty') {
+      setIdentifier('elena.faculty@campus.edu');
+      setPassword('faculty2026!');
+      if (onNotify) onNotify('Loaded Faculty credentials', 'info');
     } else if (roleType === 'tech') {
       setIdentifier('m.vance.tech@campus.edu');
       setPassword('infraOps99#');
@@ -85,30 +94,38 @@ export default function LoginForm({
         </p>
       </div>
 
-      {/* Quick Demo Pre-fill Chips */}
-      <div className="flex items-center justify-center gap-2 mb-5 flex-wrap">
-        <span className="text-[11px] text-slate-400 font-medium">Quick Demo:</span>
+      {/* Quick Demo Pre-fill Chips for All 4 Roles */}
+      <div className="flex items-center justify-center gap-1.5 mb-5 flex-wrap">
+        <span className="text-[11px] text-slate-400 font-medium mr-0.5">Quick Demo:</span>
         <button
           type="button"
           onClick={() => handleQuickFill('student')}
           className="text-[11px] px-2.5 py-1 rounded-full bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 hover:border-[#D99B7F]/60 text-slate-200 transition-all active:scale-95"
-          title="Autofill student account"
+          title="Autofill Student account"
         >
           🎓 Student
         </button>
         <button
           type="button"
+          onClick={() => handleQuickFill('faculty')}
+          className="text-[11px] px-2.5 py-1 rounded-full bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 hover:border-[#D99B7F]/60 text-slate-200 transition-all active:scale-95"
+          title="Autofill Faculty account"
+        >
+          💼 Faculty
+        </button>
+        <button
+          type="button"
           onClick={() => handleQuickFill('tech')}
           className="text-[11px] px-2.5 py-1 rounded-full bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 hover:border-[#D99B7F]/60 text-slate-200 transition-all active:scale-95"
-          title="Autofill technician account"
+          title="Autofill Technician account"
         >
-          🔧 Technician
+          🔧 Tech
         </button>
         <button
           type="button"
           onClick={() => handleQuickFill('admin')}
           className="text-[11px] px-2.5 py-1 rounded-full bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 hover:border-[#D99B7F]/60 text-slate-200 transition-all active:scale-95"
-          title="Autofill administrator account"
+          title="Autofill Administrator account"
         >
           🛡️ Admin
         </button>

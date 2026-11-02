@@ -11,8 +11,7 @@ import {
   Check, 
   GraduationCap, 
   Briefcase, 
-  Wrench,
-  ShieldCheck,
+  ShieldAlert,
   AlertCircle
 } from 'lucide-react';
 import GoogleAuthButton from './GoogleAuthButton';
@@ -37,24 +36,19 @@ export default function SignUpForm({
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState(null);
 
+  // STRICT SECURITY: Public registration only allows Student or Faculty / Staff
   const roleOptions = [
     {
       id: 'Student',
       label: 'Student',
-      desc: 'Report classroom, lab & Wi-Fi issues',
+      desc: 'Report classroom, lab, dorm & Wi-Fi issues',
       icon: GraduationCap,
     },
     {
       id: 'Faculty / Staff',
       label: 'Faculty / Staff',
-      desc: 'Department equipment & office requests',
+      desc: 'Department equipment, office & research labs',
       icon: Briefcase,
-    },
-    {
-      id: 'Technician',
-      label: 'Technician',
-      desc: 'Inspect, prioritize & resolve campus tickets',
-      icon: Wrench,
     },
   ];
 
@@ -77,7 +71,7 @@ export default function SignUpForm({
     if (!fullName.trim()) errs.fullName = 'Full Name is required';
     if (!email.trim()) {
       errs.email = 'College email is required';
-    } else if (!email.includes('@')) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       errs.email = 'Please provide a valid campus email address';
     }
     if (!collegeId.trim()) {
@@ -88,7 +82,9 @@ export default function SignUpForm({
     } else if (password.length < 6) {
       errs.password = 'Minimum 6 characters required';
     }
-    if (password !== confirmPassword) {
+    if (!confirmPassword) {
+      errs.confirmPassword = 'Confirm your password';
+    } else if (password !== confirmPassword) {
       errs.confirmPassword = 'Passwords do not match';
     }
     setErrors(errs);
@@ -139,7 +135,7 @@ export default function SignUpForm({
           Create Your Account
         </h2>
         <p className="mt-1 text-xs sm:text-[13px] text-slate-300/80 font-light">
-          Get connected to your campus.
+          Join your university campus infrastructure operations.
         </p>
       </div>
 
@@ -167,7 +163,6 @@ export default function SignUpForm({
             <input
               id="signup-fullname"
               type="text"
-              required
               autoComplete="name"
               placeholder="e.g. Maya Lin"
               value={fullName}
@@ -202,7 +197,6 @@ export default function SignUpForm({
               <input
                 id="signup-email"
                 type="email"
-                required
                 autoComplete="email"
                 placeholder="maya@campus.edu"
                 value={email}
@@ -235,7 +229,6 @@ export default function SignUpForm({
               <input
                 id="signup-id"
                 type="text"
-                required
                 placeholder="STU-2026-442"
                 value={collegeId}
                 onChange={(e) => {
@@ -253,11 +246,14 @@ export default function SignUpForm({
           </div>
         </div>
 
-        {/* Role Selection Dropdown */}
+        {/* Role Selection Dropdown: Strictly Student or Faculty/Staff */}
         <div className="relative">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90 mb-1">
-            Campus Role
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90">
+              Campus Role
+            </label>
+            <span className="text-[10px] text-slate-400">Public Registration</span>
+          </div>
           <button
             type="button"
             id="role-dropdown-trigger"
@@ -298,17 +294,15 @@ export default function SignUpForm({
                     }}
                     className={`w-full flex items-center justify-between p-2.5 rounded-lg text-left transition-all ${
                       isSelected 
-                        ? 'bg-[#464858]/50 border border-[#D99B7F]/40 text-white' 
-                        : 'hover:bg-[#464858]/30 text-slate-300 hover:text-white'
+                        ? 'bg-[#464858]/80 text-[#D99B7F] border border-[#A56F63]/40' 
+                        : 'hover:bg-[#464858]/40 text-slate-200'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className={`p-1.5 rounded-md ${isSelected ? 'bg-[#D99B7F] text-[#0F3040]' : 'bg-[#464858]/60 text-[#D99B7F]'}`}>
-                        <ItemIcon className="w-4 h-4" />
-                      </div>
+                      <ItemIcon className="w-4 h-4 text-[#D99B7F]" />
                       <div>
-                        <div className="text-xs font-semibold text-white">{item.label}</div>
-                        <div className="text-[11px] text-slate-400">{item.desc}</div>
+                        <div className="text-xs font-bold text-white">{item.label}</div>
+                        <div className="text-[10px] text-slate-300 font-light">{item.desc}</div>
                       </div>
                     </div>
                     {isSelected && <Check className="w-4 h-4 text-[#D99B7F]" />}
@@ -318,133 +312,145 @@ export default function SignUpForm({
             </div>
           )}
 
-          {/* Security policy note for public registration */}
-          <div className="mt-1.5 px-2.5 py-1.5 rounded-lg bg-[#0F3040]/70 border border-[#A56F63]/30 flex items-start gap-2 text-[11px] text-slate-300/90 leading-tight">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#D99B7F] flex-shrink-0 mt-0.5" />
-            <span>
-              Campus Security Policy: Public registrations are assigned <strong className="text-white">Reporter</strong> permissions. Technician and Administrator access must be provisioned by campus IT operations.
-            </span>
+          {/* Privilege Security Notice */}
+          <div className="mt-1 flex items-start gap-1.5 text-[10.5px] text-slate-400 px-1 leading-tight">
+            <ShieldAlert className="w-3.5 h-3.5 text-[#D99B7F] flex-shrink-0 mt-0.5" />
+            <span>Technician and Administrator roles require authorized elevation by campus IT directors.</span>
           </div>
         </div>
 
-        {/* 2-Column Row: Password & Confirm Password */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Password */}
-          <div>
-            <label 
-              htmlFor="signup-password" 
-              className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90 mb-1"
-            >
-              Password
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Lock className="w-4 h-4 text-slate-400" />
-              </div>
-              <input
-                id="signup-password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="new-password"
-                required
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (errors.password) setErrors({ ...errors, password: null });
-                }}
-                className={`w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm rounded-xl glass-input text-white placeholder-slate-400/80 focus:outline-none ${
-                  errors.password ? 'border-red-400/80' : ''
-                }`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-[#D99B7F] transition-colors focus:outline-none"
-              >
-                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              </button>
+        {/* Password Field with Visibility Toggle */}
+        <div>
+          <label 
+            htmlFor="signup-password" 
+            className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90 mb-1"
+          >
+            Password
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <Lock className="w-4 h-4 text-slate-400" />
             </div>
-            {errors.password && (
-              <p className="mt-1 text-[11px] text-red-300 font-medium pl-1">{errors.password}</p>
-            )}
+            <input
+              id="signup-password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              placeholder="••••••••••••"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errors.password) setErrors({ ...errors, password: null });
+                if (confirmPassword && e.target.value !== confirmPassword) {
+                  setErrors((prev) => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+                } else if (confirmPassword) {
+                  setErrors((prev) => ({ ...prev, confirmPassword: null }));
+                }
+              }}
+              className={`w-full pl-10 pr-11 py-2.5 text-sm rounded-xl glass-input text-white placeholder-slate-400/80 focus:outline-none ${
+                errors.password ? 'border-red-400/80' : ''
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-[#D99B7F] transition-colors focus:outline-none"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
           </div>
+          {errors.password && (
+            <p className="mt-1 text-[11px] text-red-300 font-medium pl-1">{errors.password}</p>
+          )}
 
-          {/* Confirm Password */}
-          <div>
-            <label 
-              htmlFor="signup-confirm-password" 
-              className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90 mb-1"
-            >
-              Confirm Password
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Lock className="w-4 h-4 text-slate-400" />
+          {/* Password Strength Indicator */}
+          {password && (
+            <div className="mt-2 space-y-1 animate-fadeIn">
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="text-slate-400">Strength:</span>
+                <span className={`font-bold ${
+                  passwordScore <= 2 ? 'text-red-400' :
+                  passwordScore <= 3 ? 'text-amber-400' :
+                  'text-emerald-400'
+                }`}>
+                  {passwordScore <= 2 ? 'Weak' : passwordScore <= 3 ? 'Medium' : 'Strong & Resilient'}
+                </span>
               </div>
-              <input
-                id="signup-confirm-password"
-                type={showConfirmPassword ? 'text' : 'password'}
-                autoComplete="new-password"
-                required
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: null });
-                }}
-                className={`w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm rounded-xl glass-input text-white placeholder-slate-400/80 focus:outline-none ${
-                  errors.confirmPassword ? 'border-red-400/80' : ''
-                }`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-[#D99B7F] transition-colors focus:outline-none"
-              >
-                {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              </button>
+              <div className="h-1 w-full bg-[#464858]/60 rounded-full overflow-hidden flex gap-1">
+                {[1, 2, 3, 4, 5].map((lvl) => (
+                  <div
+                    key={lvl}
+                    className={`h-full flex-1 transition-all duration-300 ${
+                      lvl <= passwordScore
+                        ? passwordScore <= 2
+                          ? 'bg-red-400'
+                          : passwordScore <= 3
+                          ? 'bg-amber-400'
+                          : 'bg-emerald-400'
+                        : 'bg-transparent'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
-            {errors.confirmPassword && (
-              <p className="mt-1 text-[11px] text-red-300 font-medium pl-1">{errors.confirmPassword}</p>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* Password Strength Indicator */}
-        {password && (
-          <div className="pt-1">
-            <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-              <span>Password Security</span>
-              <span className="font-medium text-[#D99B7F]">
-                {passwordScore <= 2 ? 'Weak' : passwordScore <= 3 ? 'Medium' : 'Strong'}
-              </span>
+        {/* Confirm Password with Visibility Toggle & Match Validation */}
+        <div>
+          <label 
+            htmlFor="signup-confirm-password" 
+            className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90 mb-1"
+          >
+            Confirm Password
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <Lock className="w-4 h-4 text-slate-400" />
             </div>
-            <div className="h-1.5 w-full bg-[#464858]/50 rounded-full overflow-hidden flex gap-1">
-              <div 
-                className={`h-full transition-all duration-300 rounded-full ${
-                  passwordScore >= 1 ? 'w-1/3 bg-[#A56F63]' : 'w-0'
-                }`} 
-              />
-              <div 
-                className={`h-full transition-all duration-300 rounded-full ${
-                  passwordScore >= 3 ? 'w-1/3 bg-[#D99B7F]' : 'w-0'
-                }`} 
-              />
-              <div 
-                className={`h-full transition-all duration-300 rounded-full ${
-                  passwordScore >= 4 ? 'w-1/3 bg-emerald-400' : 'w-0'
-                }`} 
-              />
-            </div>
+            <input
+              id="signup-confirm-password"
+              type={showConfirmPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              placeholder="••••••••••••"
+              value={confirmPassword}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                if (e.target.value !== password) {
+                  setErrors((prev) => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+                } else {
+                  setErrors((prev) => ({ ...prev, confirmPassword: null }));
+                }
+              }}
+              className={`w-full pl-10 pr-11 py-2.5 text-sm rounded-xl glass-input text-white placeholder-slate-400/80 focus:outline-none ${
+                errors.confirmPassword ? 'border-red-400/80' : ''
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-[#D99B7F] transition-colors focus:outline-none"
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+            >
+              {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
           </div>
-        )}
+          {errors.confirmPassword && (
+            <p className="mt-1 text-[11px] text-red-300 font-medium pl-1">{errors.confirmPassword}</p>
+          )}
+          {confirmPassword && confirmPassword === password && (
+            <p className="mt-1 text-[11px] text-emerald-400 font-medium pl-1 flex items-center gap-1">
+              <Check className="w-3.5 h-3.5" /> Passwords match
+            </p>
+          )}
+        </div>
 
-        {/* Primary Submit Button */}
+        {/* Submit Button */}
         <button
           type="submit"
           id="btn-signup-submit"
           disabled={isLoading}
-          className="group relative w-full mt-2 py-3 px-5 rounded-xl font-bold text-sm tracking-wide text-[#0F3040] shadow-lg shadow-[#0F3040]/40 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:opacity-75 overflow-hidden animate-shimmer"
+          className="group relative w-full py-3 px-5 rounded-xl font-bold text-sm tracking-wide text-[#0F3040] shadow-lg shadow-[#0F3040]/40 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:opacity-75 overflow-hidden animate-shimmer"
           style={{
             background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)',
             boxShadow: '0 8px 24px -4px rgba(217, 155, 127, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35)',
@@ -454,11 +460,11 @@ export default function SignUpForm({
             {isLoading ? (
               <>
                 <span className="inline-block w-4 h-4 border-2 border-[#0F3040] border-t-transparent rounded-full animate-spin" />
-                <span>CREATING CAMPUS ACCOUNT...</span>
+                <span>CREATING ACCOUNT...</span>
               </>
             ) : (
               <>
-                <span>CREATE ACCOUNT</span>
+                <span>REGISTER FOR CAMPUSFIX</span>
                 <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
               </>
             )}
@@ -471,22 +477,22 @@ export default function SignUpForm({
             <div className="w-full border-t border-slate-400/30" />
           </div>
           <div className="relative px-3 bg-[#18202d] text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-300 rounded border border-slate-500/20">
-            OR CONTINUE WITH
+            OR REGISTER WITH
           </div>
         </div>
 
         {/* Google Authentication Button */}
         <GoogleAuthButton onGoogleSuccess={onSignUpSuccess} mode="signup" />
 
-        {/* Already have an account link */}
+        {/* Switch to Login Link */}
         <div className="pt-2 text-center text-xs text-slate-400">
-          Already have an account?{' '}
+          Already registered?{' '}
           <button
             type="button"
             onClick={onSwitchToLogin}
             className="text-[#D99B7F] font-semibold hover:underline hover:text-white transition-colors ml-1 focus:outline-none"
           >
-            Log in
+            Sign in here
           </button>
         </div>
       </form>

@@ -4,23 +4,19 @@ import {
   ShieldCheck, 
   Wrench, 
   GraduationCap, 
-  User, 
-  Bell, 
-  Activity, 
-  CheckCircle2, 
+  Briefcase,
   ChevronDown,
-  Terminal,
-  RefreshCw
+  Terminal
 } from 'lucide-react';
-import CampusLogo from '../CampusLogo';
 import { useAuth } from '../../context/AuthContext';
+import NotificationBell from '../notifications/NotificationBell';
 
 export default function PlatformHeader({ onOpenRoleTester, onNotify }) {
-  const { user, logout, role } = useAuth();
+  const { user, logout, effectiveRole } = useAuth();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
-  const getRoleBadge = (userRole) => {
-    switch (userRole) {
+  const getRoleBadge = (effRole) => {
+    switch (effRole) {
       case 'Administrator':
         return {
           label: 'Administrator',
@@ -39,9 +35,18 @@ export default function PlatformHeader({ onOpenRoleTester, onNotify }) {
           textColor: 'text-amber-300',
           dotColor: 'bg-amber-400',
         };
+      case 'Faculty / Staff':
+        return {
+          label: 'Faculty / Staff',
+          icon: Briefcase,
+          bgColor: 'bg-sky-500/20',
+          borderColor: 'border-sky-400/40',
+          textColor: 'text-sky-300',
+          dotColor: 'bg-sky-400',
+        };
       default:
         return {
-          label: 'Reporter',
+          label: 'Student',
           icon: GraduationCap,
           bgColor: 'bg-[#D99B7F]/20',
           borderColor: 'border-[#D99B7F]/40',
@@ -51,7 +56,7 @@ export default function PlatformHeader({ onOpenRoleTester, onNotify }) {
     }
   };
 
-  const badge = getRoleBadge(role);
+  const badge = getRoleBadge(effectiveRole);
   const BadgeIcon = badge.icon;
 
   const handleLogout = async () => {
@@ -108,6 +113,9 @@ export default function PlatformHeader({ onOpenRoleTester, onNotify }) {
             <BadgeIcon className="w-3.5 h-3.5" />
             <span className="uppercase tracking-wider">{badge.label}</span>
           </div>
+
+          {/* Professional Notification Bell */}
+          <NotificationBell />
 
           {/* User Menu Trigger */}
           <div className="relative">
