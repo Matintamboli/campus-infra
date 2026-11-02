@@ -14,6 +14,9 @@ import AdminDashboard from './components/dashboard/AdminDashboard';
 import bgImage from './assets/pinterest-bg.jpg';
 import { useAuth } from './context/AuthContext';
 
+// Computed once at module load — avoids calling impure Date() during render
+const CURRENT_YEAR = new Date().getFullYear();
+
 export default function App() {
   const { isAuthenticated, isLoading, effectiveRole } = useAuth();
 
@@ -154,6 +157,16 @@ export default function App() {
             onNotify={triggerToast} 
             onOpenRoleTester={() => setIsRoleTesterOpen(true)}
           />
+        ) : effectiveRole === 'Technician' ? (
+          <TechnicianDashboard 
+            onNotify={triggerToast} 
+            onOpenRoleTester={() => setIsRoleTesterOpen(true)}
+          />
+        ) : effectiveRole === 'Administrator' ? (
+          <AdminDashboard 
+            onNotify={triggerToast} 
+            onOpenRoleTester={() => setIsRoleTesterOpen(true)}
+          />
         ) : (
           <div className="relative z-10 flex-1 flex flex-col">
             <PlatformHeader 
@@ -162,22 +175,10 @@ export default function App() {
             />
 
             <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
-              {effectiveRole === 'Administrator' ? (
-                <AdminDashboard 
-                  onNotify={triggerToast} 
-                  onOpenRoleTester={() => setIsRoleTesterOpen(true)}
-                />
-              ) : effectiveRole === 'Technician' ? (
-                <TechnicianDashboard 
-                  onNotify={triggerToast} 
-                  onOpenRoleTester={() => setIsRoleTesterOpen(true)}
-                />
-              ) : (
-                <ReporterDashboard 
-                  onNotify={triggerToast} 
-                  onOpenRoleTester={() => setIsRoleTesterOpen(true)}
-                />
-              )}
+              <ReporterDashboard 
+                onNotify={triggerToast} 
+                onOpenRoleTester={() => setIsRoleTesterOpen(true)}
+              />
             </main>
           </div>
         )
@@ -294,7 +295,7 @@ export default function App() {
       {/* Global Footer */}
       <footer className="relative z-10 w-full max-w-7xl mx-auto px-4 py-4 text-center text-xs text-slate-400/80 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-[#A56F63]/15">
         <p className="tracking-wide">
-          © {new Date().getFullYear()} CampusFix™ Systems. Built for Campus IT Infrastructure Operations.
+          © {CURRENT_YEAR} CampusFix™ Systems. Built for Campus IT Infrastructure Operations.
         </p>
         <div className="flex items-center gap-4 text-[11px]">
           <a href="#privacy" onClick={(e) => { e.preventDefault(); triggerToast('Privacy Policy: All campus telemetry is encrypted.'); }} className="hover:text-[#D99B7F] transition-colors">

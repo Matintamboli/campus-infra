@@ -10,15 +10,19 @@ router.use(authenticateToken);
 /**
  * Helper: Attach notes and reporter/technician objects to a ticket or list of tickets
  */
-function enrichTicket(ticket) {
+function enrichTicket(ticket, user = null) {
   if (!ticket) return null;
-  const notes = db.prepare(`
-    SELECT tn.id, tn.note, tn.created_at, u.id AS author_id, u.name AS author_name, u.role AS author_role, u.college_id AS author_college_id
+  let notesQuery = `
+    SELECT tn.id, tn.note, tn.is_internal, tn.created_at, u.id AS author_id, u.name AS author_name, u.role AS author_role, u.college_id AS author_college_id
     FROM ticket_notes tn
     JOIN users u ON tn.user_id = u.id
     WHERE tn.ticket_id = ?
-    ORDER BY tn.created_at ASC
-  `).all(ticket.id);
+  `;
+  if (user && user.role === 'Reporter') {
+    notesQuery += ' AND (tn.is_internal IS NULL OR tn.is_internal = 0)';
+  }
+  notesQuery += ' ORDER BY tn.created_at ASC';
+  const notes = db.prepare(notesQuery).all(ticket.id);
 
   let parsedAttachments = [];
   if (ticket.attachments) {
@@ -101,7 +105,7 @@ router.get('/', (req, res) => {
     query += ' ORDER BY t.created_at DESC';
 
     const rawTickets = db.prepare(query).all(...params);
-    const tickets = rawTickets.map(enrichTicket);
+    const tickets = rawTickets.map((t) => enrichTicket(t, user));
 
     return res.json({
       success: true,
@@ -148,7 +152,7 @@ router.get('/:id', (req, res) => {
       return res.status(403).json({ error: 'FORBIDDEN', message: 'Access denied to this ticket' });
     }
 
-    const ticket = enrichTicket(rawTicket);
+    const ticket = enrichTicket(rawTicket, user);
     return res.json({ success: true, ticket });
   } catch (err) {
     console.error('[Get Ticket Error]:', err);
@@ -262,12 +266,15 @@ router.post('/', (req, res) => {
 /**
  * PATCH /api/tickets/:id/status
  * Update ticket lifecycle status (Open -> Assigned -> In Progress -> Resolved -> Closed)
- * Only Technicians and Administrators are authorized
+ * Technicians & Admins can change freely.
+ * Reporters who created the ticket can:
+ * - Confirm resolution: transition 'Resolved' -> 'Closed'
+ * - Reopen ticket: transition 'Resolved'/'Closed' -> 'Open' (with reason)
  */
-router.patch('/:id/status', requireRole(['Technician', 'Administrator']), (req, res) => {
+router.patch('/:id/status', (req, res) => {
   try {
     const ticketId = parseInt(req.params.id, 10);
-    const { status, note } = req.body;
+    const { status, note, reopenReason } = req.body;
     const user = req.user;
 
     const validStatuses = ['Open', 'Assigned', 'In Progress', 'Resolved', 'Closed'];
@@ -283,24 +290,65 @@ router.patch('/:id/status', requireRole(['Technician', 'Administrator']), (req, 
       return res.status(404).json({ error: 'NOT_FOUND', message: 'Ticket not found' });
     }
 
+    // Role-based authorization:
+    if (user.role === 'Reporter') {
+      if (existingTicket.reporter_id !== user.id) {
+        return res.status(403).json({ error: 'FORBIDDEN', message: 'Access denied: You do not own this ticket' });
+      }
+      const isConfirming = existingTicket.status === 'Resolved' && status === 'Closed';
+      const isReopening = (existingTicket.status === 'Resolved' || existingTicket.status === 'Closed') && status === 'Open';
+
+      if (!isConfirming && !isReopening) {
+        return res.status(403).json({
+          error: 'FORBIDDEN',
+          message: 'Reporters may only confirm resolution (Resolved -> Closed) or reopen issues (Resolved/Closed -> Open).',
+        });
+      }
+    } else if (user.role === 'Technician') {
+      // Technicians can only update tickets that are assigned to them or unassigned
+      if (existingTicket.technician_id && existingTicket.technician_id !== user.id) {
+        return res.status(403).json({
+          error: 'FORBIDDEN',
+          message: 'Access denied: Only the assigned technician or an administrator can update this incident.',
+        });
+      }
+    }
+
+    const { resolutionDetails } = req.body;
+
     // If a technician claims or starts work on an unassigned ticket, assign them automatically
     let updatedTechnicianId = existingTicket.technician_id;
     if (user.role === 'Technician' && !existingTicket.technician_id) {
       updatedTechnicianId = user.id;
     }
 
+    let resDetails = existingTicket.resolution_details;
+    if (resolutionDetails !== undefined) {
+      resDetails = resolutionDetails;
+    }
+
     db.prepare(`
       UPDATE tickets 
-      SET status = ?, technician_id = ?, updated_at = CURRENT_TIMESTAMP
+      SET status = ?, technician_id = ?, resolution_details = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
-    `).run(status, updatedTechnicianId, ticketId);
+    `).run(status, updatedTechnicianId, resDetails, ticketId);
 
-    // If an accompanying progress note was submitted, record it
-    if (note && note.trim()) {
+    // If a note, resolutionDetails, or reopenReason was provided, record it in ticket_notes
+    let noteText = reopenReason ? `[REOPENED BY REPORTER]: ${reopenReason}` : note;
+    if (resolutionDetails && resolutionDetails.trim()) {
+      noteText = noteText ? `${noteText}\n[RESOLUTION DETAILS]: ${resolutionDetails.trim()}` : `[RESOLUTION DETAILS]: ${resolutionDetails.trim()}`;
+    }
+
+    if (noteText && noteText.trim()) {
       db.prepare(`
-        INSERT INTO ticket_notes (ticket_id, user_id, note)
-        VALUES (?, ?, ?)
-      `).run(ticketId, user.id, note.trim());
+        INSERT INTO ticket_notes (ticket_id, user_id, note, is_internal)
+        VALUES (?, ?, ?, 0)
+      `).run(ticketId, user.id, noteText.trim());
+    } else if (existingTicket.status === 'Resolved' && status === 'Closed' && user.role === 'Reporter') {
+      db.prepare(`
+        INSERT INTO ticket_notes (ticket_id, user_id, note, is_internal)
+        VALUES (?, ?, ?, 0)
+      `).run(ticketId, user.id, 'Reporter verified campus infrastructure operation and confirmed resolution.');
     }
 
     // Audit log
@@ -331,11 +379,97 @@ router.patch('/:id/status', requireRole(['Technician', 'Administrator']), (req, 
     return res.json({
       success: true,
       message: `Status for ticket ${existingTicket.ticket_number} changed to ${status}`,
-      ticket: enrichTicket(updated),
+      ticket: enrichTicket(updated, user),
     });
   } catch (err) {
     console.error('[Update Ticket Status Error]:', err);
     return res.status(500).json({ error: 'SERVER_ERROR', message: 'Failed to update ticket status' });
+  }
+});
+
+/**
+ * POST /api/tickets/:id/attachments
+ * Upload additional supporting evidence (images or documents)
+ * Allowed for ticket reporter, assigned technician, or admin
+ */
+router.post('/:id/attachments', (req, res) => {
+  try {
+    const ticketId = parseInt(req.params.id, 10);
+    const { attachments } = req.body;
+    const user = req.user;
+
+    if (!attachments || !Array.isArray(attachments) || attachments.length === 0) {
+      return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Attachments array is required' });
+    }
+
+    const ticket = db.prepare('SELECT * FROM tickets WHERE id = ?').get(ticketId);
+    if (!ticket) {
+      return res.status(404).json({ error: 'NOT_FOUND', message: 'Ticket not found' });
+    }
+
+    if (user.role === 'Reporter' && ticket.reporter_id !== user.id) {
+      return res.status(403).json({ error: 'FORBIDDEN', message: 'Cannot upload attachments to tickets not owned by you' });
+    }
+    if (user.role === 'Technician' && ticket.technician_id && ticket.technician_id !== user.id) {
+      return res.status(403).json({ error: 'FORBIDDEN', message: 'Cannot upload attachments to tickets assigned to another technician' });
+    }
+
+    let existingAttachments = [];
+    if (ticket.attachments) {
+      try {
+        existingAttachments = typeof ticket.attachments === 'string' ? JSON.parse(ticket.attachments) : ticket.attachments;
+      } catch {
+        existingAttachments = [];
+      }
+    }
+
+    const combined = [...existingAttachments, ...attachments];
+
+    db.prepare(`
+      UPDATE tickets 
+      SET attachments = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(JSON.stringify(combined), ticketId);
+
+    // Note in investigation log
+    db.prepare(`
+      INSERT INTO ticket_notes (ticket_id, user_id, note)
+      VALUES (?, ?, ?)
+    `).run(ticketId, user.id, `Uploaded ${attachments.length} additional supporting evidence attachment(s): ${attachments.map(a => a.name).join(', ')}`);
+
+    // Audit log
+    db.prepare(`
+      INSERT INTO audit_logs (user_id, action, details)
+      VALUES (?, 'UPLOAD_ATTACHMENT', ?)
+    `).run(
+      user.id,
+      `${user.role} ${user.name} added ${attachments.length} attachment(s) to ticket ${ticket.ticket_number}`
+    );
+
+    const updated = db.prepare(`
+      SELECT 
+        t.*,
+        rep.name AS reporter_name,
+        rep.email AS reporter_email,
+        rep.college_id AS reporter_college_id,
+        rep.department AS reporter_department,
+        tech.name AS technician_name,
+        tech.email AS technician_email,
+        tech.college_id AS technician_college_id
+      FROM tickets t
+      JOIN users rep ON t.reporter_id = rep.id
+      LEFT JOIN users tech ON t.technician_id = tech.id
+      WHERE t.id = ?
+    `).get(ticketId);
+
+    return res.json({
+      success: true,
+      message: `${attachments.length} attachment(s) uploaded successfully`,
+      ticket: enrichTicket(updated, user),
+    });
+  } catch (err) {
+    console.error('[Upload Attachments Error]:', err);
+    return res.status(500).json({ error: 'SERVER_ERROR', message: 'Failed to upload attachments' });
   }
 });
 
@@ -347,7 +481,7 @@ router.patch('/:id/status', requireRole(['Technician', 'Administrator']), (req, 
 router.post('/:id/notes', (req, res) => {
   try {
     const ticketId = parseInt(req.params.id, 10);
-    const { note } = req.body;
+    const { note, isInternal } = req.body;
     const user = req.user;
 
     if (!note || !note.trim()) {
@@ -363,17 +497,22 @@ router.post('/:id/notes', (req, res) => {
     if (user.role === 'Reporter' && ticket.reporter_id !== user.id) {
       return res.status(403).json({ error: 'FORBIDDEN', message: 'Cannot add notes to tickets not owned by you' });
     }
+    if (user.role === 'Technician' && ticket.technician_id && ticket.technician_id !== user.id) {
+      return res.status(403).json({ error: 'FORBIDDEN', message: 'Cannot add notes to tickets assigned to another technician' });
+    }
+
+    const isInternalVal = ((user.role === 'Technician' || user.role === 'Administrator') && isInternal) ? 1 : 0;
 
     const insertResult = db.prepare(`
-      INSERT INTO ticket_notes (ticket_id, user_id, note)
-      VALUES (?, ?, ?)
-    `).run(ticketId, user.id, note.trim());
+      INSERT INTO ticket_notes (ticket_id, user_id, note, is_internal)
+      VALUES (?, ?, ?, ?)
+    `).run(ticketId, user.id, note.trim(), isInternalVal);
 
     // Update ticket timestamp
     db.prepare('UPDATE tickets SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(ticketId);
 
     const createdNote = db.prepare(`
-      SELECT tn.id, tn.note, tn.created_at, u.id AS author_id, u.name AS author_name, u.role AS author_role, u.college_id AS author_college_id
+      SELECT tn.id, tn.note, tn.is_internal, tn.created_at, u.id AS author_id, u.name AS author_name, u.role AS author_role, u.college_id AS author_college_id
       FROM ticket_notes tn
       JOIN users u ON tn.user_id = u.id
       WHERE tn.id = ?
@@ -459,11 +598,43 @@ router.patch('/:id/assign', requireRole(['Technician', 'Administrator']), (req, 
     return res.json({
       success: true,
       message: `Ticket ${ticket.ticket_number} assigned successfully`,
-      ticket: enrichTicket(updated),
+      ticket: enrichTicket(updated, user),
     });
   } catch (err) {
     console.error('[Assign Ticket Error]:', err);
     return res.status(500).json({ error: 'SERVER_ERROR', message: 'Failed to assign ticket' });
+  }
+});
+
+/**
+ * DELETE /api/tickets/:id
+ * Delete an incident record. Strictly restricted to Administrator role.
+ */
+router.delete('/:id', requireRole(['Administrator']), (req, res) => {
+  try {
+    const ticketId = parseInt(req.params.id, 10);
+    const ticket = db.prepare('SELECT id, ticket_number, title FROM tickets WHERE id = ?').get(ticketId);
+    if (!ticket) {
+      return res.status(404).json({ error: 'NOT_FOUND', message: 'Ticket not found' });
+    }
+
+    db.prepare('DELETE FROM tickets WHERE id = ?').run(ticketId);
+
+    db.prepare(`
+      INSERT INTO audit_logs (user_id, action, details)
+      VALUES (?, 'DELETE_TICKET', ?)
+    `).run(
+      req.user.id,
+      `Administrator ${req.user.name} deleted incident ticket ${ticket.ticket_number} ("${ticket.title}")`
+    );
+
+    return res.json({
+      success: true,
+      message: `Incident ${ticket.ticket_number} deleted successfully`,
+    });
+  } catch (err) {
+    console.error('[Delete Ticket Error]:', err);
+    return res.status(500).json({ error: 'SERVER_ERROR', message: 'Failed to delete ticket' });
   }
 });
 

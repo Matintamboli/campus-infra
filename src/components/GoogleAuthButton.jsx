@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, AlertCircle, ExternalLink, X } from 'lucide-react';
+import { ShieldCheck, AlertCircle, X } from 'lucide-react';
 
 /**
  * Google Auth Button with genuine Google Identity Services integration.
  * If VITE_GOOGLE_CLIENT_ID is defined, it runs real Google Sign-In.
  * If not configured, it opens an honest configuration modal rather than falsely pretending it succeeded.
  */
-export default function GoogleAuthButton({ onGoogleSuccess, mode = 'login' }) {
-  const [isConfigured, setIsConfigured] = useState(false);
+export default function GoogleAuthButton({ onGoogleSuccess, mode: _mode = 'login' }) {
+  const [_isConfigured, setIsConfigured] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [customClientId, setCustomClientId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +46,7 @@ export default function GoogleAuthButton({ onGoogleSuccess, mode = 'login' }) {
         document.body.appendChild(script);
       }
     }
-  }, [envClientId]);
+  }, [envClientId, onGoogleSuccess]);
 
   const handleGoogleClick = () => {
     const activeId = envClientId || window.CAMPUSFIX_GOOGLE_CLIENT_ID;
@@ -60,7 +60,7 @@ export default function GoogleAuthButton({ onGoogleSuccess, mode = 'login' }) {
             setShowConfigModal(true);
           }
         });
-      } catch (e) {
+      } catch {
         setIsLoading(false);
         setShowConfigModal(true);
       }

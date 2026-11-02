@@ -5,7 +5,7 @@ import React from 'react';
  * Features a modern campus building silhouette fused with an incident-alert
  * network pulse node, rendered in Dusty Terracotta (#A56F63) and Soft Peach (#D99B7F).
  */
-export default function CampusLogo({ size = 'default' }) {
+export default function CampusLogo({ size: _size = 'default' }) {
   return (
     <div className="flex flex-col items-center select-none">
       {/* Icon Emblem */}

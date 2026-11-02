@@ -14,23 +14,18 @@ import {
   AlertCircle, 
   Wifi, 
   Monitor, 
-  Cpu, 
-  Zap, 
-  Tv, 
-  Server, 
   ArrowRight, 
   X, 
   Menu, 
-  Send, 
   ShieldAlert, 
   RefreshCw, 
   Printer, 
   MessageSquare, 
-  Activity,
-  Paperclip
+  Activity
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import ReportIncidentModule from '../incident/ReportIncidentModule';
+import MyIncidentsModule from '../incident/MyIncidentsModule';
 
 /**
  * Helper: Format timestamps cleanly
@@ -74,14 +69,12 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [statusFilter] = useState('all');
+  const [categoryFilter] = useState('all');
+  const [priorityFilter] = useState('all');
 
   // Selected Incident for Details Drawer / Modal
   const [selectedIncident, setSelectedIncident] = useState(null);
-  const [newFollowUpNote, setNewFollowUpNote] = useState('');
-  const [isAddingNote, setIsAddingNote] = useState(false);
 
   // Notifications State
   const [notifications, setNotifications] = useState([
@@ -110,15 +103,6 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
       type: 'update',
     },
   ]);
-
-  const categories = [
-    { id: 'Network Infrastructure', name: 'Network Infrastructure', icon: Wifi, desc: 'Campus Wi-Fi, Ethernet, DNS, dorm connections' },
-    { id: 'Hardware Systems', name: 'Hardware Systems', icon: Monitor, desc: 'Lab workstations, monitors, keyboards, mice' },
-    { id: 'Software & OS', name: 'Software & OS', icon: Cpu, desc: 'Lab software, student licenses, campus portal' },
-    { id: 'Power & Electrical', name: 'Power & Electrical', icon: Zap, desc: 'Power outlets, surge strips, study pod charging' },
-    { id: 'Classroom Equipment', name: 'Classroom Equipment', icon: Tv, desc: 'Projectors, microphones, smartboards' },
-    { id: 'Campus Servers', name: 'Campus Servers', icon: Server, desc: 'LMS access, student virtual machines, fileshares' },
-  ];
 
   // Fetch Tickets from Backend API
   const fetchTickets = useCallback(async () => {
@@ -272,51 +256,6 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
 
     return events.slice(0, 6);
   }, [tickets]);
-
-  // Handle Adding Student Follow-Up Note to an Incident
-  const handleAddFollowUp = async (e) => {
-    e.preventDefault();
-    if (!newFollowUpNote.trim() || !selectedIncident) return;
-
-    setIsAddingNote(true);
-    try {
-      const res = await fetch(`/api/tickets/${selectedIncident.id}/notes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ note: newFollowUpNote.trim() }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to record student note');
-      }
-
-      // Update in selected incident
-      setSelectedIncident((prev) => ({
-        ...prev,
-        notes: [...(prev.notes || []), data.note],
-      }));
-
-      // Update in general tickets list
-      setTickets((prev) =>
-        prev.map((t) =>
-          t.id === selectedIncident.id
-            ? { ...t, notes: [...(t.notes || []), data.note] }
-            : t
-        )
-      );
-
-      setNewFollowUpNote('');
-      if (onNotify) onNotify('Follow-up note appended to ticket record', 'success');
-    } catch (err) {
-      if (onNotify) onNotify(err.message || 'Failed to post note', 'error');
-    } finally {
-      setIsAddingNote(false);
-    }
-  };
 
   const handleLogout = async () => {
     await logout();
@@ -1051,7 +990,10 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                         {filteredTickets.slice(0, 5).map((tkt) => (
                           <tr 
                             key={tkt.id}
-                            onClick={() => setSelectedIncident(tkt)}
+                            onClick={() => {
+                              setSelectedIncident(tkt);
+                              setActiveTab('my-incidents');
+                            }}
                             className="hover:bg-[#202733]/50 transition-colors cursor-pointer group"
                           >
                             <td className="py-3 px-3 font-mono font-bold text-[#D99B7F] whitespace-nowrap">
@@ -1096,6 +1038,7 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedIncident(tkt);
+                                  setActiveTab('my-incidents');
                                 }}
                                 className="px-2.5 py-1 rounded-lg bg-[#464858]/40 hover:bg-[#D99B7F] text-slate-300 hover:text-[#0F3040] font-semibold text-[11px] transition-all"
                               >
@@ -1131,175 +1074,19 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
 
           {/* TAB 3: MY INCIDENTS */}
           {activeTab === 'my-incidents' && (
-            <div className="space-y-6 animate-fadeIn">
-              <div className="p-5 sm:p-6 rounded-2xl bg-[#1a222d]/85 border border-[#A56F63]/25 shadow-xl space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#A56F63]/20">
-                  <div>
-                    <h2 className="text-xl font-bold text-white font-heading">My Submitted Incidents</h2>
-                    <p className="text-xs text-slate-400">Complete archive of campus tickets reported by your account</p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('report')}
-                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-[#0F3040] flex items-center gap-1.5 shadow-md self-start sm:self-auto"
-                    style={{ background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)' }}
-                  >
-                    <PlusCircle className="w-3.5 h-3.5" />
-                    <span>Report Incident</span>
-                  </button>
-                </div>
-
-                {/* Filter Controls Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-                  {/* Status Filter */}
-                  <div>
-                    <label className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Status</label>
-                    <select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl glass-input text-white"
-                    >
-                      <option value="all" className="bg-[#0F3040]">All Statuses</option>
-                      <option value="open" className="bg-[#0F3040]">Open</option>
-                      <option value="in progress" className="bg-[#0F3040]">In Progress</option>
-                      <option value="resolved" className="bg-[#0F3040]">Resolved</option>
-                    </select>
-                  </div>
-
-                  {/* Category Filter */}
-                  <div>
-                    <label className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Category</label>
-                    <select
-                      value={categoryFilter}
-                      onChange={(e) => setCategoryFilter(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl glass-input text-white"
-                    >
-                      <option value="all" className="bg-[#0F3040]">All Categories</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.name} className="bg-[#0F3040]">{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Priority Filter */}
-                  <div>
-                    <label className="block text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Priority</label>
-                    <select
-                      value={priorityFilter}
-                      onChange={(e) => setPriorityFilter(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl glass-input text-white"
-                    >
-                      <option value="all" className="bg-[#0F3040]">All Priorities</option>
-                      <option value="critical" className="bg-[#0F3040]">Critical</option>
-                      <option value="high" className="bg-[#0F3040]">High</option>
-                      <option value="medium" className="bg-[#0F3040]">Medium</option>
-                      <option value="low" className="bg-[#0F3040]">Low</option>
-                    </select>
-                  </div>
-
-                  {/* Reset Filters */}
-                  <div className="flex items-end">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStatusFilter('all');
-                        setCategoryFilter('all');
-                        setPriorityFilter('all');
-                        setSearchQuery('');
-                      }}
-                      className="w-full py-2 px-3 rounded-xl bg-[#464858]/40 hover:bg-[#464858]/70 border border-slate-500/25 text-slate-300 hover:text-white transition-colors"
-                    >
-                      Reset All Filters
-                    </button>
-                  </div>
-                </div>
-
-                {/* Tickets Table */}
-                {filteredTickets.length === 0 ? (
-                  <div className="py-16 text-center text-slate-400 space-y-2">
-                    <FileText className="w-12 h-12 mx-auto text-slate-600 mb-2" />
-                    <p className="text-sm font-bold text-white">No Tickets Match Filters</p>
-                    <p className="text-xs text-slate-400">Try adjusting your category, status, or search keywords.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-700/50 text-slate-400 uppercase tracking-wider text-[11px]">
-                          <th className="py-3 px-3 font-semibold">Incident ID</th>
-                          <th className="py-3 px-3 font-semibold">Title</th>
-                          <th className="py-3 px-3 font-semibold">Category</th>
-                          <th className="py-3 px-3 font-semibold">Location</th>
-                          <th className="py-3 px-3 font-semibold">Priority</th>
-                          <th className="py-3 px-3 font-semibold">Status</th>
-                          <th className="py-3 px-3 font-semibold">Date Reported</th>
-                          <th className="py-3 px-3 font-semibold text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-700/30">
-                        {filteredTickets.map((tkt) => (
-                          <tr 
-                            key={tkt.id}
-                            onClick={() => setSelectedIncident(tkt)}
-                            className="hover:bg-[#202733]/50 transition-colors cursor-pointer"
-                          >
-                            <td className="py-3 px-3 font-mono font-bold text-[#D99B7F] whitespace-nowrap">
-                              {tkt.ticket_number || `TKT-${tkt.id}`}
-                            </td>
-                            <td className="py-3 px-3 font-medium text-white max-w-[200px] truncate">
-                              {tkt.title}
-                            </td>
-                            <td className="py-3 px-3 text-slate-300 whitespace-nowrap">
-                              <span className="px-2 py-0.5 rounded-md bg-[#202733] border border-slate-500/30 text-[11px]">
-                                {tkt.category}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 text-slate-300 whitespace-nowrap text-[11px]">
-                              📍 {tkt.building} • {tkt.room}
-                            </td>
-                            <td className="py-3 px-3 whitespace-nowrap">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                tkt.priority === 'Critical' ? 'bg-red-500/20 text-red-300 border border-red-500/40' :
-                                tkt.priority === 'High' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
-                                tkt.priority === 'Medium' ? 'bg-[#D99B7F]/20 text-[#D99B7F] border border-[#D99B7F]/40' :
-                                'bg-slate-500/20 text-slate-300 border border-slate-500/40'
-                              }`}>
-                                {tkt.priority}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 whitespace-nowrap">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                tkt.status === 'In Progress' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' :
-                                tkt.status === 'Resolved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
-                                'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                              }`}>
-                                {tkt.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 text-slate-400 whitespace-nowrap text-[11px]">
-                              {formatTimeAgo(tkt.created_at)}
-                            </td>
-                            <td className="py-3 px-3 text-right whitespace-nowrap">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedIncident(tkt);
-                                }}
-                                className="px-3 py-1 rounded-lg bg-[#464858]/50 hover:bg-[#D99B7F] text-slate-200 hover:text-[#0F3040] font-semibold text-[11px] transition-colors"
-                              >
-                                View Details
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </div>
+            <MyIncidentsModule
+              tickets={tickets}
+              onRefreshTickets={fetchTickets}
+              onReportNew={() => setActiveTab('report')}
+              selectedIncident={selectedIncident}
+              onSelectIncident={(tkt) => {
+                setSelectedIncident(tkt);
+                if (tkt) {
+                  setTickets((prev) => prev.map((item) => (item.id === tkt.id ? tkt : item)));
+                }
+              }}
+              onNotify={onNotify}
+            />
           )}
 
           {/* TAB 4: NOTIFICATIONS */}
@@ -1461,196 +1248,6 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
           )}
         </main>
       </div>
-
-      {/* ========================================================
-          4. INCIDENT DETAILS DRAWER / MODAL
-          ======================================================== */}
-      {selectedIncident && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-          <div 
-            className="relative w-full max-w-2xl max-h-[90vh] rounded-2xl bg-[#0F3040]/95 border border-[#A56F63]/40 shadow-2xl p-6 overflow-hidden flex flex-col"
-            style={{
-              boxShadow: '0 30px 80px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(217, 155, 127, 0.15)',
-            }}
-          >
-            {/* Modal Header */}
-            <div className="flex items-start justify-between pb-4 border-b border-[#A56F63]/25">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-sm text-[#D99B7F]">
-                    {selectedIncident.ticket_number || `TKT-${selectedIncident.id}`}
-                  </span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    selectedIncident.status === 'In Progress' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' :
-                    selectedIncident.status === 'Resolved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
-                    'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                  }`}>
-                    {selectedIncident.status}
-                  </span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    selectedIncident.priority === 'Critical' ? 'bg-red-500/20 text-red-300 border border-red-500/40' :
-                    selectedIncident.priority === 'High' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
-                    'bg-slate-500/20 text-slate-300 border border-slate-500/40'
-                  }`}>
-                    {selectedIncident.priority} Priority
-                  </span>
-                </div>
-                <h3 className="mt-1.5 text-lg font-bold text-white font-heading">{selectedIncident.title}</h3>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setSelectedIncident(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#464858]/50 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Body: Scrollable */}
-            <div className="flex-1 overflow-y-auto py-4 space-y-4 pr-1 text-xs">
-              {/* Meta Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-[#202733]/60 border border-slate-600/25">
-                <div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Category</span>
-                  <span className="font-semibold text-white mt-0.5 block">{selectedIncident.category}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Location</span>
-                  <span className="font-semibold text-white mt-0.5 block">
-                    {selectedIncident.building}
-                    {selectedIncident.floor ? ` • ${selectedIncident.floor}` : ''}
-                    {selectedIncident.room ? ` • ${selectedIncident.room}` : ''}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Date Reported</span>
-                  <span className="font-semibold text-white mt-0.5 block">{formatTimeAgo(selectedIncident.created_at)}</span>
-                </div>
-                {selectedIncident.affected_service && (
-                  <div className="col-span-2 sm:col-span-3 pt-2 border-t border-slate-700/40">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Affected Service</span>
-                    <span className="font-semibold text-[#D99B7F] mt-0.5 block">{selectedIncident.affected_service}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Problem Description */}
-              <div className="p-3.5 rounded-xl bg-[#202733]/40 border border-slate-600/20 space-y-1">
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Problem Description</span>
-                <p className="text-slate-200 leading-relaxed whitespace-pre-wrap">{selectedIncident.description}</p>
-              </div>
-
-              {/* Attachments if any */}
-              {selectedIncident.attachments && Array.isArray(selectedIncident.attachments) && selectedIncident.attachments.length > 0 && (
-                <div className="p-3.5 rounded-xl bg-[#202733]/40 border border-slate-600/20 space-y-2">
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">
-                    Supporting Attachments ({selectedIncident.attachments.length})
-                  </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {selectedIncident.attachments.map((att, i) => (
-                      <div key={i} className="p-2 rounded-xl bg-[#0F3040]/80 border border-slate-700/40 text-xs flex flex-col justify-between overflow-hidden">
-                        {att.isImage && att.data ? (
-                          <img src={att.data} alt={att.name} className="w-full h-20 object-cover rounded-lg mb-1.5 border border-slate-700/50" />
-                        ) : null}
-                        <div className="truncate text-white font-medium text-[11px] flex items-center gap-1">
-                          <Paperclip className="w-3 h-3 text-[#D99B7F] shrink-0" />
-                          <span className="truncate">{att.name}</span>
-                        </div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">{att.size}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Technician Card */}
-              <div className="p-3.5 rounded-xl bg-[#0F3040] border border-[#A56F63]/30 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Assigned Specialist</span>
-                  <div className="text-sm font-bold text-white mt-0.5">
-                    {selectedIncident.technician_name ? `🔧 ${selectedIncident.technician_name}` : 'Awaiting Dispatch Queue'}
-                  </div>
-                  {selectedIncident.technician_email && (
-                    <div className="text-[11px] text-slate-300 font-mono">{selectedIncident.technician_email}</div>
-                  )}
-                </div>
-                <span className="text-[11px] px-2.5 py-1 rounded-full bg-[#464858]/60 text-slate-300 border border-slate-500/30">
-                  {selectedIncident.technician_name ? 'Field Assigned' : 'Dispatch Queue'}
-                </span>
-              </div>
-
-              {/* Diagnostic Notes & Investigation Log */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-white uppercase tracking-wider">Investigation Log & Follow-Ups</span>
-                  <span className="text-[10px] text-slate-400 font-mono">{(selectedIncident.notes || []).length} Records</span>
-                </div>
-
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  {(!selectedIncident.notes || selectedIncident.notes.length === 0) ? (
-                    <div className="p-3 rounded-xl bg-[#202733]/40 text-center text-slate-400 text-xs">
-                      No investigation notes posted yet.
-                    </div>
-                  ) : (
-                    selectedIncident.notes.map((note) => (
-                      <div key={note.id} className="p-3 rounded-xl bg-[#202733]/70 border border-slate-600/20 space-y-1">
-                        <div className="flex items-center justify-between text-[10px] text-slate-400">
-                          <span className="font-semibold text-[#D99B7F]">{note.author_name || 'Technician'} ({note.author_role || 'Staff'})</span>
-                          <span>{formatTimeAgo(note.created_at)}</span>
-                        </div>
-                        <p className="text-slate-200">{note.note}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* Student Add Follow-Up Note */}
-              <form onSubmit={handleAddFollowUp} className="pt-2 border-t border-slate-700/50 space-y-2">
-                <label className="block text-[11px] font-semibold text-slate-300">
-                  Add Student Note / Clarification
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Provide additional details, room access info, or question..."
-                    value={newFollowUpNote}
-                    onChange={(e) => setNewFollowUpNote(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl glass-input text-white text-xs placeholder-slate-400 focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isAddingNote || !newFollowUpNote.trim()}
-                    className="px-4 py-2 rounded-xl font-bold text-xs text-[#0F3040] shadow transition-all hover:brightness-105 active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
-                    style={{ background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)' }}
-                  >
-                    {isAddingNote ? (
-                      <span className="w-3.5 h-3.5 border-2 border-[#0F3040] border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <Send className="w-3 h-3" />
-                        <span>Post Note</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="pt-3 border-t border-[#A56F63]/25 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setSelectedIncident(null)}
-                className="px-4 py-2 rounded-xl bg-[#464858]/50 hover:bg-[#464858] text-white text-xs font-semibold transition-colors"
-              >
-                Close Ticket Dossier
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

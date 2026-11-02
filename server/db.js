@@ -42,9 +42,41 @@ export function initDatabase() {
       name TEXT UNIQUE NOT NULL,
       code TEXT UNIQUE NOT NULL,
       description TEXT,
+      sla_hours INTEGER DEFAULT 4,
+      status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'deactivated')),
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // Campus Services
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS services (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT UNIQUE NOT NULL,
+      category TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'deactivated')),
+      sla_hours INTEGER DEFAULT 4,
+      description TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Campus Locations & Coordinates
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS locations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      building TEXT NOT NULL,
+      floor TEXT NOT NULL DEFAULT 'Ground Floor',
+      room TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(building, floor, room)
+    );
+  `);
+
+  // Ensure migration columns exist on existing databases
+  try { db.exec('ALTER TABLE categories ADD COLUMN sla_hours INTEGER DEFAULT 4;'); } catch {}
+  try { db.exec('ALTER TABLE categories ADD COLUMN status TEXT DEFAULT "active";'); } catch {}
 
   // 3. Audit Logs (Records auth and privilege changes)
   db.exec(`
@@ -87,6 +119,8 @@ export function initDatabase() {
   try { db.exec('ALTER TABLE tickets ADD COLUMN floor TEXT DEFAULT "Ground Floor";'); } catch {}
   try { db.exec('ALTER TABLE tickets ADD COLUMN affected_service TEXT DEFAULT "General Campus Infrastructure";'); } catch {}
   try { db.exec('ALTER TABLE tickets ADD COLUMN attachments TEXT;'); } catch {}
+  try { db.exec('ALTER TABLE tickets ADD COLUMN resolution_details TEXT;'); } catch {}
+  try { db.exec('ALTER TABLE ticket_notes ADD COLUMN is_internal INTEGER DEFAULT 0;'); } catch {}
 
   // 5. Ticket Diagnostic Notes & Investigation Logs
   db.exec(`
@@ -117,13 +151,41 @@ export function initDatabase() {
   // Seed default categories
   const categoryCheck = db.prepare('SELECT COUNT(*) as count FROM categories').get();
   if (categoryCheck.count === 0) {
-    const insertCat = db.prepare('INSERT INTO categories (name, code, description) VALUES (?, ?, ?)');
-    insertCat.run('Network Infrastructure', 'network', 'Campus Wi-Fi, Ethernet, routers, switches, and firewalls');
-    insertCat.run('Hardware Systems', 'hardware', 'Desktops, laptops, monitors, peripherals, and lab workstations');
-    insertCat.run('Software & OS', 'software', 'Licensed software, campus portals, LMS, OS updates, and lab images');
-    insertCat.run('Power & Electrical', 'power', 'UPS backups, classroom power strips, surge suppressors, and generators');
-    insertCat.run('Classroom Equipment', 'classroom', 'Projectors, smartboards, audio mics, podiums, and lecture capture');
-    insertCat.run('Campus Servers', 'servers', 'Datacenter hosts, virtual machines, storage arrays, and DNS servers');
+    const insertCat = db.prepare('INSERT INTO categories (name, code, description, sla_hours, status) VALUES (?, ?, ?, ?, ?)');
+    insertCat.run('Network Infrastructure', 'network', 'Campus Wi-Fi, Ethernet, routers, switches, and firewalls', 2, 'active');
+    insertCat.run('Hardware Systems', 'hardware', 'Desktops, laptops, monitors, peripherals, and lab workstations', 4, 'active');
+    insertCat.run('Software & OS', 'software', 'Licensed software, campus portals, LMS, OS updates, and lab images', 8, 'active');
+    insertCat.run('Power & Electrical', 'power', 'UPS backups, classroom power strips, surge suppressors, and generators', 2, 'active');
+    insertCat.run('Classroom Equipment', 'classroom', 'Projectors, smartboards, audio mics, podiums, and lecture capture', 4, 'active');
+    insertCat.run('Campus Servers', 'servers', 'Datacenter hosts, virtual machines, storage arrays, and DNS servers', 1, 'active');
+  }
+
+  // Seed default campus services
+  const serviceCheck = db.prepare('SELECT COUNT(*) as count FROM services').get();
+  if (serviceCheck.count === 0) {
+    const insertService = db.prepare('INSERT INTO services (name, category, sla_hours, status, description) VALUES (?, ?, ?, ?, ?)');
+    insertService.run('Eduroam Wireless Access', 'Network Infrastructure', 2, 'active', 'Campus-wide secure 802.1x wireless network access');
+    insertService.run('Residence Hall Ethernet', 'Network Infrastructure', 4, 'active', 'Wired Gigabit wall ports across student dorms');
+    insertService.run('Computer Lab Workstations', 'Hardware Systems', 4, 'active', 'Engineering and CAD lab desktop PCs and peripheral hardware');
+    insertService.run('Campus Learning Portal (LMS)', 'Software & OS', 2, 'active', 'Institutional course management, exams, and grading systems');
+    insertService.run('Classroom Smartboards & Projectors', 'Classroom Equipment', 2, 'active', 'Lecture hall interactive projection and audio systems');
+    insertService.run('Datacenter Core Virtualization', 'Campus Servers', 1, 'active', 'Host hypervisors and storage arrays for student compute VMs');
+    insertService.run('Study Pod Electrical Power', 'Power & Electrical', 4, 'active', 'Wall outlets, high-capacity surge strips in library study pods');
+    insertService.run('Central Printing Stations', 'Hardware Systems', 6, 'active', 'Student printing kiosks in Library and Campus Commons');
+  }
+
+  // Seed default campus locations
+  const locationCheck = db.prepare('SELECT COUNT(*) as count FROM locations').get();
+  if (locationCheck.count === 0) {
+    const insertLoc = db.prepare('INSERT INTO locations (building, floor, room, status) VALUES (?, ?, ?, ?)');
+    insertLoc.run('Engineering Block B', '3rd Floor', 'Lab 304', 'active');
+    insertLoc.run('Engineering Block B', 'Ground Floor', 'Hardware Workshop', 'active');
+    insertLoc.run('Main Data Center', 'Ground Floor', 'Server Room 1', 'active');
+    insertLoc.run('Design & Tech Lab', '2nd Floor', 'Studio 4', 'active');
+    insertLoc.run('Central Campus Library', '1st Floor', 'Study Pod 12', 'active');
+    insertLoc.run('Science Complex', '4th Floor', 'Lecture Hall 401', 'active');
+    insertLoc.run('Student Union Building', '2nd Floor', 'Computer Lounge', 'active');
+    insertLoc.run('Administrative Tower', '5th Floor', 'Conference Room A', 'active');
   }
 
   // Seed initial users for all 3 roles with secure bcrypt hashes
