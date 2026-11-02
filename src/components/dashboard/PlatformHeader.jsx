@@ -139,7 +139,7 @@ export default function PlatformHeader({ onOpenRoleTester, onNotify }) {
             {/* Dropdown Menu */}
             {isProfileMenuOpen && (
               <div 
-                className="absolute right-0 mt-2 w-64 rounded-2xl bg-white border border-[#E7E4DF] shadow-xl p-3 z-50 animate-fadeIn"
+                className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-32px)] rounded-2xl bg-white border border-[#E7E4DF] shadow-xl p-3 z-50 animate-fadeIn"
                 onClick={() => setIsProfileMenuOpen(false)}
               >
                 <div className="pb-3 border-b border-[#E7E4DF] mb-2">

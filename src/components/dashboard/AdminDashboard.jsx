@@ -951,43 +951,46 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="bg-[#F5F3EF] text-[#464858] uppercase text-[10px] tracking-wider border-b border-[#E7E4DF]">
-              <th className="px-4 py-3 font-bold">Incident ID</th>
-              <th className="px-4 py-3 font-bold">Title</th>
-              <th className="px-4 py-3 font-bold hidden sm:table-cell">Category</th>
-              <th className="px-4 py-3 font-bold hidden md:table-cell">Location</th>
-              <th className="px-4 py-3 font-bold">Priority</th>
-              <th className="px-4 py-3 font-bold">Status</th>
-              <th className="px-4 py-3 font-bold hidden lg:table-cell">Assigned Tech</th>
-              <th className="px-4 py-3 font-bold hidden xl:table-cell">Reported Date</th>
-              <th className="px-4 py-3 font-bold text-center">Administrative Actions</th>
+            <tr className="bg-[#F5F3EF]/90 text-[#464858] uppercase text-[10px] font-bold tracking-wider border-b border-[#E7E4DF]">
+              <th className="px-4 py-3.5">Incident ID</th>
+              <th className="px-4 py-3.5">Title</th>
+              <th className="px-4 py-3.5 hidden sm:table-cell">Category</th>
+              <th className="px-4 py-3.5 hidden md:table-cell">Location</th>
+              <th className="px-4 py-3.5">Priority</th>
+              <th className="px-4 py-3.5">Status</th>
+              <th className="px-4 py-3.5 hidden lg:table-cell">Assigned Tech</th>
+              <th className="px-4 py-3.5 hidden xl:table-cell">Reported Date</th>
+              <th className="px-4 py-3.5 text-center">Administrative Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#E7E4DF]">
+          <tbody className="divide-y divide-[#E7E4DF]/70">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-12 text-center text-[#464858]">
-                  <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-40 text-[#464858]" />
-                  <p className="text-xs font-semibold">No incidents found matching current filters.</p>
+                <td colSpan={9} className="py-14 text-center text-[#464858]">
+                  <CheckCircle2 className="w-9 h-9 mx-auto mb-2.5 opacity-30 text-[#464858]" />
+                  <p className="text-xs font-semibold text-[#0F3040]">No incidents found matching current filters.</p>
+                  <p className="text-[11px] text-[#464858] mt-0.5">Try clearing your search query or adjusting priority filters.</p>
                 </td>
               </tr>
             ) : (
               items.map((tkt) => (
-                <tr key={tkt.id} className="hover:bg-[#F5F3EF]/60 transition-colors">
-                  <td className="px-4 py-3 font-mono font-bold text-[#0F3040]">
+                <tr key={tkt.id} className="hover:bg-[#F5F3EF]/50 transition-colors group">
+                  <td className="px-4 py-3.5 font-mono font-bold text-[#0F3040] group-hover:text-[#A56F63] transition-colors">
                     {tkt.ticket_number || `INC-${tkt.id}`}
                   </td>
-                  <td className="px-4 py-3 font-semibold text-[#183E4C] max-w-[200px] truncate">
+                  <td className="px-4 py-3.5 font-medium text-[#0F3040] max-w-[220px] truncate">
                     {tkt.title}
                   </td>
-                  <td className="px-4 py-3 hidden sm:table-cell text-[#464858]">
-                    {tkt.category}
+                  <td className="px-4 py-3.5 hidden sm:table-cell text-[#464858]">
+                    <span className="px-2 py-0.5 rounded-md bg-[#F5F3EF] border border-[#E7E4DF] text-[11px] font-medium text-[#464858]">
+                      {tkt.category}
+                    </span>
                   </td>
-                  <td className="px-4 py-3 hidden md:table-cell text-[#464858]">
-                    <div className="font-semibold text-[#183E4C]">{tkt.building}</div>
-                    <div className="text-[10px] text-[#464858]">{tkt.room}</div>
+                  <td className="px-4 py-3.5 hidden md:table-cell text-[#464858]">
+                    <div className="font-semibold text-[#0F3040]">{tkt.building}</div>
+                    {tkt.room && <div className="text-[10px] text-[#464858] font-mono">{tkt.room}</div>}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3.5">
                     <button
                       type="button"
                       onClick={() => {
@@ -1001,25 +1004,30 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                       <PriorityBadge priority={tkt.priority} />
                     </button>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3.5">
                     <StatusBadge status={tkt.status} />
                   </td>
-                  <td className="px-4 py-3 hidden lg:table-cell">
+                  <td className="px-4 py-3.5 hidden lg:table-cell">
                     {tkt.technician_name ? (
-                      <span className="text-[#0F3040] font-semibold">{tkt.technician_name}</span>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F3040]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#286448]" />
+                        {tkt.technician_name}
+                      </span>
                     ) : (
-                      <span className="text-[#93651C] font-bold text-[11px] italic">Unassigned</span>
+                      <span className="text-[#93651C] font-semibold text-[11px] px-2 py-0.5 rounded bg-[#F8EBD2]/80 border border-[#93651C]/20">
+                        Unassigned
+                      </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 hidden xl:table-cell text-[#464858]">
+                  <td className="px-4 py-3.5 hidden xl:table-cell text-[#464858] font-mono text-[11px]">
                     <span title={formatFullDate(tkt.created_at)}>{formatTimeAgo(tkt.created_at)}</span>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3.5 text-center">
                     <div className="flex items-center justify-center gap-1.5 flex-wrap">
                       <button
                         type="button"
                         onClick={() => setSelectedTicketId(tkt.id)}
-                        className="p-1.5 rounded-lg text-[#0F3040] hover:bg-[#F5F3EF] border border-[#E7E4DF]"
+                        className="p-1.5 rounded-lg text-[#0F3040] hover:bg-[#F5F3EF] hover:border-[#0F3040]/30 border border-[#E7E4DF] transition-all"
                         title="Open incident dossier"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -1031,7 +1039,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                           setSelectedTechId(tkt.technician_id || '');
                           setShowAssignModal(true);
                         }}
-                        className="px-2 py-1 rounded-lg text-[11px] font-bold bg-[#F5F3EF] text-[#0F3040] border border-[#E7E4DF] hover:bg-slate-200"
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#F5F3EF] text-[#0F3040] border border-[#E7E4DF] hover:bg-[#E7E4DF] transition-all"
                         title="Assign or reassign technician"
                       >
                         {tkt.technician_id ? 'Reassign' : 'Assign'}
@@ -1040,7 +1048,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                         <button
                           type="button"
                           onClick={() => handleUpdateTicketStatus(tkt.id, 'Closed')}
-                          className="px-2 py-1 rounded-lg text-[11px] font-bold bg-[#DCEDE4] text-[#286448] border border-[#286448]/30 hover:bg-[#c9e4d5]"
+                          className="px-2 py-1 rounded-lg text-[11px] font-bold bg-[#DCEDE4] text-[#286448] border border-[#286448]/30 hover:bg-[#c9e4d5] transition-all"
                           title="Confirm and close"
                         >
                           Close
@@ -1050,7 +1058,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                         <button
                           type="button"
                           onClick={() => handleUpdateTicketStatus(tkt.id, 'Open')}
-                          className="px-2 py-1 rounded-lg text-[11px] font-bold bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30 hover:bg-[#f3dfba]"
+                          className="px-2 py-1 rounded-lg text-[11px] font-bold bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30 hover:bg-[#f3dfba] transition-all"
                           title="Reopen incident"
                         >
                           Reopen
@@ -1059,7 +1067,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                       <button
                         type="button"
                         onClick={() => handleDeleteTicket(tkt)}
-                        className="p-1.5 rounded-lg text-[#A33D35] hover:bg-[#F5DEDA] border border-[#A33D35]/20"
+                        className="p-1.5 rounded-lg text-[#A33D35] hover:bg-[#F5DEDA] border border-[#A33D35]/20 transition-all"
                         title="Delete incident"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1075,27 +1083,31 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       {/* Pagination Bar */}
       {filteredTickets.length > pageSize && (
-        <div className="px-4 py-3 bg-[#F5F3EF] border-t border-[#E7E4DF] flex items-center justify-between text-xs text-[#464858]">
-          <span>
-            Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filteredTickets.length)} of {filteredTickets.length} incidents
+        <div className="px-5 py-3.5 bg-[#F5F3EF]/80 border-t border-[#E7E4DF] flex items-center justify-between text-xs text-[#464858]">
+          <span className="font-medium">
+            Showing <strong className="text-[#0F3040]">{(currentPage - 1) * pageSize + 1}</strong> to <strong className="text-[#0F3040]">{Math.min(currentPage * pageSize, filteredTickets.length)}</strong> of <strong className="text-[#0F3040]">{filteredTickets.length}</strong> incidents
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="p-1 rounded-lg border border-[#E7E4DF] bg-white disabled:opacity-40 text-[#0F3040]"
+              className="px-2.5 py-1 rounded-lg border border-[#E7E4DF] bg-white hover:bg-slate-50 disabled:opacity-40 text-[#0F3040] text-xs font-semibold transition-all flex items-center gap-1 shadow-xs"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Prev</span>
             </button>
-            <span className="px-2 font-mono text-[#0F3040] font-bold">{currentPage} / {Math.ceil(filteredTickets.length / pageSize)}</span>
+            <span className="px-3 py-1 rounded-lg font-mono text-xs font-bold bg-white border border-[#E7E4DF] text-[#0F3040] shadow-xs">
+              {currentPage} / {Math.ceil(filteredTickets.length / pageSize)}
+            </span>
             <button
               type="button"
               disabled={currentPage === Math.ceil(filteredTickets.length / pageSize)}
               onClick={() => setCurrentPage((p) => p + 1)}
-              className="p-1 rounded-lg border border-[#E7E4DF] bg-white disabled:opacity-40 text-[#0F3040]"
+              className="px-2.5 py-1 rounded-lg border border-[#E7E4DF] bg-white hover:bg-slate-50 disabled:opacity-40 text-[#0F3040] text-xs font-semibold transition-all flex items-center gap-1 shadow-xs"
             >
-              <ChevronRight className="w-4 h-4" />
+              <span>Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -1351,23 +1363,23 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="bg-[#F5F3EF] text-[#464858] uppercase text-[10px] tracking-wider border-b border-[#E7E4DF]">
-                <th className="px-4 py-3 font-bold">User Profile</th>
-                <th className="px-4 py-3 font-bold">Campus ID</th>
-                <th className="px-4 py-3 font-bold hidden md:table-cell">Type & Dept</th>
-                <th className="px-4 py-3 font-bold">Role Designation</th>
-                <th className="px-4 py-3 font-bold">Account Status</th>
-                <th className="px-4 py-3 font-bold text-center">Governance Actions</th>
+              <tr className="bg-[#F5F3EF]/90 text-[#464858] uppercase text-[10px] font-bold tracking-wider border-b border-[#E7E4DF]">
+                <th className="px-4 py-3.5">User Profile</th>
+                <th className="px-4 py-3.5">Campus ID</th>
+                <th className="px-4 py-3.5 hidden md:table-cell">Type & Dept</th>
+                <th className="px-4 py-3.5">Role Designation</th>
+                <th className="px-4 py-3.5">Account Status</th>
+                <th className="px-4 py-3.5 text-center">Governance Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E7E4DF]">
+            <tbody className="divide-y divide-[#E7E4DF]/70">
               {filteredUsers.map((u) => {
                 const isSelf = u.id === user?.id;
                 const isRoleLoading = actionLoadingId === `role-${u.id}`;
                 const isStatusLoading = actionLoadingId === `status-${u.id}`;
 
                 return (
-                  <tr key={u.id} className="hover:bg-[#F5F3EF]/60 transition-colors">
+                  <tr key={u.id} className="hover:bg-[#F5F3EF]/50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="font-bold text-[#0F3040] flex items-center gap-2">
                         <span>{u.name}</span>
@@ -1773,16 +1785,16 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="bg-[#F5F3EF] text-[#464858] uppercase text-[11px] font-semibold tracking-wider border-b border-[#E7E4DF]">
-                <th className="px-4 py-3">Timestamp</th>
-                <th className="px-4 py-3">Action</th>
-                <th className="px-4 py-3">Actor</th>
-                <th className="px-4 py-3">Event Details</th>
+              <tr className="bg-[#F5F3EF]/90 text-[#464858] uppercase text-[10px] font-bold tracking-wider border-b border-[#E7E4DF]">
+                <th className="px-4 py-3.5">Timestamp</th>
+                <th className="px-4 py-3.5">Action</th>
+                <th className="px-4 py-3.5">Actor</th>
+                <th className="px-4 py-3.5">Event Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E7E4DF]">
+            <tbody className="divide-y divide-[#E7E4DF]/70">
               {filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-[#F5F3EF]/60 transition-colors">
+                <tr key={log.id} className="hover:bg-[#F5F3EF]/50 transition-colors">
                   <td className="px-4 py-3 font-mono text-[11px] text-[#464858] whitespace-nowrap">
                     {formatFullDate(log.created_at)}
                   </td>
@@ -2052,18 +2064,19 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="shrink-0 flex items-center justify-between gap-4 px-4 sm:px-6 py-3.5 border-b border-[#E7E4DF] bg-white">
-          <div className="flex items-center gap-3">
+        <header className="shrink-0 flex items-center justify-between gap-3 sm:gap-4 px-3 sm:px-6 py-3 sm:py-3.5 border-b border-[#E7E4DF] bg-white">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <button
               type="button"
-              className="lg:hidden p-2 rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF]"
+              className="lg:hidden p-2 min-w-[42px] min-h-[42px] flex items-center justify-center rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] active:scale-95 transition-all"
               onClick={() => setIsMobileSidebarOpen(true)}
+              aria-label="Open navigation menu"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div>
-              <p className="text-[11px] text-[#464858] font-mono hidden sm:block">CampusFix · Executive Administration</p>
-              <h2 className="text-base font-bold text-[#0F3040]">{tabTitles[activeTab]}</h2>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-[11px] text-[#464858] font-mono hidden sm:block truncate">CampusFix · Executive Administration</p>
+              <h2 className="text-xs sm:text-base font-bold text-[#0F3040] truncate max-w-[170px] xs:max-w-[220px] sm:max-w-none">{tabTitles[activeTab]}</h2>
             </div>
           </div>
 

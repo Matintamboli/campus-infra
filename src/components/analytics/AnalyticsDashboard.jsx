@@ -382,58 +382,82 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
       {/* ── 8 KEY PERFORMANCE INDICATOR CARDS (Clean White Cards) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
         {/* 1. Total Incidents */}
-        <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#464858]">Total Logged</span>
-          <div className="text-2xl font-black text-[#0F3040] font-heading">{kpis.totalIncidents}</div>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#0F3040]/30 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#464858]">Total Logged</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0F3040]" />
+          </div>
+          <div className="text-2xl font-black text-[#0F3040] font-heading tracking-tight">{kpis.totalIncidents}</div>
           <p className="text-[10px] text-[#464858] truncate">Filtered window</p>
         </div>
 
         {/* 2. Open Incidents */}
-        <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#405C78]">Open Triage</span>
-          <div className="text-2xl font-black text-[#405C78] font-heading">{kpis.openIncidents}</div>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#405C78]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#405C78]">Open Triage</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#405C78]" />
+          </div>
+          <div className="text-2xl font-black text-[#405C78] font-heading tracking-tight">{kpis.openIncidents}</div>
           <p className="text-[10px] text-[#405C78] truncate">Pending dispatch</p>
         </div>
 
         {/* 3. Resolved Incidents */}
-        <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#286448]">Resolved</span>
-          <div className="text-2xl font-black text-[#286448] font-heading">{kpis.resolvedIncidents}</div>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#286448]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#286448]">Resolved</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#286448]" />
+          </div>
+          <div className="text-2xl font-black text-[#286448] font-heading tracking-tight">{kpis.resolvedIncidents}</div>
           <p className="text-[10px] text-[#286448] truncate">Complete / Closed</p>
         </div>
 
         {/* 4. Critical Incidents */}
-        <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#A33D35]">Critical</span>
-          <div className="text-2xl font-black text-[#A33D35] font-heading">{kpis.criticalIncidents}</div>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#A33D35]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#A33D35]">Critical</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#A33D35]" />
+          </div>
+          <div className="text-2xl font-black text-[#A33D35] font-heading tracking-tight">{kpis.criticalIncidents}</div>
           <p className="text-[10px] text-[#A33D35] truncate">Immediate hazard</p>
         </div>
 
         {/* 5. Avg Response Time */}
-        <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#183E4C]">Avg Response</span>
-          <div className="text-2xl font-black text-[#183E4C] font-heading">{kpis.avgResponseTime}</div>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#183E4C]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#183E4C]">Avg Response</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#183E4C]" />
+          </div>
+          <div className="text-2xl font-black text-[#183E4C] font-heading tracking-tight">{kpis.avgResponseTime}</div>
           <p className="text-[10px] text-[#464858] truncate">Log to first note</p>
         </div>
 
         {/* 6. Avg Resolution Time */}
-        <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#A56F63]">Avg Resolution</span>
-          <div className="text-2xl font-black text-[#A56F63] font-heading">{kpis.avgResolutionTime}</div>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#A56F63]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#A56F63]">Avg Resolution</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#A56F63]" />
+          </div>
+          <div className="text-2xl font-black text-[#A56F63] font-heading tracking-tight">{kpis.avgResolutionTime}</div>
           <p className="text-[10px] text-[#464858] truncate">Log to resolved</p>
         </div>
 
         {/* 7. Resolution Rate */}
-        <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#286448]">Clearance</span>
-          <div className="text-2xl font-black text-[#286448] font-heading">{kpis.resolutionRate}</div>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#286448]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#286448]">Clearance</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#286448]" />
+          </div>
+          <div className="text-2xl font-black text-[#286448] font-heading tracking-tight">{kpis.resolutionRate}</div>
           <p className="text-[10px] text-[#464858] truncate">Ratio completed</p>
         </div>
 
         {/* 8. Recurring Incidents */}
-        <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#93651C]">Recurring</span>
-          <div className="text-2xl font-black text-[#93651C] font-heading">{kpis.recurringIncidents}</div>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#93651C]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#93651C]">Recurring</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#93651C]" />
+          </div>
+          <div className="text-2xl font-black text-[#93651C] font-heading tracking-tight">{kpis.recurringIncidents}</div>
           <p className="text-[10px] text-[#464858] truncate">Cluster repeats</p>
         </div>
       </div>

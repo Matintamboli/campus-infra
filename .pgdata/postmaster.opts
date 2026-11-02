@@ -1,0 +1,1 @@
+C:/Users/abc/OneDrive/Desktop/campusinfraproject/node_modules/@embedded-postgres/windows-x64/native/bin/postgres.exe "-D" "C:\Users\abc\OneDrive\Desktop\campusinfraproject\.pgdata" "-p" "5432"

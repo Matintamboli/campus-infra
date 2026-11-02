@@ -121,7 +121,7 @@ export default function NotificationBell({ onNavigateToIncident }) {
 
       {/* Notification Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2.5 w-[360px] sm:w-[420px] rounded-2xl bg-white border border-[#E7E4DF] shadow-2xl z-50 overflow-hidden flex flex-col max-h-[580px] animate-fadeIn text-[#0F3040]">
+        <div className="absolute right-0 mt-2.5 w-[calc(100vw-32px)] max-w-[360px] sm:max-w-[420px] rounded-2xl bg-white border border-[#E7E4DF] shadow-2xl z-50 overflow-hidden flex flex-col max-h-[580px] animate-fadeIn text-[#0F3040]">
           {/* Header */}
           <div className="p-3.5 border-b border-[#E7E4DF] bg-[#F5F3EF] flex items-center justify-between">
             <div className="flex items-center gap-2">

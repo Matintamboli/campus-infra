@@ -90,24 +90,25 @@ export default function RoleAccessTesterModal({ isOpen, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
       <div className="relative w-full max-w-2xl rounded-2xl p-6 sm:p-7 border border-[#E7E4DF] bg-white shadow-2xl overflow-hidden max-h-[90vh] flex flex-col text-[#0F3040]">
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#E7E4DF]">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-[#A56F63]">
+        <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-[#E7E4DF] gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-[#A56F63] shrink-0">
               <Terminal className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="text-lg font-bold text-[#0F3040] font-heading">
-                Role-Based Access Control (RBAC) Barrier Tester
+            <div className="min-w-0">
+              <h3 className="text-sm sm:text-lg font-bold text-[#0F3040] font-heading truncate">
+                Role-Based Access Barrier Tester
               </h3>
-              <p className="text-xs text-[#464858]">
-                Current Authenticated Identity: <strong className="text-[#0F3040]">{user?.name}</strong> | Role: <span className="text-[#A56F63] font-bold uppercase">{role}</span>
+              <p className="text-[11px] sm:text-xs text-[#464858] truncate">
+                Identity: <strong className="text-[#0F3040]">{user?.name}</strong> • Role: <span className="text-[#A56F63] font-bold uppercase">{role}</span>
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] transition-colors"
+            className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] transition-colors shrink-0 active:scale-95"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>

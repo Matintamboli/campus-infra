@@ -294,16 +294,17 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="p-2 rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] lg:hidden"
+              className="p-2 min-w-[42px] min-h-[42px] flex items-center justify-center rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] active:scale-95 transition-all lg:hidden"
+              aria-label="Open navigation menu"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            <div>
-              <h1 className="text-sm sm:text-base font-bold text-[#0F3040] font-heading tracking-tight flex items-center gap-1.5">
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-base font-bold text-[#0F3040] font-heading tracking-tight flex items-center gap-1.5 truncate">
                 <span>Welcome back, <span className="text-[#A56F63]">{user?.name || 'Student'}</span> 👋</span>
               </h1>
-              <p className="text-[11px] text-[#464858] hidden sm:block">
+              <p className="text-[11px] text-[#464858] hidden sm:block truncate">
                 Campus Infrastructure Incident Operations • Active Student View
               </p>
             </div>
@@ -842,83 +843,85 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                     </div>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className="border-b border-[#E7E4DF] text-[#464858] uppercase tracking-wider text-[11px] bg-[#F5F3EF]">
-                          <th className="py-3 px-3 font-semibold">Incident ID</th>
-                          <th className="py-3 px-3 font-semibold">Title</th>
-                          <th className="py-3 px-3 font-semibold">Category</th>
-                          <th className="py-3 px-3 font-semibold">Location</th>
-                          <th className="py-3 px-3 font-semibold">Priority</th>
-                          <th className="py-3 px-3 font-semibold">Status</th>
-                          <th className="py-3 px-3 font-semibold">Date Reported</th>
-                          <th className="py-3 px-3 font-semibold text-right">View Details</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#E7E4DF]">
-                        {filteredTickets.slice(0, 5).map((tkt) => (
-                          <tr 
-                            key={tkt.id}
-                            onClick={() => {
-                              setSelectedIncident(tkt);
-                              setActiveTab('my-incidents');
-                            }}
-                            className="hover:bg-[#F5F3EF]/60 transition-colors cursor-pointer group"
-                          >
-                            <td className="py-3 px-3 font-mono font-bold text-[#A56F63] whitespace-nowrap">
-                              {tkt.ticket_number || `TKT-${tkt.id}`}
-                            </td>
-                            <td className="py-3 px-3 font-medium text-[#0F3040] max-w-[200px] truncate">
-                              {tkt.title}
-                            </td>
-                            <td className="py-3 px-3 text-[#464858] whitespace-nowrap">
-                              <span className="px-2 py-0.5 rounded-md bg-[#F5F3EF] border border-[#E7E4DF] text-[11px]">
-                                {tkt.category}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 text-[#464858] whitespace-nowrap text-[11px]">
-                              📍 {tkt.building} • {tkt.room}
-                            </td>
-                            <td className="py-3 px-3 whitespace-nowrap">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                tkt.priority === 'Critical' ? 'bg-[#F5DEDA] text-[#A33D35] border border-[#A33D35]/30' :
-                                tkt.priority === 'High' ? 'bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30' :
-                                tkt.priority === 'Medium' ? 'bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30' :
-                                'bg-[#F5F3EF] text-[#464858] border border-[#E7E4DF]'
-                              }`}>
-                                {tkt.priority}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 whitespace-nowrap">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                tkt.status === 'In Progress' ? 'bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30' :
-                                tkt.status === 'Resolved' || tkt.status === 'Closed' ? 'bg-[#DCEDE4] text-[#286448] border border-[#286448]/30' :
-                                'bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30'
-                              }`}>
-                                {tkt.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 text-[#464858] whitespace-nowrap text-[11px]">
-                              {formatTimeAgo(tkt.created_at)}
-                            </td>
-                            <td className="py-3 px-3 text-right whitespace-nowrap">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                   e.stopPropagation();
-                                   setSelectedIncident(tkt);
-                                   setActiveTab('my-incidents');
-                                }}
-                                className="px-2.5 py-1 rounded-lg bg-[#F5F3EF] hover:bg-[#E7E4DF] text-[#0F3040] border border-[#E7E4DF] font-semibold text-[11px] transition-all"
-                              >
-                                View Details
-                              </button>
-                            </td>
+                  <div className="rounded-xl border border-[#E7E4DF] overflow-hidden bg-white">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="border-b border-[#E7E4DF] text-[#464858] uppercase tracking-wider text-[10px] font-bold bg-[#F5F3EF]/90">
+                            <th className="py-3.5 px-4">Incident ID</th>
+                            <th className="py-3.5 px-4">Title</th>
+                            <th className="py-3.5 px-4 hidden sm:table-cell">Category</th>
+                            <th className="py-3.5 px-4 hidden md:table-cell">Location</th>
+                            <th className="py-3.5 px-4">Priority</th>
+                            <th className="py-3.5 px-4">Status</th>
+                            <th className="py-3.5 px-4 hidden lg:table-cell">Date Reported</th>
+                            <th className="py-3.5 px-4 text-right">Action</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-[#E7E4DF]/70">
+                          {filteredTickets.slice(0, 5).map((tkt) => (
+                            <tr 
+                              key={tkt.id}
+                              onClick={() => {
+                                setSelectedIncident(tkt);
+                                setActiveTab('my-incidents');
+                              }}
+                              className="hover:bg-[#F5F3EF]/50 transition-colors cursor-pointer group"
+                            >
+                              <td className="py-3.5 px-4 font-mono font-bold text-[#A56F63] whitespace-nowrap group-hover:underline">
+                                {tkt.ticket_number || `TKT-${tkt.id}`}
+                              </td>
+                              <td className="py-3.5 px-4 font-medium text-[#0F3040] max-w-[220px] truncate group-hover:text-[#A56F63] transition-colors">
+                                {tkt.title}
+                              </td>
+                              <td className="py-3.5 px-4 hidden sm:table-cell text-[#464858] whitespace-nowrap">
+                                <span className="px-2 py-0.5 rounded-md bg-[#F5F3EF] border border-[#E7E4DF] text-[11px] font-medium text-[#464858]">
+                                  {tkt.category}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 hidden md:table-cell text-[#464858] whitespace-nowrap text-[11px]">
+                                <span className="font-semibold text-[#0F3040]">{tkt.building}</span> {tkt.room && <span className="text-[#8D8B96] font-mono">• {tkt.room}</span>}
+                              </td>
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  tkt.priority === 'Critical' ? 'bg-[#F5DEDA] text-[#A33D35] border border-[#A33D35]/30' :
+                                  tkt.priority === 'High' ? 'bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30' :
+                                  tkt.priority === 'Medium' ? 'bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30' :
+                                  'bg-[#F5F3EF] text-[#464858] border border-[#E7E4DF]'
+                                }`}>
+                                  {tkt.priority}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  tkt.status === 'In Progress' ? 'bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30' :
+                                  tkt.status === 'Resolved' || tkt.status === 'Closed' ? 'bg-[#DCEDE4] text-[#286448] border border-[#286448]/30' :
+                                  'bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30'
+                                }`}>
+                                  {tkt.status}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 hidden lg:table-cell text-[#464858] font-mono whitespace-nowrap text-[11px]">
+                                {formatTimeAgo(tkt.created_at)}
+                              </td>
+                              <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                     e.stopPropagation();
+                                     setSelectedIncident(tkt);
+                                     setActiveTab('my-incidents');
+                                  }}
+                                  className="px-2.5 py-1 rounded-lg bg-[#F5F3EF] hover:bg-[#E7E4DF] text-[#0F3040] border border-[#E7E4DF] font-semibold text-[11px] transition-all shadow-xs"
+                                >
+                                  View Details
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </div>

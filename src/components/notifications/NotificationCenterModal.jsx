@@ -181,23 +181,23 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-fadeIn">
       <div className="w-full max-w-4xl max-h-[92vh] rounded-3xl bg-white border border-[#E7E4DF] shadow-2xl overflow-hidden flex flex-col text-[#0F3040]">
         {/* Top Header */}
-        <div className="p-5 sm:p-6 bg-[#0F3040] text-white flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#D99B7F]/20 border border-[#D99B7F]/40 flex items-center justify-center text-[#D99B7F] shadow-xs">
-              <Bell className="w-6 h-6" />
+        <div className="p-4 sm:p-6 bg-[#0F3040] text-white flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[#D99B7F]/20 border border-[#D99B7F]/40 flex items-center justify-center text-[#D99B7F] shadow-xs shrink-0">
+              <Bell className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-extrabold text-white font-heading">
-                  Notification Center & Activity Feed
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-xl font-extrabold text-white font-heading truncate">
+                  Notification Center
                 </h2>
                 {unreadCount > 0 && (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#A33D35] text-white shadow-xs">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-[#A33D35] text-white shadow-xs">
                     {unreadCount} Unread
                   </span>
                 )}
               </div>
-              <p className="text-xs text-white/80 mt-0.5">
+              <p className="text-[11px] sm:text-xs text-white/80 mt-0.5 line-clamp-1 sm:line-clamp-none">
                 Role-tailored infrastructure incident alerts, field technician dispatch updates, and SLA governance.
               </p>
             </div>
@@ -206,16 +206,17 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
           <button
             type="button"
             onClick={closeCenterModal}
-            className="p-2 rounded-xl text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
+            className="p-2 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 transition-all shrink-0 active:scale-95"
+            aria-label="Close notification center"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Controls & Search Toolbar */}
-        <div className="p-3.5 sm:px-6 border-b border-[#E7E4DF] bg-[#F5F3EF] flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="p-3 sm:px-6 border-b border-[#E7E4DF] bg-[#F5F3EF] flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Tabs */}
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 w-full md:w-auto">
             {[
               { id: 'all', label: `All (${notifications.length})` },
               { id: 'unread', label: `Unread (${unreadCount})` },
@@ -229,7 +230,7 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap active:scale-95 ${
                   activeTab === tab.id
                     ? 'bg-[#0F3040] text-white shadow-xs'
                     : 'text-[#464858] hover:text-[#0F3040] hover:bg-white'

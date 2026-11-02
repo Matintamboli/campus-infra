@@ -626,19 +626,19 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="bg-[#F5F3EF] text-[#464858] uppercase text-[10px] tracking-wider border-b border-[#E7E4DF]">
-                <th className="px-4 py-3 font-semibold">Incident ID</th>
-                <th className="px-4 py-3 font-semibold">Issue Title</th>
-                <th className="px-4 py-3 font-semibold hidden sm:table-cell">Category</th>
-                <th className="px-4 py-3 font-semibold hidden md:table-cell">Location</th>
-                <th className="px-4 py-3 font-semibold hidden lg:table-cell">Reporter</th>
-                <th className="px-4 py-3 font-semibold">Priority</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold hidden xl:table-cell">Reported Time</th>
-                <th className="px-4 py-3 font-semibold text-center">Action</th>
+              <tr className="bg-[#F5F3EF]/90 text-[#464858] uppercase text-[10px] font-bold tracking-wider border-b border-[#E7E4DF]">
+                <th className="px-4 py-3.5">Incident ID</th>
+                <th className="px-4 py-3.5">Issue Title</th>
+                <th className="px-4 py-3.5 hidden sm:table-cell">Category</th>
+                <th className="px-4 py-3.5 hidden md:table-cell">Location</th>
+                <th className="px-4 py-3.5 hidden lg:table-cell">Reporter</th>
+                <th className="px-4 py-3.5">Priority</th>
+                <th className="px-4 py-3.5">Status</th>
+                <th className="px-4 py-3.5 hidden xl:table-cell">Reported Time</th>
+                <th className="px-4 py-3.5 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E7E4DF]">
+            <tbody className="divide-y divide-[#E7E4DF]/70">
               {items.map((tkt) => {
                 const CategoryIcon = getCategoryIcon(tkt.category);
                 const isOpen = tkt.status === 'Open' && !tkt.technician_id;
@@ -647,14 +647,14 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                   <tr
                     key={tkt.id}
                     onClick={() => setSelectedTicket(tkt)}
-                    className="hover:bg-[#F5F3EF]/60 transition-colors cursor-pointer group"
+                    className="hover:bg-[#F5F3EF]/50 transition-colors cursor-pointer group"
                   >
                     <td className="px-4 py-3.5">
                       <span className="font-mono font-bold text-[#A56F63] group-hover:underline">
                         {tkt.ticket_number || `INC-${tkt.id}`}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 max-w-[200px]">
+                    <td className="px-4 py-3.5 max-w-[220px]">
                       <span className="text-[#0F3040] font-medium line-clamp-1 group-hover:text-[#A56F63] transition-colors">
                         {tkt.title}
                       </span>
@@ -667,7 +667,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                     </td>
                     <td className="px-4 py-3.5 hidden md:table-cell">
                       <div className="text-[#0F3040] font-medium">{tkt.building || '—'}</div>
-                      {tkt.room && <div className="text-[10px] text-[#464858]">{tkt.room}</div>}
+                      {tkt.room && <div className="text-[10px] text-[#464858] font-mono">{tkt.room}</div>}
                     </td>
                     <td className="px-4 py-3.5 hidden lg:table-cell text-[#464858]">
                       <div className="text-[#0F3040] font-medium">{tkt.reporter_name || 'Campus Reporter'}</div>
@@ -681,7 +681,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                     <td className="px-4 py-3.5">
                       <StatusBadge status={tkt.status} />
                     </td>
-                    <td className="px-4 py-3.5 hidden xl:table-cell text-[#464858] whitespace-nowrap">
+                    <td className="px-4 py-3.5 hidden xl:table-cell text-[#464858] font-mono text-[11px] whitespace-nowrap">
                       {formatTimeAgo(tkt.created_at)}
                     </td>
                     <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
@@ -715,30 +715,32 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
 
         {/* Pagination Bar */}
         {filteredTickets.length > pageSize && (
-          <div className="px-4 py-3 bg-[#F5F3EF] border-t border-[#E7E4DF] flex items-center justify-between text-xs text-[#464858] flex-wrap gap-2">
-            <span>
-              Showing {(currentPage - 1) * pageSize + 1} to{' '}
-              {Math.min(currentPage * pageSize, filteredTickets.length)} of {filteredTickets.length} incidents
+          <div className="px-5 py-3.5 bg-[#F5F3EF]/80 border-t border-[#E7E4DF] flex items-center justify-between text-xs text-[#464858] flex-wrap gap-2">
+            <span className="font-medium">
+              Showing <strong className="text-[#0F3040]">{(currentPage - 1) * pageSize + 1}</strong> to{' '}
+              <strong className="text-[#0F3040]">{Math.min(currentPage * pageSize, filteredTickets.length)}</strong> of <strong className="text-[#0F3040]">{filteredTickets.length}</strong> incidents
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="p-1.5 rounded-lg border border-[#E7E4DF] bg-white text-[#464858] disabled:opacity-40 hover:text-[#0F3040] hover:bg-[#F5F3EF]"
+                className="px-2.5 py-1 rounded-lg border border-[#E7E4DF] bg-white text-[#0F3040] font-semibold disabled:opacity-40 hover:bg-[#F5F3EF] transition-all flex items-center gap-1 shadow-xs"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Prev</span>
               </button>
-              <span className="px-2 font-mono text-[#0F3040] font-semibold">
+              <span className="px-3 py-1 rounded-lg font-mono text-xs font-bold bg-white border border-[#E7E4DF] text-[#0F3040] shadow-xs">
                 {currentPage} / {totalPages}
               </span>
               <button
                 type="button"
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="p-1.5 rounded-lg border border-[#E7E4DF] bg-white text-[#464858] disabled:opacity-40 hover:text-[#0F3040] hover:bg-[#F5F3EF]"
+                className="px-2.5 py-1 rounded-lg border border-[#E7E4DF] bg-white text-[#0F3040] font-semibold disabled:opacity-40 hover:bg-[#F5F3EF] transition-all flex items-center gap-1 shadow-xs"
               >
-                <ChevronRight className="w-4 h-4" />
+                <span>Next</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -1935,18 +1937,19 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="shrink-0 flex items-center justify-between gap-4 px-4 sm:px-6 py-3.5 border-b border-[#E7E4DF] bg-white">
-          <div className="flex items-center gap-3">
+        <header className="shrink-0 flex items-center justify-between gap-3 sm:gap-4 px-3 sm:px-6 py-3 sm:py-3.5 border-b border-[#E7E4DF] bg-white">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <button
               type="button"
-              className="lg:hidden p-2 rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF]"
+              className="lg:hidden p-2 min-w-[42px] min-h-[42px] flex items-center justify-center rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] active:scale-95 transition-all"
               onClick={() => setIsMobileSidebarOpen(true)}
+              aria-label="Open navigation menu"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div>
-              <p className="text-[11px] text-[#464858] font-mono hidden sm:block">CampusFix · Field Operations</p>
-              <h2 className="text-sm font-bold text-[#0F3040]">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-[11px] text-[#464858] font-mono hidden sm:block truncate">CampusFix · Field Operations</p>
+              <h2 className="text-xs sm:text-sm font-bold text-[#0F3040] truncate max-w-[170px] xs:max-w-[220px] sm:max-w-none">
                 {selectedTicket ? `Incident Workspace: ${selectedTicket.ticket_number}` : tabTitles[activeTab]}
               </h2>
             </div>
