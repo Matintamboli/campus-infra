@@ -172,7 +172,7 @@ export default function App() {
             onOpenRoleTester={() => setIsRoleTesterOpen(true)}
           />
         ) : (
-          <div className="relative z-10 flex-1 flex flex-col">
+          <div className="relative z-10 flex-1 flex flex-col min-h-screen bg-[#F5F3EF]">
             <PlatformHeader 
               onOpenRoleTester={() => setIsRoleTesterOpen(true)}
               onNotify={triggerToast}

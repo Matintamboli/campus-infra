@@ -65,10 +65,10 @@ export default function ReportIncidentModule({
 
   // Priority Details & SLA Guarantees
   const priorityOptions = [
-    { id: 'Low', label: 'Low', sla: '24–48 Hours', desc: 'Minor inconvenience or cosmetic fault', color: 'border-slate-500/40 text-slate-300' },
-    { id: 'Medium', label: 'Medium', sla: '4–8 Hours', desc: 'Standard disruption with available workaround', color: 'border-[#D99B7F]/50 text-[#D99B7F]' },
-    { id: 'High', label: 'High', sla: '1–2 Hours', desc: 'Significant classroom or lab impediment', color: 'border-amber-400/50 text-amber-300' },
-    { id: 'Critical', label: 'Critical', sla: '< 30 Mins', desc: 'Campus-wide outage or safety emergency', color: 'border-red-400/60 text-red-300' },
+    { id: 'Low', label: 'Low', sla: '24–48 Hours', desc: 'Minor inconvenience or cosmetic fault', color: 'border-[#E7E4DF] text-[#405C78]' },
+    { id: 'Medium', label: 'Medium', sla: '4–8 Hours', desc: 'Standard disruption with available workaround', color: 'border-[#D99B7F]/60 text-[#A56F63]' },
+    { id: 'High', label: 'High', sla: '1–2 Hours', desc: 'Significant classroom or lab impediment', color: 'border-[#93651C]/40 text-[#93651C]' },
+    { id: 'Critical', label: 'Critical', sla: '< 30 Mins', desc: 'Campus-wide outage or safety emergency', color: 'border-[#A33D35]/40 text-[#A33D35]' },
   ];
 
   // Quick Location Suggestions
@@ -266,35 +266,29 @@ export default function ReportIncidentModule({
   if (isSubmitted && submittedIncident) {
     return (
       <div className="w-full max-w-3xl mx-auto py-8 px-4 animate-fadeIn">
-        <div 
-          className="relative rounded-3xl p-6 sm:p-10 border border-[#A56F63]/30 shadow-2xl backdrop-blur-2xl overflow-hidden"
-          style={{
-            background: 'linear-gradient(145deg, rgba(15, 48, 64, 0.95) 0%, rgba(26, 34, 45, 0.98) 100%)',
-            boxShadow: '0 35px 85px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(217, 155, 127, 0.15)',
-          }}
-        >
-          {/* Top Decorative Pulse */}
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/15 border border-emerald-400/40 flex items-center justify-center text-emerald-400 shadow-xl mb-6 animate-fadeIn">
-            <CheckCircle2 className="w-10 h-10" />
+        <div className="relative rounded-3xl p-6 sm:p-10 border border-[#E7E4DF] bg-white shadow-xs overflow-hidden">
+          {/* Top Decorative Icon */}
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-[#DCEDE4] border border-[#286448]/20 flex items-center justify-center text-[#286448] shadow-xs mb-5 animate-fadeIn">
+            <CheckCircle2 className="w-8 h-8" />
           </div>
 
           <div className="text-center space-y-2">
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 uppercase tracking-widest font-mono">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#DCEDE4] text-[#286448] border border-[#286448]/30 uppercase tracking-widest font-mono">
               STATUS: OPEN • DISPATCHED
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-heading tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#0F3040] font-heading tracking-tight">
               Incident Report Confirmed
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto font-light leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#464858] max-w-lg mx-auto font-normal leading-relaxed">
               Your issue has been recorded in the central infrastructure database and queued for priority field technician assignment.
             </p>
           </div>
 
           {/* Incident ID Card with Copy Trigger */}
-          <div className="mt-8 p-4 rounded-2xl bg-[#0F3040]/90 border border-[#D99B7F]/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="mt-8 p-4 rounded-2xl bg-[#F5F3EF] border border-[#E7E4DF] flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Official Incident Reference ID</span>
-              <div className="text-xl sm:text-2xl font-black font-mono text-[#D99B7F] tracking-wide">
+              <span className="text-[10px] text-[#464858] uppercase tracking-wider font-semibold block">Official Incident Reference ID</span>
+              <div className="text-xl sm:text-2xl font-black font-mono text-[#0F3040] tracking-wide">
                 {submittedIncident.ticket_number || `INC-${submittedIncident.id}`}
               </div>
             </div>
@@ -302,16 +296,16 @@ export default function ReportIncidentModule({
             <button
               type="button"
               onClick={handleCopyId}
-              className="px-4 py-2 rounded-xl bg-[#464858]/50 hover:bg-[#464858] border border-[#A56F63]/40 text-xs font-semibold text-slate-200 flex items-center gap-2 transition-all active:scale-95"
+              className="px-4 py-2 rounded-xl bg-white hover:bg-[#F5F3EF] border border-[#E7E4DF] text-xs font-semibold text-[#0F3040] flex items-center gap-2 transition-all active:scale-95 shadow-xs"
             >
               {copiedId ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span className="text-emerald-300">Copied!</span>
+                  <Check className="w-4 h-4 text-[#286448]" />
+                  <span className="text-[#286448]">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4 text-[#D99B7F]" />
+                  <Copy className="w-4 h-4 text-[#A56F63]" />
                   <span>Copy Ticket ID</span>
                 </>
               )}
@@ -319,58 +313,58 @@ export default function ReportIncidentModule({
           </div>
 
           {/* Submission Dossier Summary */}
-          <div className="mt-6 p-5 rounded-2xl bg-[#202733]/70 border border-slate-600/30 space-y-3.5 text-xs">
-            <h4 className="font-bold text-white uppercase tracking-wider text-[11px] pb-2 border-b border-slate-700/50">
+          <div className="mt-6 p-5 rounded-2xl bg-[#F5F3EF] border border-[#E7E4DF] space-y-3.5 text-xs">
+            <h4 className="font-bold text-[#0F3040] uppercase tracking-wider text-[11px] pb-2 border-b border-[#E7E4DF]">
               Dispatched Incident Details
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Incident Title</span>
-                <span className="text-white font-medium text-sm block mt-0.5">{submittedIncident.title}</span>
+                <span className="text-[#464858] block text-[10px] uppercase font-semibold">Incident Title</span>
+                <span className="text-[#0F3040] font-semibold text-sm block mt-0.5">{submittedIncident.title}</span>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Infrastructure Category</span>
-                <span className="text-[#D99B7F] font-semibold block mt-0.5">{submittedIncident.category}</span>
+                <span className="text-[#464858] block text-[10px] uppercase font-semibold">Infrastructure Category</span>
+                <span className="text-[#A56F63] font-semibold block mt-0.5">{submittedIncident.category}</span>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Campus Location</span>
-                <span className="text-white block mt-0.5">
+                <span className="text-[#464858] block text-[10px] uppercase font-semibold">Campus Location</span>
+                <span className="text-[#0F3040] block mt-0.5">
                   📍 {submittedIncident.building} • {submittedIncident.floor || floor} • {submittedIncident.room}
                 </span>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Affected Service</span>
-                <span className="text-white block mt-0.5">⚡ {submittedIncident.affected_service || affectedService}</span>
+                <span className="text-[#464858] block text-[10px] uppercase font-semibold">Affected Service</span>
+                <span className="text-[#0F3040] block mt-0.5">⚡ {submittedIncident.affected_service || affectedService}</span>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Priority & SLA Tier</span>
-                <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                <span className="text-[#464858] block text-[10px] uppercase font-semibold">Priority & SLA Tier</span>
+                <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/20">
                   {submittedIncident.priority} Priority (Target: {priorityOptions.find(p => p.id === submittedIncident.priority)?.sla || '4-8 Hours'})
                 </span>
               </div>
 
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Reporter Identity & Timestamp</span>
-                <span className="text-slate-200 block mt-0.5 font-mono">
+                <span className="text-[#464858] block text-[10px] uppercase font-semibold">Reporter Identity & Timestamp</span>
+                <span className="text-[#0F3040] block mt-0.5 font-mono">
                   {user?.name} ({user?.collegeId || 'STU'}) • {submittedIncident.created_at ? new Date(submittedIncident.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Logged'}
                 </span>
               </div>
             </div>
 
             {submittedIncident.attachments && submittedIncident.attachments.length > 0 && (
-              <div className="pt-2 border-t border-slate-700/40">
-                <span className="text-slate-400 block text-[10px] uppercase font-semibold mb-1">
+              <div className="pt-2 border-t border-[#E7E4DF]">
+                <span className="text-[#464858] block text-[10px] uppercase font-semibold mb-1">
                   Attached Diagnostic Files ({submittedIncident.attachments.length})
                 </span>
                 <div className="flex items-center gap-2 flex-wrap">
                   {submittedIncident.attachments.map((att, i) => (
-                    <span key={i} className="px-2 py-1 rounded bg-[#0F3040] text-slate-300 text-[10px] font-mono border border-slate-600/30 flex items-center gap-1">
-                      <Paperclip className="w-3 h-3 text-[#D99B7F]" />
+                    <span key={i} className="px-2 py-1 rounded bg-white text-[#0F3040] text-[10px] font-mono border border-[#E7E4DF] flex items-center gap-1 shadow-xs">
+                      <Paperclip className="w-3 h-3 text-[#A56F63]" />
                       <span className="truncate max-w-[120px]">{att.name}</span>
                     </span>
                   ))}
@@ -390,10 +384,7 @@ export default function ReportIncidentModule({
                   onReturnToDashboard();
                 }
               }}
-              className="w-full sm:w-1/2 py-3 px-5 rounded-xl font-bold text-xs tracking-wider text-[#0F3040] shadow-xl flex items-center justify-center gap-2 transition-all hover:brightness-105 active:scale-95"
-              style={{
-                background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)',
-              }}
+              className="w-full sm:w-1/2 py-3 px-5 rounded-xl font-bold text-xs tracking-wider text-white bg-[#0F3040] hover:bg-[#183E4C] shadow-xs flex items-center justify-center gap-2 transition-all active:scale-95"
             >
               <Eye className="w-4 h-4" />
               <span>View Incident</span>
@@ -402,7 +393,7 @@ export default function ReportIncidentModule({
             <button
               type="button"
               onClick={onReturnToDashboard}
-              className="w-full sm:w-1/2 py-3 px-5 rounded-xl bg-[#464858]/50 hover:bg-[#464858]/80 border border-[#A56F63]/30 text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95"
+              className="w-full sm:w-1/2 py-3 px-5 rounded-xl bg-white hover:bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040] font-semibold text-xs tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 shadow-xs"
             >
               <span>Return to Dashboard</span>
               <ArrowRight className="w-4 h-4" />
@@ -419,25 +410,20 @@ export default function ReportIncidentModule({
   return (
     <div className="w-full max-w-4xl mx-auto py-4 sm:py-6 animate-fadeIn">
       {/* Header Banner */}
-      <div 
-        className="relative rounded-3xl p-6 sm:p-8 border border-[#A56F63]/30 overflow-hidden shadow-2xl mb-6"
-        style={{
-          background: 'linear-gradient(135deg, rgba(15, 48, 64, 0.95) 0%, rgba(70, 72, 88, 0.45) 100%)',
-        }}
-      >
+      <div className="relative rounded-2xl p-6 sm:p-8 bg-[#0F3040] text-white overflow-hidden shadow-xs mb-6">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#D99B7F]/20 text-[#D99B7F] border border-[#D99B7F]/40 uppercase tracking-wider">
                 IT Service Desk
               </span>
-              <span className="text-xs text-slate-400 font-mono">Reporter: {user?.name} ({user?.collegeId})</span>
+              <span className="text-xs text-white/70 font-mono">Reporter: {user?.name} ({user?.collegeId})</span>
             </div>
             <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-white font-heading tracking-tight">
               Report a Campus Issue
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-slate-300 max-w-2xl font-light">
-              Help us identify and resolve infrastructure problems.
+            <p className="mt-1 text-xs sm:text-sm text-white/80 max-w-2xl font-light">
+              Help us identify and resolve infrastructure problems quickly.
             </p>
           </div>
 
@@ -445,7 +431,7 @@ export default function ReportIncidentModule({
             <button
               type="button"
               onClick={onReturnToDashboard}
-              className="self-start sm:self-auto px-4 py-2 rounded-xl bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 text-xs font-semibold text-slate-200 transition-colors"
+              className="self-start sm:self-auto px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-semibold text-white transition-colors"
             >
               Cancel & Return
             </button>
@@ -453,20 +439,15 @@ export default function ReportIncidentModule({
         </div>
       </div>
 
-      {/* Main Glassmorphic Form Card */}
-      <div 
-        className="relative rounded-3xl p-6 sm:p-8 border border-[#A56F63]/30 shadow-2xl backdrop-blur-2xl"
-        style={{
-          background: 'rgba(26, 34, 45, 0.90)',
-        }}
-      >
+      {/* Main SaaS Form Card */}
+      <div className="relative rounded-2xl p-6 sm:p-8 border border-[#E7E4DF] bg-white shadow-xs">
         {/* Global Error Banner */}
         {Object.keys(errors).length > 0 && (
-          <div className="mb-6 p-4 rounded-2xl bg-red-500/15 border border-red-500/40 text-red-200 text-xs flex items-center gap-3 animate-fadeIn">
-            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+          <div className="mb-6 p-4 rounded-xl bg-[#F5DEDA] border border-[#A33D35]/30 text-[#A33D35] text-xs flex items-center gap-3 animate-fadeIn">
+            <AlertCircle className="w-5 h-5 text-[#A33D35] flex-shrink-0" />
             <div>
-              <p className="font-bold text-red-300">Please correct the highlighted fields before submitting.</p>
-              <p className="text-[11px] text-red-200/80">Every marked field is required for accurate technician dispatch.</p>
+              <p className="font-bold text-[#A33D35]">Please correct the highlighted fields before submitting.</p>
+              <p className="text-[11px] text-[#A33D35]/90">Every marked field is required for accurate technician dispatch.</p>
             </div>
           </div>
         )}
@@ -475,10 +456,10 @@ export default function ReportIncidentModule({
           {/* FIELD 1: INCIDENT TITLE */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label htmlFor="inc-title" className="block text-xs font-bold uppercase tracking-wider text-slate-200">
-                1. Incident Title <span className="text-[#D99B7F]">*</span>
+              <label htmlFor="inc-title" className="block text-xs font-bold uppercase tracking-wider text-[#0F3040]">
+                1. Incident Title <span className="text-[#A56F63]">*</span>
               </label>
-              <span className="text-[11px] text-slate-400 font-mono">Min 5 characters</span>
+              <span className="text-[11px] text-[#464858] font-mono">Min 5 characters</span>
             </div>
             <input
               id="inc-title"
@@ -489,20 +470,20 @@ export default function ReportIncidentModule({
                 setTitle(e.target.value);
                 if (errors.title) setErrors({ ...errors, title: null });
               }}
-              className={`w-full px-4 py-3 rounded-xl glass-input text-white text-xs sm:text-sm placeholder-slate-400 focus:outline-none transition-all ${
-                errors.title ? 'border-red-400' : ''
+              className={`w-full px-4 py-3 rounded-xl saas-input text-xs sm:text-sm ${
+                errors.title ? '!border-red-500' : ''
               }`}
             />
-            {errors.title && <p className="mt-1 text-xs text-red-300 font-medium pl-1">{errors.title}</p>}
+            {errors.title && <p className="mt-1 text-xs text-red-600 font-medium pl-1">{errors.title}</p>}
           </div>
 
           {/* FIELD 2: INCIDENT DESCRIPTION */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label htmlFor="inc-desc" className="block text-xs font-bold uppercase tracking-wider text-slate-200">
-                2. Incident Description <span className="text-[#D99B7F]">*</span>
+              <label htmlFor="inc-desc" className="block text-xs font-bold uppercase tracking-wider text-[#0F3040]">
+                2. Incident Description <span className="text-[#A56F63]">*</span>
               </label>
-              <span className="text-[11px] text-slate-400 font-mono">Min 10 characters</span>
+              <span className="text-[11px] text-[#464858] font-mono">Min 10 characters</span>
             </div>
             <textarea
               id="inc-desc"
@@ -513,20 +494,20 @@ export default function ReportIncidentModule({
                 setDescription(e.target.value);
                 if (errors.description) setErrors({ ...errors, description: null });
               }}
-              className={`w-full px-4 py-3 rounded-xl glass-input text-white text-xs sm:text-sm placeholder-slate-400 focus:outline-none transition-all ${
-                errors.description ? 'border-red-400' : ''
+              className={`w-full px-4 py-3 rounded-xl saas-input text-xs sm:text-sm ${
+                errors.description ? '!border-red-500' : ''
               }`}
             />
-            {errors.description && <p className="mt-1 text-xs text-red-300 font-medium pl-1">{errors.description}</p>}
+            {errors.description && <p className="mt-1 text-xs text-red-600 font-medium pl-1">{errors.description}</p>}
           </div>
 
           {/* FIELD 3: INCIDENT CATEGORY DROPDOWN */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="inc-category-select" className="block text-xs font-bold uppercase tracking-wider text-slate-200">
-                3. Incident Category <span className="text-[#D99B7F]">*</span>
+              <label htmlFor="inc-category-select" className="block text-xs font-bold uppercase tracking-wider text-[#0F3040]">
+                3. Incident Category <span className="text-[#A56F63]">*</span>
               </label>
-              <span className="text-[11px] text-slate-400">Select closest infrastructure category</span>
+              <span className="text-[11px] text-[#464858]">Select closest infrastructure category</span>
             </div>
 
             {/* Standard Dropdown Select */}
@@ -537,13 +518,13 @@ export default function ReportIncidentModule({
                 setCategory(e.target.value);
                 if (errors.category) setErrors({ ...errors, category: null });
               }}
-              className={`w-full px-4 py-3 rounded-xl glass-input text-white text-xs sm:text-sm font-medium focus:outline-none bg-[#0F3040] transition-all cursor-pointer ${
-                errors.category ? 'border-red-400' : ''
+              className={`w-full px-4 py-3 rounded-xl saas-input text-xs sm:text-sm font-medium cursor-pointer ${
+                errors.category ? '!border-red-500' : ''
               }`}
             >
-              <option value="" disabled className="bg-[#0F3040] text-slate-400">-- Choose Incident Category --</option>
+              <option value="" disabled>-- Choose Incident Category --</option>
               {categoryOptions.map((cat) => (
-                <option key={cat.id} value={cat.id} className="bg-[#0F3040] text-white">
+                <option key={cat.id} value={cat.id}>
                   {cat.name} ({cat.desc})
                 </option>
               ))}
@@ -562,33 +543,33 @@ export default function ReportIncidentModule({
                       setCategory(cat.id);
                       if (errors.category) setErrors({ ...errors, category: null });
                     }}
-                    className={`p-3 rounded-2xl border text-left transition-all duration-200 ${
+                    className={`p-3 rounded-xl border text-left transition-all duration-200 ${
                       isSelected
-                        ? 'bg-[#D99B7F]/20 border-[#D99B7F] text-white shadow-md shadow-[#D99B7F]/10 scale-[1.01]'
-                        : 'bg-[#202733]/60 border-slate-600/30 text-slate-300 hover:border-slate-500 hover:bg-[#202733]'
+                        ? 'bg-white border-2 border-[#0F3040] text-[#0F3040] shadow-xs'
+                        : 'bg-[#F5F3EF] border-[#E7E4DF] text-[#464858] hover:border-[#0F3040] hover:text-[#0F3040]'
                     }`}
                   >
-                    <Icon className={`w-5 h-5 mb-1.5 ${isSelected ? 'text-[#D99B7F]' : 'text-slate-400'}`} />
+                    <Icon className={`w-5 h-5 mb-1.5 ${isSelected ? 'text-[#0F3040]' : 'text-[#464858]'}`} />
                     <div className="text-xs font-bold truncate">{cat.name}</div>
-                    <div className="text-[10px] text-slate-400 truncate mt-0.5">{cat.desc}</div>
+                    <div className="text-[10px] text-[#464858] truncate mt-0.5">{cat.desc}</div>
                   </button>
                 );
               })}
             </div>
-            {errors.category && <p className="mt-1.5 text-xs text-red-300 font-medium pl-1">{errors.category}</p>}
+            {errors.category && <p className="mt-1.5 text-xs text-red-600 font-medium pl-1">{errors.category}</p>}
           </div>
 
           {/* FIELD 4: CAMPUS LOCATION (Building, Floor, Room / Lab Number) */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-[#202733]/50 border border-slate-600/30 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-200">
-              <MapPin className="w-4 h-4 text-[#D99B7F]" />
-              <span>4. Campus Location <span className="text-[#D99B7F]">*</span></span>
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#F5F3EF] border border-[#E7E4DF] space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0F3040]">
+              <MapPin className="w-4 h-4 text-[#A56F63]" />
+              <span>4. Campus Location <span className="text-[#A56F63]">*</span></span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Building */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-[#464858] uppercase tracking-wider mb-1">
                   Building
                 </label>
                 <input
@@ -600,8 +581,8 @@ export default function ReportIncidentModule({
                     setBuilding(e.target.value);
                     if (errors.building) setErrors({ ...errors, building: null });
                   }}
-                  className={`w-full px-3.5 py-2.5 rounded-xl glass-input text-white text-xs ${
-                    errors.building ? 'border-red-400' : ''
+                  className={`w-full px-3.5 py-2.5 rounded-xl saas-input text-xs ${
+                    errors.building ? '!border-red-500' : ''
                   }`}
                 />
                 <datalist id="building-suggestions">
@@ -609,12 +590,12 @@ export default function ReportIncidentModule({
                     <option key={b} value={b} />
                   ))}
                 </datalist>
-                {errors.building && <p className="mt-1 text-[11px] text-red-300">{errors.building}</p>}
+                {errors.building && <p className="mt-1 text-[11px] text-red-600">{errors.building}</p>}
               </div>
 
               {/* Floor */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-[#464858] uppercase tracking-wider mb-1">
                   Floor
                 </label>
                 <input
@@ -626,8 +607,8 @@ export default function ReportIncidentModule({
                     setFloor(e.target.value);
                     if (errors.floor) setErrors({ ...errors, floor: null });
                   }}
-                  className={`w-full px-3.5 py-2.5 rounded-xl glass-input text-white text-xs ${
-                    errors.floor ? 'border-red-400' : ''
+                  className={`w-full px-3.5 py-2.5 rounded-xl saas-input text-xs ${
+                    errors.floor ? '!border-red-500' : ''
                   }`}
                 />
                 <datalist id="floor-suggestions">
@@ -635,12 +616,12 @@ export default function ReportIncidentModule({
                     <option key={f} value={f} />
                   ))}
                 </datalist>
-                {errors.floor && <p className="mt-1 text-[11px] text-red-300">{errors.floor}</p>}
+                {errors.floor && <p className="mt-1 text-[11px] text-red-600">{errors.floor}</p>}
               </div>
 
               {/* Room / Lab Number */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-[#464858] uppercase tracking-wider mb-1">
                   Room / Lab Number
                 </label>
                 <input
@@ -651,19 +632,19 @@ export default function ReportIncidentModule({
                     setRoom(e.target.value);
                     if (errors.room) setErrors({ ...errors, room: null });
                   }}
-                  className={`w-full px-3.5 py-2.5 rounded-xl glass-input text-white text-xs ${
-                    errors.room ? 'border-red-400' : ''
+                  className={`w-full px-3.5 py-2.5 rounded-xl saas-input text-xs ${
+                    errors.room ? '!border-red-500' : ''
                   }`}
                 />
-                {errors.room && <p className="mt-1 text-[11px] text-red-300">{errors.room}</p>}
+                {errors.room && <p className="mt-1 text-[11px] text-red-600">{errors.room}</p>}
               </div>
             </div>
           </div>
 
           {/* FIELD 5: AFFECTED SERVICE */}
           <div>
-            <label htmlFor="inc-service" className="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-1.5">
-              5. Affected Service <span className="text-[#D99B7F]">*</span>
+            <label htmlFor="inc-service" className="block text-xs font-bold uppercase tracking-wider text-[#0F3040] mb-1.5">
+              5. Affected Service <span className="text-[#A56F63]">*</span>
             </label>
             <input
               id="inc-service"
@@ -674,21 +655,21 @@ export default function ReportIncidentModule({
                 setAffectedService(e.target.value);
                 if (errors.affectedService) setErrors({ ...errors, affectedService: null });
               }}
-              className={`w-full px-4 py-2.5 rounded-xl glass-input text-white text-xs sm:text-sm placeholder-slate-400 ${
-                errors.affectedService ? 'border-red-400' : ''
+              className={`w-full px-4 py-2.5 rounded-xl saas-input text-xs sm:text-sm ${
+                errors.affectedService ? '!border-red-500' : ''
               }`}
             />
-            {errors.affectedService && <p className="mt-1 text-xs text-red-300 font-medium pl-1">{errors.affectedService}</p>}
+            {errors.affectedService && <p className="mt-1 text-xs text-red-600 font-medium pl-1">{errors.affectedService}</p>}
 
             {/* Quick Chips */}
-            <div className="flex items-center gap-1.5 mt-2 flex-wrap text-[11px] text-slate-400">
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap text-[11px] text-[#464858]">
               <span>Quick Picks:</span>
               {['eduroam Wi-Fi', 'HDMI Projector', 'Lab Desktop', 'Student Cloud Printer', 'Wall Power Socket'].map((item) => (
                 <button
                   key={item}
                   type="button"
                   onClick={() => setAffectedService(item)}
-                  className="px-2 py-0.5 rounded-md bg-[#202733] hover:bg-[#464858] text-slate-300 hover:text-white transition-colors"
+                  className="px-2.5 py-1 rounded-lg bg-[#F5F3EF] hover:bg-[#E7E4DF] border border-[#E7E4DF] text-[#0F3040] transition-colors"
                 >
                   {item}
                 </button>
@@ -699,10 +680,10 @@ export default function ReportIncidentModule({
           {/* FIELD 6: PRIORITY */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="inc-priority-select" className="block text-xs font-bold uppercase tracking-wider text-slate-200">
-                6. Priority <span className="text-[#D99B7F]">*</span>
+              <label htmlFor="inc-priority-select" className="block text-xs font-bold uppercase tracking-wider text-[#0F3040]">
+                6. Priority <span className="text-[#A56F63]">*</span>
               </label>
-              <span className="text-[11px] text-slate-400">SLA-backed response tiers</span>
+              <span className="text-[11px] text-[#464858]">SLA-backed response tiers</span>
             </div>
 
             {/* Standard Dropdown Select */}
@@ -713,12 +694,12 @@ export default function ReportIncidentModule({
                 setPriority(e.target.value);
                 if (errors.priority) setErrors({ ...errors, priority: null });
               }}
-              className={`w-full px-4 py-2.5 rounded-xl glass-input text-white text-xs sm:text-sm font-medium focus:outline-none bg-[#0F3040] transition-all cursor-pointer mb-2.5 ${
-                errors.priority ? 'border-red-400' : ''
+              className={`w-full px-4 py-2.5 rounded-xl saas-input text-xs sm:text-sm font-medium cursor-pointer mb-2.5 ${
+                errors.priority ? '!border-red-500' : ''
               }`}
             >
               {priorityOptions.map((p) => (
-                <option key={p.id} value={p.id} className="bg-[#0F3040] text-white">
+                <option key={p.id} value={p.id}>
                   {p.label} Priority — SLA Target: {p.sla} ({p.desc})
                 </option>
               ))}
@@ -736,28 +717,28 @@ export default function ReportIncidentModule({
                       setPriority(p.id);
                       if (errors.priority) setErrors({ ...errors, priority: null });
                     }}
-                    className={`p-3 rounded-2xl border text-left transition-all ${
+                    className={`p-3 rounded-xl border text-left transition-all ${
                       isSelected
-                        ? 'bg-[#0F3040] border-[#D99B7F] ring-1 ring-[#D99B7F] shadow-lg scale-[1.01]'
-                        : 'bg-[#202733]/60 border-slate-600/30 text-slate-300 hover:bg-[#202733]'
+                        ? 'bg-white border-2 border-[#0F3040] shadow-xs'
+                        : 'bg-[#F5F3EF] border-[#E7E4DF] text-[#464858] hover:border-[#0F3040] hover:text-[#0F3040]'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className={`text-xs font-extrabold ${p.color}`}>{p.label}</span>
-                      <span className="text-[10px] font-mono text-slate-400">{p.sla}</span>
+                      <span className="text-[10px] font-mono text-[#464858]">{p.sla}</span>
                     </div>
-                    <p className="mt-1 text-[10px] text-slate-400 leading-tight">{p.desc}</p>
+                    <p className="mt-1 text-[10px] text-[#464858] leading-tight">{p.desc}</p>
                   </button>
                 );
               })}
             </div>
-            {errors.priority && <p className="mt-1 text-xs text-red-300 font-medium pl-1">{errors.priority}</p>}
+            {errors.priority && <p className="mt-1 text-xs text-red-600 font-medium pl-1">{errors.priority}</p>}
           </div>
 
           {/* FIELD 7: UPLOAD SUPPORTING IMAGES OR DOCUMENTS (OPTIONAL) */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-200 mb-1.5">
-              7. Upload Supporting Images or Documents <span className="text-slate-400 text-[11px] font-normal">(Optional)</span>
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#0F3040] mb-1.5">
+              7. Upload Supporting Images or Documents <span className="text-[#464858] text-[11px] font-normal">(Optional)</span>
             </label>
 
             {/* Dropzone */}
@@ -768,8 +749,8 @@ export default function ReportIncidentModule({
               onClick={() => fileInputRef.current?.click()}
               className={`p-6 rounded-2xl border-2 border-dashed text-center cursor-pointer transition-all ${
                 isDragging
-                  ? 'border-[#D99B7F] bg-[#D99B7F]/10'
-                  : 'border-slate-600/40 hover:border-slate-400 bg-[#202733]/40 hover:bg-[#202733]/70'
+                  ? 'border-[#0F3040] bg-[#DCEDE4]'
+                  : 'border-[#E7E4DF] hover:border-[#0F3040] bg-[#F5F3EF] hover:bg-[#E7E4DF]/50'
               }`}
             >
               <input
@@ -781,11 +762,11 @@ export default function ReportIncidentModule({
                 className="hidden"
               />
 
-              <Upload className="w-8 h-8 mx-auto mb-2 text-[#D99B7F]" />
-              <p className="text-xs font-semibold text-white">
-                Drag and drop screenshots, photos, or error logs here, or <span className="text-[#D99B7F] underline">browse files</span>
+              <Upload className="w-8 h-8 mx-auto mb-2 text-[#0F3040]" />
+              <p className="text-xs font-semibold text-[#0F3040]">
+                Drag and drop screenshots, photos, or error logs here, or <span className="text-[#A56F63] underline">browse files</span>
               </p>
-              <p className="text-[10px] text-slate-400 mt-1">Supports PNG, JPG, PDF, LOG up to 8MB each</p>
+              <p className="text-[10px] text-[#464858] mt-1">Supports PNG, JPG, PDF, LOG up to 8MB each</p>
             </div>
 
             {/* Live Previews Gallery */}
@@ -794,22 +775,22 @@ export default function ReportIncidentModule({
                 {attachments.map((file) => (
                   <div 
                     key={file.id} 
-                    className="relative group rounded-xl overflow-hidden bg-[#202733] border border-slate-600/40 p-2 text-xs flex flex-col justify-between"
+                    className="relative group rounded-xl overflow-hidden bg-[#F5F3EF] border border-[#E7E4DF] p-2 text-xs flex flex-col justify-between"
                   >
                     {file.isImage ? (
-                      <div className="w-full h-24 rounded-lg overflow-hidden bg-black/40 mb-1.5 flex items-center justify-center">
+                      <div className="w-full h-24 rounded-lg overflow-hidden bg-slate-100 mb-1.5 flex items-center justify-center">
                         <img src={file.data} alt={file.name} className="w-full h-full object-cover" />
                       </div>
                     ) : (
-                      <div className="w-full h-24 rounded-lg bg-[#0F3040] mb-1.5 flex flex-col items-center justify-center text-slate-400">
-                        <FileText className="w-8 h-8 text-[#D99B7F] mb-1" />
+                      <div className="w-full h-24 rounded-lg bg-white mb-1.5 flex flex-col items-center justify-center text-[#464858]">
+                        <FileText className="w-8 h-8 text-[#A56F63] mb-1" />
                         <span className="text-[10px] uppercase font-mono">{file.type.split('/')[1] || 'DOC'}</span>
                       </div>
                     )}
 
                     <div className="truncate">
-                      <p className="text-white font-medium text-[11px] truncate">{file.name}</p>
-                      <p className="text-[10px] text-slate-400">{file.size}</p>
+                      <p className="text-[#0F3040] font-medium text-[11px] truncate">{file.name}</p>
+                      <p className="text-[10px] text-[#464858]">{file.size}</p>
                     </div>
 
                     {/* Delete Attachment Button */}
@@ -819,7 +800,7 @@ export default function ReportIncidentModule({
                         e.stopPropagation();
                         removeAttachment(file.id);
                       }}
-                      className="absolute top-1.5 right-1.5 p-1 rounded-full bg-red-600 hover:bg-red-500 text-white shadow-md transition-transform active:scale-90"
+                      className="absolute top-1.5 right-1.5 p-1 rounded-full bg-red-600 hover:bg-red-500 text-white shadow-xs transition-transform active:scale-90"
                       title="Remove attachment"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -831,19 +812,15 @@ export default function ReportIncidentModule({
           </div>
 
           {/* SUBMIT BUTTON */}
-          <div className="pt-4 border-t border-[#A56F63]/25 flex flex-col sm:flex-row items-center gap-3">
+          <div className="pt-4 border-t border-[#E7E4DF] flex flex-col sm:flex-row items-center gap-3">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full sm:flex-1 py-3.5 px-6 rounded-2xl font-bold text-xs tracking-wider text-[#0F3040] shadow-xl transition-all duration-200 hover:brightness-105 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
-              style={{
-                background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)',
-                boxShadow: '0 8px 25px -4px rgba(217, 155, 127, 0.4)',
-              }}
+              className="w-full sm:flex-1 py-3 px-6 rounded-xl font-bold text-xs tracking-wider text-white bg-[#0F3040] hover:bg-[#183E4C] shadow-xs transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-[#0F3040] border-t-transparent rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>DISPATCHING INCIDENT TO FIELD OPERATIONS...</span>
                 </>
               ) : (
@@ -858,7 +835,7 @@ export default function ReportIncidentModule({
               <button
                 type="button"
                 onClick={onReturnToDashboard}
-                className="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 text-slate-300 hover:text-white text-xs font-semibold transition-colors"
+                className="w-full sm:w-auto py-3 px-6 rounded-xl bg-white hover:bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040] text-xs font-semibold transition-colors"
               >
                 Cancel
               </button>

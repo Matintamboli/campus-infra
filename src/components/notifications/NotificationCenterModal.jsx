@@ -59,44 +59,44 @@ function getEventDetails(eventType, priority) {
   if (priority === 'critical' || eventType.includes('CRITICAL') || eventType.includes('OVERDUE')) {
     return {
       icon: ShieldAlert,
-      color: 'text-red-400',
-      bg: 'bg-red-500/20',
-      border: 'border-red-500/40',
+      color: 'text-[#A33D35]',
+      bg: 'bg-[#F5DEDA]',
+      border: 'border-[#A33D35]/30',
       tag: 'Critical Alert',
     };
   }
   if (eventType.includes('ASSIGN') || eventType.includes('TECH')) {
     return {
       icon: Wrench,
-      color: 'text-amber-400',
-      bg: 'bg-amber-500/20',
-      border: 'border-amber-500/40',
+      color: 'text-[#93651C]',
+      bg: 'bg-[#F8EBD2]',
+      border: 'border-[#93651C]/30',
       tag: 'Field Dispatch',
     };
   }
   if (eventType.includes('RESOLV') || eventType.includes('CLOSED')) {
     return {
       icon: CheckCircle2,
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-500/20',
-      border: 'border-emerald-500/40',
+      color: 'text-[#286448]',
+      bg: 'bg-[#DCEDE4]',
+      border: 'border-[#286448]/30',
       tag: 'Resolution',
     };
   }
   if (eventType.includes('REPEATED')) {
     return {
       icon: AlertTriangle,
-      color: 'text-purple-400',
-      bg: 'bg-purple-500/20',
-      border: 'border-purple-500/40',
+      color: 'text-purple-700',
+      bg: 'bg-purple-100',
+      border: 'border-purple-200',
       tag: 'Pattern Alert',
     };
   }
   return {
     icon: Clock,
-    color: 'text-[#D99B7F]',
-    bg: 'bg-[#D99B7F]/20',
-    border: 'border-[#D99B7F]/40',
+    color: 'text-[#405C78]',
+    bg: 'bg-[#E5EAF0]',
+    border: 'border-[#405C78]/30',
     tag: 'Operational Update',
   };
 }
@@ -178,17 +178,12 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
   if (!isCenterModalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-fadeIn">
-      <div className="w-full max-w-4xl max-h-[92vh] rounded-3xl bg-[#121922] border border-purple-500/30 shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-fadeIn">
+      <div className="w-full max-w-4xl max-h-[92vh] rounded-3xl bg-white border border-[#E7E4DF] shadow-2xl overflow-hidden flex flex-col text-[#0F3040]">
         {/* Top Header */}
-        <div
-          className="p-5 sm:p-6 border-b border-slate-300/10 flex items-start justify-between gap-4"
-          style={{
-            background: 'linear-gradient(135deg, rgba(15, 48, 64, 0.95) 0%, rgba(70, 72, 88, 0.6) 100%)',
-          }}
-        >
+        <div className="p-5 sm:p-6 bg-[#0F3040] text-white flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#D99B7F]/20 border border-[#D99B7F]/40 flex items-center justify-center text-[#D99B7F] shadow-lg">
+            <div className="w-11 h-11 rounded-2xl bg-[#D99B7F]/20 border border-[#D99B7F]/40 flex items-center justify-center text-[#D99B7F] shadow-xs">
               <Bell className="w-6 h-6" />
             </div>
             <div>
@@ -197,12 +192,12 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                   Notification Center & Activity Feed
                 </h2>
                 {unreadCount > 0 && (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-gradient-to-r from-red-500 to-amber-500 text-white shadow">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#A33D35] text-white shadow-xs">
                     {unreadCount} Unread
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-300 mt-0.5">
+              <p className="text-xs text-white/80 mt-0.5">
                 Role-tailored infrastructure incident alerts, field technician dispatch updates, and SLA governance.
               </p>
             </div>
@@ -211,14 +206,14 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
           <button
             type="button"
             onClick={closeCenterModal}
-            className="p-2 rounded-xl text-slate-400 hover:text-white bg-[#202733]/80 hover:bg-[#202733] border border-slate-300/15 transition-all"
+            className="p-2 rounded-xl text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Controls & Search Toolbar */}
-        <div className="p-3.5 sm:px-6 border-b border-slate-300/10 bg-[#1a222d]/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="p-3.5 sm:px-6 border-b border-[#E7E4DF] bg-[#F5F3EF] flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Tabs */}
           <div className="flex items-center gap-1.5 flex-wrap">
             {[
@@ -236,8 +231,8 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                   activeTab === tab.id
-                    ? 'bg-[#D99B7F] text-[#0F3040] shadow-md'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-700/40'
+                    ? 'bg-[#0F3040] text-white shadow-xs'
+                    : 'text-[#464858] hover:text-[#0F3040] hover:bg-white'
                 }`}
               >
                 {tab.label}
@@ -249,13 +244,13 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
           {activeTab !== 'preferences' && (
             <div className="flex items-center gap-2">
               <div className="relative w-full md:w-56">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#464858]" />
                 <input
                   type="text"
                   placeholder="Filter notifications..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-[#202733]/90 border border-slate-500/30 text-white text-xs placeholder-slate-400 focus:outline-none focus:border-[#D99B7F]"
+                  className="w-full pl-8 pr-3 py-1.5 rounded-xl saas-input text-xs"
                 />
               </div>
 
@@ -263,9 +258,9 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                 <button
                   type="button"
                   onClick={markAllAsRead}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#202733] hover:bg-[#202733]/80 border border-[#D99B7F]/40 text-[#D99B7F] hover:text-white flex items-center gap-1.5 whitespace-nowrap transition-all"
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white hover:bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040] flex items-center gap-1.5 whitespace-nowrap transition-all shadow-xs"
                 >
-                  <CheckCheck className="w-3.5 h-3.5" />
+                  <CheckCheck className="w-3.5 h-3.5 text-[#286448]" />
                   <span className="hidden sm:inline">Mark All Read</span>
                 </button>
               )}
@@ -273,7 +268,7 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
               <button
                 type="button"
                 onClick={clearReadNotifications}
-                className="p-2 rounded-xl text-slate-400 hover:text-red-300 hover:bg-red-500/10 border border-slate-300/10 transition-all"
+                className="p-2 rounded-xl text-[#464858] hover:text-[#A33D35] hover:bg-[#F5DEDA] border border-[#E7E4DF] transition-all"
                 title="Clear read notifications"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -283,29 +278,29 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
         </div>
 
         {/* Modal Main Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 bg-[#F5F3EF]">
           {activeTab === 'preferences' ? (
             /* PREFERENCES PANEL */
             <div className="max-w-xl mx-auto space-y-5 animate-fadeIn">
-              <div className="p-5 rounded-2xl bg-[#1a222d] border border-slate-300/15 space-y-4">
+              <div className="p-5 rounded-2xl bg-white border border-[#E7E4DF] space-y-4 shadow-xs">
                 <div>
-                  <h3 className="text-sm font-bold text-white font-heading">
+                  <h3 className="text-sm font-bold text-[#0F3040] font-heading">
                     Notification Channels & Dispatch Routing
                   </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-[#464858] mt-0.5">
                     Configure your personal notification delivery channels and sound alerts.
                   </p>
                 </div>
 
                 {/* Email Notifications Toggle */}
-                <div className="p-4 rounded-xl bg-[#202733]/70 border border-slate-300/10 flex items-center justify-between gap-4">
+                <div className="p-4 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center">
                       <Mail className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white">Email Notifications</p>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-xs font-bold text-[#0F3040]">Email Notifications</p>
+                      <p className="text-[11px] text-[#464858]">
                         Dispatch email summaries to <strong>{user?.email}</strong> for status changes and critical alerts.
                       </p>
                     </div>
@@ -315,7 +310,7 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                     type="button"
                     onClick={() => updatePreferences({ emailEnabled: !preferences.emailEnabled })}
                     className={`w-11 h-6 rounded-full transition-colors relative focus:outline-none ${
-                      preferences.emailEnabled ? 'bg-emerald-500' : 'bg-slate-700'
+                      preferences.emailEnabled ? 'bg-[#0F3040]' : 'bg-[#E7E4DF]'
                     }`}
                   >
                     <span
@@ -327,14 +322,14 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                 </div>
 
                 {/* Audio Chime Toggle */}
-                <div className="p-4 rounded-xl bg-[#202733]/70 border border-slate-300/10 flex items-center justify-between gap-4">
+                <div className="p-4 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-[#F8EBD2] text-[#93651C] flex items-center justify-center">
                       {preferences.soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white">Audio Alert Chime</p>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-xs font-bold text-[#0F3040]">Audio Alert Chime</p>
+                      <p className="text-[11px] text-[#464858]">
                         Play an acoustic tone when a real-time event arrives through Server-Sent Events.
                       </p>
                     </div>
@@ -344,7 +339,7 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                     type="button"
                     onClick={() => updatePreferences({ soundEnabled: !preferences.soundEnabled })}
                     className={`w-11 h-6 rounded-full transition-colors relative focus:outline-none ${
-                      preferences.soundEnabled ? 'bg-amber-500' : 'bg-slate-700'
+                      preferences.soundEnabled ? 'bg-[#93651C]' : 'bg-[#E7E4DF]'
                     }`}
                   >
                     <span
@@ -356,15 +351,15 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                 </div>
 
                 {/* Real-Time SSE Status */}
-                <div className="p-4 rounded-xl bg-[#0F3040]/70 border border-emerald-500/30 flex items-center justify-between">
+                <div className="p-4 rounded-xl bg-[#DCEDE4]/60 border border-[#286448]/30 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#286448] animate-pulse" />
                     <div>
-                      <p className="text-xs font-bold text-emerald-300">Live Server-Sent Events Active</p>
-                      <p className="text-[10px] text-slate-400">Real-time socket channel connected to CampusFix API</p>
+                      <p className="text-xs font-bold text-[#286448]">Live Server-Sent Events Active</p>
+                      <p className="text-[10px] text-[#464858]">Real-time socket channel connected to CampusFix API</p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#DCEDE4] text-[#286448] font-bold border border-[#286448]/40">
                     ONLINE
                   </span>
                 </div>
@@ -372,13 +367,13 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
 
               {/* Administrator Controls: SLA Scan */}
               {user?.role === 'Administrator' && (
-                <div className="p-5 rounded-2xl bg-[#1a222d] border border-amber-500/30 space-y-3">
+                <div className="p-5 rounded-2xl bg-white border border-[#E7E4DF] space-y-3 shadow-xs">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                      <h4 className="text-xs font-bold text-[#0F3040] uppercase tracking-wider">
                         Administrator SLA Breach Detector
                       </h4>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-[11px] text-[#464858]">
                         Scan all open incidents against configured category SLA hours and broadcast breach notifications.
                       </p>
                     </div>
@@ -387,14 +382,14 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                       type="button"
                       disabled={isScanningSLA}
                       onClick={handleSimulateSla}
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30 hover:bg-[#F8EBD2]/80 flex items-center gap-1.5"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isScanningSLA ? 'animate-spin' : ''}`} />
                       <span>Run SLA Scan</span>
                     </button>
                   </div>
                   {slaMessage && (
-                    <p className="text-xs text-amber-300 font-mono bg-amber-500/10 p-2 rounded-lg">{slaMessage}</p>
+                    <p className="text-xs text-[#93651C] font-mono bg-[#F8EBD2] p-2 rounded-lg border border-[#93651C]/20">{slaMessage}</p>
                   )}
                 </div>
               )}
@@ -402,10 +397,10 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
           ) : (
             /* NOTIFICATION CARDS LIST */
             filteredNotifications.length === 0 ? (
-              <div className="py-20 text-center text-slate-400 space-y-3">
-                <Bell className="w-10 h-10 mx-auto opacity-30 text-slate-400" />
-                <h4 className="text-sm font-bold text-white">No notifications matching filters</h4>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+              <div className="py-20 text-center space-y-3">
+                <Bell className="w-10 h-10 mx-auto opacity-30 text-[#464858]" />
+                <h4 className="text-sm font-bold text-[#0F3040]">No notifications matching filters</h4>
+                <p className="text-xs text-[#464858] max-w-sm mx-auto">
                   {searchQuery ? `No alerts match "${searchQuery}".` : 'You have no notifications in this view.'}
                 </p>
               </div>
@@ -419,8 +414,8 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                     key={notif.id}
                     className={`p-4 sm:p-5 rounded-2xl border transition-all ${
                       !notif.is_read
-                        ? 'bg-[#1a222d] border-[#D99B7F]/40 shadow-lg'
-                        : 'bg-[#151c26]/70 border-slate-300/10 opacity-90'
+                        ? 'bg-white border-[#0F3040]/20 shadow-sm'
+                        : 'bg-white/80 border-[#E7E4DF] opacity-80'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3 sm:gap-4">
@@ -436,46 +431,46 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${details.bg} ${details.border} ${details.color}`}>
                               {details.tag}
                             </span>
-                            <span className="text-[10px] text-slate-400 font-mono">
+                            <span className="text-[10px] text-[#464858] font-mono">
                               {notif.event_type}
                             </span>
                           </div>
 
-                          <span className="text-xs text-slate-400 font-mono" title={formatFullDate(notif.created_at)}>
+                          <span className="text-xs text-[#464858] font-mono" title={formatFullDate(notif.created_at)}>
                             {formatRelativeTime(notif.created_at)}
                           </span>
                         </div>
 
-                        <h3 className="text-sm font-bold text-white mt-1.5 flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-[#0F3040] mt-1.5 flex items-center gap-2">
                           {!notif.is_read && (
                             <span className="w-2 h-2 rounded-full bg-[#D99B7F] shrink-0" />
                           )}
                           <span>{notif.title}</span>
                         </h3>
 
-                        <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                        <p className="text-xs text-[#464858] mt-1 leading-relaxed">
                           {notif.message}
                         </p>
 
                         {/* Metadata Footer: Ticket link + Email delivered indicator */}
-                        <div className="mt-3 pt-3 border-t border-slate-300/10 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <div className="mt-3 pt-3 border-t border-[#E7E4DF] flex flex-wrap items-center justify-between gap-2 text-xs">
                           <div className="flex items-center gap-2 flex-wrap">
                             {notif.ticket_number && (
                               <button
                                 type="button"
                                 onClick={() => handleOpenIncident(notif.ticket_id, notif.ticket_number)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl font-mono text-xs font-bold bg-[#0F3040] text-[#D99B7F] border border-[#D99B7F]/40 hover:bg-[#0F3040]/80 transition-all"
+                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl font-mono text-xs font-bold bg-[#F5F3EF] text-[#0F3040] border border-[#E7E4DF] hover:bg-[#E7E4DF] transition-all"
                               >
                                 <span>{notif.ticket_number}</span>
                                 {notif.building && (
-                                  <span className="text-slate-400 font-sans font-normal">· {notif.building}</span>
+                                  <span className="text-[#464858] font-sans font-normal">· {notif.building}</span>
                                 )}
                                 <ExternalLink className="w-3 h-3 ml-0.5" />
                               </button>
                             )}
 
                             {notif.email_sent === 1 && (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
                                 <Mail className="w-3 h-3" />
                                 <span>Email Dispatched</span>
                               </span>
@@ -488,7 +483,7 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                               <button
                                 type="button"
                                 onClick={() => markAsRead(notif.id)}
-                                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:text-white bg-[#202733] border border-slate-300/20"
+                                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-[#464858] hover:text-[#0F3040] bg-[#F5F3EF] border border-[#E7E4DF] hover:border-[#0F3040]/30 transition-all"
                               >
                                 Mark Read
                               </button>
@@ -496,7 +491,7 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
                             <button
                               type="button"
                               onClick={() => deleteNotification(notif.id)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-300 hover:bg-red-500/10 border border-slate-300/10"
+                              className="p-1.5 rounded-lg text-[#464858] hover:text-[#A33D35] hover:bg-[#F5DEDA] border border-[#E7E4DF] transition-all"
                               title="Delete notification"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -513,16 +508,16 @@ export default function NotificationCenterModal({ onNavigateToIncident }) {
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 sm:px-6 border-t border-slate-300/10 bg-[#0F3040]/90 flex items-center justify-between text-xs text-slate-400">
+        <div className="p-4 sm:px-6 border-t border-[#E7E4DF] bg-white flex items-center justify-between text-xs text-[#464858]">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <Sparkles className="w-3.5 h-3.5 text-[#286448]" />
             <span>CampusFix Unified Event Broker · Real-Time Push</span>
           </div>
 
           <button
             type="button"
             onClick={closeCenterModal}
-            className="px-4 py-1.5 rounded-xl font-bold text-xs bg-[#202733] hover:bg-[#202733]/80 border border-slate-300/20 text-slate-200"
+            className="px-4 py-1.5 rounded-xl font-bold text-xs bg-[#0F3040] hover:bg-[#183E4C] text-white transition-all shadow-xs"
           >
             Close
           </button>
