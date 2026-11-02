@@ -29,6 +29,9 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
+import NotificationBell from '../notifications/NotificationBell';
+import AnalyticsDashboard from '../analytics/AnalyticsDashboard';
 
 // ─── Theme Colors ────────────────────────────────────────────────────────────
 const COLORS = {
@@ -260,6 +263,15 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
   useEffect(() => {
     fetchAllData();
   }, [fetchAllData]);
+
+  // Handle opening incident directly from notification click
+  const { activeIncidentToOpen, clearActiveIncident } = useNotifications();
+  useEffect(() => {
+    if (activeIncidentToOpen?.ticketId) {
+      setSelectedTicketId(activeIncidentToOpen.ticketId);
+      clearActiveIncident();
+    }
+  }, [activeIncidentToOpen, clearActiveIncident]);
 
   // ─── User Management Actions ────────────────────────────────────────────────
   const handleRoleChange = async (targetUser, newRole) => {
@@ -1220,127 +1232,13 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
   // ─── View: Reports & Analytics ──────────────────────────────────────────────
   const renderReportsTab = () => {
-    const metrics = overviewMetrics || {
-      totalIncidents: tickets.length,
-      openIncidents: tickets.filter((t) => t.status === 'Open').length,
-      criticalIncidents: tickets.filter((t) => t.priority === 'Critical').length,
-      assignedIncidents: tickets.filter((t) => t.status === 'Assigned').length,
-      resolvedIncidents: tickets.filter((t) => t.status === 'Resolved' || t.status === 'Closed').length,
-      avgResponseTime: '1.2h',
-      avgResolutionTime: '3.8h',
-      recurringIssues: [],
-    };
-
-    const statusCounts = {
-      Open: tickets.filter((t) => t.status === 'Open').length,
-      Assigned: tickets.filter((t) => t.status === 'Assigned').length,
-      'In Progress': tickets.filter((t) => t.status === 'In Progress').length,
-      Resolved: tickets.filter((t) => t.status === 'Resolved').length,
-      Closed: tickets.filter((t) => t.status === 'Closed').length,
-    };
-
-    const priorityCounts = {
-      Critical: tickets.filter((t) => t.priority === 'Critical').length,
-      High: tickets.filter((t) => t.priority === 'High').length,
-      Medium: tickets.filter((t) => t.priority === 'Medium').length,
-      Low: tickets.filter((t) => t.priority === 'Low').length,
-    };
-
     return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-purple-400" />
-            <span>Infrastructure Health & Operations Analytics</span>
-          </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Key SLA performance indicators, resolution velocity analytics, and institutional infrastructure recurring patterns.
-          </p>
-        </div>
-
-        {/* 6 Top Metric Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-slate-300/15">
-            <span className="text-[10px] text-slate-400 uppercase font-bold">Total Logged</span>
-            <div className="mt-1 text-2xl font-extrabold text-white font-heading">{metrics.totalIncidents}</div>
-          </div>
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-amber-500/20">
-            <span className="text-[10px] text-amber-400 uppercase font-bold">Awaiting Action</span>
-            <div className="mt-1 text-2xl font-extrabold text-amber-300 font-heading">{metrics.openIncidents}</div>
-          </div>
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-red-500/20">
-            <span className="text-[10px] text-red-400 uppercase font-bold">Urgent Critical</span>
-            <div className="mt-1 text-2xl font-extrabold text-red-300 font-heading">{metrics.criticalIncidents}</div>
-          </div>
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-emerald-500/20">
-            <span className="text-[10px] text-emerald-400 uppercase font-bold">Resolved Total</span>
-            <div className="mt-1 text-2xl font-extrabold text-emerald-300 font-heading">{metrics.resolvedIncidents}</div>
-          </div>
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-purple-500/20">
-            <span className="text-[10px] text-purple-400 uppercase font-bold">Avg Response</span>
-            <div className="mt-1 text-2xl font-extrabold text-purple-300 font-heading">{metrics.avgResponseTime}</div>
-          </div>
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-[#D99B7F]/20">
-            <span className="text-[10px] text-[#D99B7F] uppercase font-bold">Avg Resolution</span>
-            <div className="mt-1 text-2xl font-extrabold text-[#D99B7F] font-heading">{metrics.avgResolutionTime}</div>
-          </div>
-        </div>
-
-        {/* Priority and Status breakdown */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="p-5 rounded-2xl bg-[#1a222d]/80 border border-slate-300/15 space-y-4">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider pb-2 border-b border-slate-300/10">
-              Severity / Priority Distribution
-            </h3>
-            <div className="space-y-3">
-              {Object.entries(priorityCounts).map(([p, count]) => {
-                const pct = tickets.length > 0 ? Math.round((count / tickets.length) * 100) : 0;
-                return (
-                  <div key={p} className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-semibold text-white">{p}</span>
-                      <span className="text-slate-400 font-mono">{count} tickets ({pct}%)</span>
-                    </div>
-                    <div className="h-2 w-full bg-slate-700/50 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${
-                          p === 'Critical' ? 'bg-red-500' : p === 'High' ? 'bg-amber-500' : p === 'Medium' ? 'bg-sky-500' : 'bg-slate-400'
-                        }`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-[#1a222d]/80 border border-slate-300/15 space-y-4">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider pb-2 border-b border-slate-300/10">
-              Lifecycle Status Distribution
-            </h3>
-            <div className="space-y-3">
-              {Object.entries(statusCounts).map(([st, count]) => {
-                const pct = tickets.length > 0 ? Math.round((count / tickets.length) * 100) : 0;
-                return (
-                  <div key={st} className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-semibold text-white">{st}</span>
-                      <span className="text-slate-400 font-mono">{count} tickets ({pct}%)</span>
-                    </div>
-                    <div className="h-2 w-full bg-slate-700/50 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
+      <AnalyticsDashboard
+        onNavigateToIncident={(id) => {
+          setSelectedTicketId(id);
+          setActiveTab('all-incidents');
+        }}
+      />
     );
   };
 
@@ -1964,6 +1862,118 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
     );
   };
 
+  // ─── User Profile Modal ──────────────────────────────────────────────────────
+  const renderUserProfileModal = () => {
+    if (!selectedUser) return null;
+    const u = selectedUser;
+    const userTickets = tickets.filter((t) => t.reporter_id === u.id || t.user_id === u.id);
+    const userAssigned = tickets.filter((t) => t.technician_id === u.id);
+
+    return (
+      <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 rounded-2xl bg-[#1a222d] border border-purple-500/40 shadow-2xl space-y-4">
+          <div className="flex items-start justify-between pb-3 border-b border-slate-300/10">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center font-extrabold text-purple-200 text-lg">
+                {u.name?.[0]?.toUpperCase() || '?'}
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-white font-heading">{u.name}</h2>
+                <p className="text-xs text-slate-400">{u.email}</p>
+              </div>
+            </div>
+            <button type="button" onClick={() => setSelectedUser(null)} className="text-slate-400 hover:text-white">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Key Identifiers */}
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10">
+              <span className="text-[10px] text-slate-500 uppercase font-bold">Campus ID</span>
+              <p className="font-mono font-bold text-[#D99B7F] mt-0.5">{u.college_id || '—'}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10">
+              <span className="text-[10px] text-slate-500 uppercase font-bold">Role</span>
+              <p className="font-bold text-purple-300 mt-0.5">{u.role}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10">
+              <span className="text-[10px] text-slate-500 uppercase font-bold">Account Status</span>
+              <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                u.status === 'active'
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                  : 'bg-red-500/20 text-red-300 border-red-500/30'
+              }`}>
+                {u.status === 'active' ? 'Active' : 'Suspended'}
+              </span>
+            </div>
+            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10">
+              <span className="text-[10px] text-slate-500 uppercase font-bold">User Type</span>
+              <p className="font-bold text-white mt-0.5">{u.user_type || 'Student'}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10 col-span-2">
+              <span className="text-[10px] text-slate-500 uppercase font-bold">Department</span>
+              <p className="font-bold text-white mt-0.5">{u.department || 'General Campus'}</p>
+            </div>
+          </div>
+
+          {/* Activity Stats */}
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="p-3 rounded-xl bg-[#0F3040]/60 border border-slate-300/10 text-center">
+              <p className="text-xl font-extrabold text-white font-heading">{userTickets.length}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Incidents<br />Submitted</p>
+            </div>
+            <div className="p-3 rounded-xl bg-[#0F3040]/60 border border-slate-300/10 text-center">
+              <p className="text-xl font-extrabold text-amber-300 font-heading">
+                {userTickets.filter((t) => t.status === 'Open' || t.status === 'Assigned' || t.status === 'In Progress').length}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Currently<br />Open</p>
+            </div>
+            <div className="p-3 rounded-xl bg-[#0F3040]/60 border border-slate-300/10 text-center">
+              <p className="text-xl font-extrabold text-purple-300 font-heading">{userAssigned.length}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Assigned<br />to Them</p>
+            </div>
+          </div>
+
+          {/* Registration Date */}
+          <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10 text-xs flex items-center justify-between">
+            <span className="text-slate-400">Member Since</span>
+            <span className="font-mono text-white font-bold">{formatTimeAgo(u.created_at)}</span>
+          </div>
+
+          {/* Governance Quick Actions */}
+          <div className="flex items-center gap-2 pt-2 border-t border-slate-300/10 flex-wrap">
+            {u.id !== user?.id && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleToggleUserStatus(u);
+                    setSelectedUser({ ...u, status: u.status === 'active' ? 'suspended' : 'active' });
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border ${
+                    u.status === 'active'
+                      ? 'bg-red-500/10 text-red-300 border-red-500/30 hover:bg-red-500/20'
+                      : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
+                  }`}
+                >
+                  {u.status === 'active' ? 'Deactivate Account' : 'Activate Account'}
+                </button>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => setSelectedUser(null)}
+              className="px-3 py-1.5 rounded-xl text-xs text-slate-400 hover:text-white ml-auto"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // ─── Main Shell Render ──────────────────────────────────────────────────────
   const tabTitles = {
     overview: 'Operations Overview & Telemetry',
@@ -1973,6 +1983,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
     services: 'Services Management',
     categories: 'Category Classifications',
     locations: 'Campus Facilities & Locations',
+    assignments: 'Assignments & Dispatch Matrix',
     reports: 'Reports & Analytics',
     'audit-logs': 'System Activity Audit Trail',
     settings: 'Enterprise Platform Settings',
@@ -2013,7 +2024,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <button
               type="button"
               onClick={fetchAllData}
@@ -2022,6 +2033,10 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-purple-400' : ''}`} />
             </button>
+
+            {/* Top Navigation Notification Bell */}
+            <NotificationBell onNavigateToIncident={(id) => setSelectedTicketId(id)} />
+
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#202733]/70 border border-slate-300/20">
               <div className="w-6 h-6 rounded-full bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-[10px] font-bold text-purple-200">
                 {(user?.name || 'A')[0].toUpperCase()}
@@ -2034,13 +2049,14 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
         {/* Dynamic View Body */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {activeTab === 'overview' && renderOverviewTab()}
-          {activeTab === 'all-incidents' && renderIncidentsTable()}
+          {activeTab === 'all-incidents' && renderAllIncidentsTab()}
           {activeTab === 'users' && renderUsersTab()}
           {activeTab === 'technicians' && renderTechniciansTab()}
           {activeTab === 'services' && renderServicesTab()}
           {activeTab === 'categories' && renderCategoriesTab()}
           {activeTab === 'locations' && renderLocationsTab()}
-          {activeTab === 'reports' && renderOverviewTab()}
+          {activeTab === 'assignments' && renderAssignmentsTab()}
+          {activeTab === 'reports' && renderReportsTab()}
           {activeTab === 'audit-logs' && renderAuditLogsTab()}
           {activeTab === 'settings' && (
             <div className="p-6 rounded-2xl bg-[#1a222d]/80 border border-slate-300/15 max-w-xl space-y-4">
@@ -2066,6 +2082,9 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       {/* Selected Incident Dossier Modal */}
       {selectedTicketId && renderIncidentDossierModal()}
+
+      {/* User Profile Modal */}
+      {selectedUser && renderUserProfileModal()}
 
       {/* Dispatch / Assign Modal */}
       {showAssignModal && (

@@ -44,8 +44,11 @@ import {
   Lock,
   MessageSquare,
   History,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
+import NotificationBell from '../notifications/NotificationBell';
 
 // ─── Theme Colors ────────────────────────────────────────────────────────────
 const COLORS = {
@@ -199,6 +202,15 @@ const NAV_ITEMS = [
 
 export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
   const { user, token, logout } = useAuth();
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    openCenterModal,
+    activeIncidentToOpen,
+    clearActiveIncident,
+  } = useNotifications();
 
   // Navigation State
   const [activeTab, setActiveTab] = useState('overview');
@@ -215,6 +227,14 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
   const setSelectedTicket = useCallback((tkt) => {
     setSelectedTicketId(tkt ? tkt.id : null);
   }, []);
+
+  // Sync opening incident from notification click
+  useEffect(() => {
+    if (activeIncidentToOpen?.ticketId) {
+      setSelectedTicketId(activeIncidentToOpen.ticketId);
+      clearActiveIncident();
+    }
+  }, [activeIncidentToOpen, clearActiveIncident]);
 
   // Search, Filters & Sorting
   const [searchQuery, setSearchQuery] = useState('');
@@ -598,6 +618,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
           if (id === 'assigned' && overviewStats.newAssignments > 0) badge = overviewStats.newAssignments;
           if (id === 'available' && availableTickets.length > 0) badge = availableTickets.length;
           if (id === 'in-progress' && overviewStats.inProgress > 0) badge = overviewStats.inProgress;
+          if (id === 'notifications' && unreadCount > 0) badge = unreadCount;
 
           return (
             <button
@@ -1831,54 +1852,91 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
 
   // ─── Notifications View ─────────────────────────────────────────────────────
   const renderNotificationsTab = () => {
-    const recentActivity = [...myAssignedTickets]
-      .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
-      .slice(0, 10);
-
     return (
       <div className="space-y-4 max-w-3xl">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
-            <Bell className="w-5 h-5 text-[#D99B7F]" />
-            <span>Technician Notifications & Dispatch Feed</span>
-          </h2>
-          <span className="text-xs text-slate-400 font-mono">{recentActivity.length} events</span>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
+              <Bell className="w-5 h-5 text-[#D99B7F]" />
+              <span>Technician Work Orders & Dispatch Feed</span>
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Live notifications for assignments, priority updates, reporter notes, and critical alerts.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <button
+                type="button"
+                onClick={markAllAsRead}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#202733] border border-[#D99B7F]/40 text-[#D99B7F] hover:text-white flex items-center gap-1.5"
+              >
+                <CheckCheck className="w-3.5 h-3.5" />
+                <span>Mark All Read</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={openCenterModal}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#0F3040] shadow flex items-center gap-1.5"
+              style={{ background: 'linear-gradient(135deg, #A56F63, #D99B7F)' }}
+            >
+              <span>Notification Center</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
-        {recentActivity.length === 0 ? (
+        {notifications.length === 0 ? (
           <div className="p-12 rounded-2xl bg-[#1a222d]/60 border border-slate-300/15 text-center">
             <Bell className="w-10 h-10 mx-auto text-slate-600 mb-3" />
-            <p className="text-sm font-semibold text-slate-400">No recent notifications</p>
+            <p className="text-sm font-semibold text-slate-400">No notifications in your feed</p>
           </div>
         ) : (
           <div className="space-y-2.5">
-            {recentActivity.map((tkt) => (
+            {notifications.map((notif) => (
               <div
-                key={tkt.id}
-                onClick={() => setSelectedTicket(tkt)}
-                className="p-4 rounded-2xl bg-[#1a222d]/70 border border-slate-300/15 hover:border-slate-300/35 transition-all cursor-pointer flex items-start gap-3.5 group"
+                key={notif.id}
+                onClick={() => {
+                  if (!notif.is_read) markAsRead(notif.id);
+                  if (notif.ticket_id) {
+                    setSelectedTicketId(notif.ticket_id);
+                  }
+                }}
+                className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3.5 group ${
+                  !notif.is_read
+                    ? 'bg-[#1a222d] border-[#D99B7F]/40 shadow-lg'
+                    : 'bg-[#151c26]/70 border-slate-300/15 hover:border-slate-300/35'
+                }`}
               >
                 <div
                   className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${
-                    tkt.priority === 'Critical'
+                    notif.priority === 'critical'
                       ? 'bg-red-400'
-                      : tkt.priority === 'High'
+                      : notif.priority === 'high'
                       ? 'bg-amber-400'
                       : 'bg-[#D99B7F]'
                   }`}
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono text-xs font-bold text-[#D99B7F] group-hover:underline">
-                      {tkt.ticket_number}
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {notif.ticket_number && (
+                        <span className="font-mono text-xs font-bold text-[#D99B7F] group-hover:underline">
+                          {notif.ticket_number}
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#0F3040] text-purple-300 border border-purple-500/30">
+                        {notif.event_type}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {formatTimeAgo(notif.created_at)}
                     </span>
-                    <StatusBadge status={tkt.status} />
-                    <PriorityBadge priority={tkt.priority} />
                   </div>
-                  <p className="text-sm font-semibold text-white mt-1 line-clamp-1">{tkt.title}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Location: {tkt.building} · {tkt.room} · Last updated {formatTimeAgo(tkt.updated_at || tkt.created_at)}
-                  </p>
+                  <p className="text-sm font-bold text-white mt-1">{notif.title}</p>
+                  <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">{notif.message}</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-white transition-colors self-center" />
               </div>
@@ -1990,21 +2048,8 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('notifications');
-                setSelectedTicket(null);
-              }}
-              className="relative p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#464858]/50 transition-colors"
-            >
-              <Bell className="w-4 h-4" />
-              {overviewStats.newAssignments > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#D99B7F] text-[#0F3040] text-[9px] font-bold flex items-center justify-center">
-                  {overviewStats.newAssignments}
-                </span>
-              )}
-            </button>
+            {/* Top Navigation Notification Bell */}
+            <NotificationBell onNavigateToIncident={(id) => setSelectedTicketId(id)} />
 
             <button
               type="button"

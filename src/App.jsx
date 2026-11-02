@@ -11,6 +11,7 @@ import StudentDashboard from './components/dashboard/StudentDashboard';
 import ReporterDashboard from './components/dashboard/ReporterDashboard';
 import TechnicianDashboard from './components/dashboard/TechnicianDashboard';
 import AdminDashboard from './components/dashboard/AdminDashboard';
+import NotificationCenterModal from './components/notifications/NotificationCenterModal';
 import bgImage from './assets/pinterest-bg.jpg';
 import { useAuth } from './context/AuthContext';
 
@@ -134,6 +135,9 @@ export default function App() {
         isOpen={isRoleTesterOpen}
         onClose={() => setIsRoleTesterOpen(false)}
       />
+
+      {/* Complete Notification Center & Activity Engine Modal */}
+      <NotificationCenterModal />
 
       {/* ========================================================
           INITIAL SESSION LOADING STATE

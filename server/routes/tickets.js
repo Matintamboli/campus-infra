@@ -1,6 +1,11 @@
 import { Router } from 'express';
 import db from '../db.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
+import {
+  createNotification,
+  notifyRole,
+  checkRepeatedIssues,
+} from '../services/notificationService.js';
 
 const router = Router();
 
@@ -252,6 +257,53 @@ router.post('/', (req, res) => {
       WHERE t.id = ?
     `).get(newTicketId);
 
+    // Notifications Dispatch
+    // 1. For Student/Faculty Reporter: Incident successfully submitted
+    createNotification({
+      userId: user.id,
+      ticketId: newTicketId,
+      eventType: 'INCIDENT_SUBMITTED',
+      title: 'Incident Successfully Submitted',
+      message: `Your incident report ${ticketNumber} ("${title.trim()}") has been received and queued for operations triage.`,
+      roleTarget: 'Reporter',
+      priority: chosenPriority.toLowerCase(),
+      metadata: { ticketNumber, building, room, category },
+    });
+
+    // 2. For Administrators: New incident submitted
+    notifyRole('Administrator', {
+      ticketId: newTicketId,
+      eventType: 'NEW_INCIDENT_SUBMITTED',
+      title: `New Incident Reported: ${ticketNumber}`,
+      message: `${user.name} reported "${title.trim()}" in ${building} (${room}) under ${category}.`,
+      priority: chosenPriority.toLowerCase(),
+      metadata: { ticketNumber, building, room, reporterName: user.name },
+    });
+
+    // 3. If Critical Priority: Immediate urgent broadcast to Admins & Field Technicians
+    if (chosenPriority === 'Critical') {
+      notifyRole('Administrator', {
+        ticketId: newTicketId,
+        eventType: 'CRITICAL_INCIDENT',
+        title: `CRITICAL ALERT: Urgent Incident ${ticketNumber}`,
+        message: `CRITICAL SLA PRIORITY: ${ticketNumber} reported in ${building} (${room}). Immediate response required.`,
+        priority: 'critical',
+        metadata: { ticketNumber, building, room, category },
+      });
+
+      notifyRole('Technician', {
+        ticketId: newTicketId,
+        eventType: 'CRITICAL_INCIDENT',
+        title: `Critical Incident Logged: ${ticketNumber}`,
+        message: `High-priority work order ${ticketNumber} logged in ${building} (${room}). Ready for dispatch.`,
+        priority: 'critical',
+        metadata: { ticketNumber, building, room, category },
+      });
+    }
+
+    // 4. Repeated Infrastructure Issue Detection
+    checkRepeatedIssues(createdTicket);
+
     return res.status(201).json({
       success: true,
       message: `Incident ticket ${ticketNumber} registered successfully`,
@@ -375,6 +427,73 @@ router.patch('/:id/status', (req, res) => {
       LEFT JOIN users tech ON t.technician_id = tech.id
       WHERE t.id = ?
     `).get(ticketId);
+
+    // Notification Dispatch for Status Changes
+    if (existingTicket.status !== status) {
+      if (status === 'Resolved') {
+        // Reporter: Incident marked as resolved
+        createNotification({
+          userId: existingTicket.reporter_id,
+          ticketId,
+          eventType: 'INCIDENT_RESOLVED',
+          title: `Incident Resolved: ${existingTicket.ticket_number}`,
+          message: `${user.name} marked incident ${existingTicket.ticket_number} as Resolved.`,
+          roleTarget: 'Reporter',
+          priority: 'high',
+          metadata: { ticketNumber: existingTicket.ticket_number, status },
+        });
+
+        // Reporter: Confirmation requested
+        createNotification({
+          userId: existingTicket.reporter_id,
+          ticketId,
+          eventType: 'CONFIRMATION_REQUESTED',
+          title: 'Resolution Confirmation Requested',
+          message: `Please verify that infrastructure repairs on ${existingTicket.ticket_number} are functioning properly and confirm resolution.`,
+          roleTarget: 'Reporter',
+          priority: 'high',
+          metadata: { ticketNumber: existingTicket.ticket_number },
+        });
+      } else if (status === 'Closed') {
+        // Reporter: Incident closed
+        createNotification({
+          userId: existingTicket.reporter_id,
+          ticketId,
+          eventType: 'INCIDENT_CLOSED',
+          title: `Incident Closed: ${existingTicket.ticket_number}`,
+          message: `Incident ${existingTicket.ticket_number} has been verified and officially closed.`,
+          roleTarget: 'Reporter',
+          priority: 'normal',
+          metadata: { ticketNumber: existingTicket.ticket_number, status },
+        });
+      } else {
+        // Reporter: Incident status changed
+        createNotification({
+          userId: existingTicket.reporter_id,
+          ticketId,
+          eventType: 'STATUS_CHANGED',
+          title: `Status Updated: ${existingTicket.ticket_number}`,
+          message: `Incident ${existingTicket.ticket_number} is now marked as "${status}".`,
+          roleTarget: 'Reporter',
+          priority: 'normal',
+          metadata: { ticketNumber: existingTicket.ticket_number, oldStatus: existingTicket.status, newStatus: status },
+        });
+      }
+
+      // If assigned technician exists and wasn't the one updating
+      if (existingTicket.technician_id && existingTicket.technician_id !== user.id) {
+        createNotification({
+          userId: existingTicket.technician_id,
+          ticketId,
+          eventType: 'STATUS_CHANGED',
+          title: `Status Changed: ${existingTicket.ticket_number}`,
+          message: `${user.name} (${user.role}) changed incident status to "${status}".`,
+          roleTarget: 'Technician',
+          priority: 'normal',
+          metadata: { ticketNumber: existingTicket.ticket_number, newStatus: status },
+        });
+      }
+    }
 
     return res.json({
       success: true,
@@ -518,6 +637,34 @@ router.post('/:id/notes', (req, res) => {
       WHERE tn.id = ?
     `).get(insertResult.lastInsertRowid);
 
+    // Notification Dispatch for Notes / Comments
+    const snippet = note.trim().length > 90 ? `${note.trim().slice(0, 90)}...` : note.trim();
+    if ((user.role === 'Technician' || user.role === 'Administrator') && isInternalVal === 0) {
+      // Reporter receives technician update
+      createNotification({
+        userId: ticket.reporter_id,
+        ticketId,
+        eventType: 'NOTE_ADDED',
+        title: `Technician Update on ${ticket.ticket_number}`,
+        message: `${user.name} posted an update: "${snippet}"`,
+        roleTarget: 'Reporter',
+        priority: 'normal',
+        metadata: { ticketNumber: ticket.ticket_number },
+      });
+    } else if (user.role === 'Reporter' && ticket.technician_id) {
+      // Assigned Technician receives reporter comment
+      createNotification({
+        userId: ticket.technician_id,
+        ticketId,
+        eventType: 'REPORTER_COMMENT',
+        title: `Reporter Comment on ${ticket.ticket_number}`,
+        message: `Reporter ${user.name} commented: "${snippet}"`,
+        roleTarget: 'Technician',
+        priority: 'normal',
+        metadata: { ticketNumber: ticket.ticket_number },
+      });
+    }
+
     return res.status(201).json({
       success: true,
       message: 'Note added successfully',
@@ -594,6 +741,59 @@ router.patch('/:id/assign', requireRole(['Technician', 'Administrator']), (req, 
       LEFT JOIN users tech ON t.technician_id = tech.id
       WHERE t.id = ?
     `).get(ticketId);
+
+    // Notification Dispatch for Technician Assignment
+    const assignedTechName = updated.technician_name || 'Specialist';
+
+    // 1. Reporter notification: Technician assigned
+    createNotification({
+      userId: ticket.reporter_id,
+      ticketId,
+      eventType: 'INCIDENT_ASSIGNED',
+      title: 'Technician Assigned to Incident',
+      message: `Technician ${assignedTechName} has been assigned to investigate ${ticket.ticket_number}.`,
+      roleTarget: 'Reporter',
+      priority: 'normal',
+      metadata: { ticketNumber: ticket.ticket_number, technicianName: assignedTechName },
+    });
+
+    // 2. Target Technician notification: New work order assigned
+    if (targetTechId) {
+      createNotification({
+        userId: targetTechId,
+        ticketId,
+        eventType: 'NEW_INCIDENT_ASSIGNED',
+        title: `New Work Order Assigned: ${ticket.ticket_number}`,
+        message: `You have been dispatched to ${ticket.ticket_number} ("${ticket.title}") at ${ticket.building} (${ticket.room}).`,
+        roleTarget: 'Technician',
+        priority: ticket.priority === 'Critical' ? 'critical' : 'high',
+        metadata: { ticketNumber: ticket.ticket_number, priority: ticket.priority, building: ticket.building, room: ticket.room },
+      });
+    }
+
+    // 3. Reassignment notice to previous technician if changed
+    if (ticket.technician_id && ticket.technician_id !== targetTechId) {
+      createNotification({
+        userId: ticket.technician_id,
+        ticketId,
+        eventType: 'INCIDENT_REASSIGNED',
+        title: `Work Order Reassigned: ${ticket.ticket_number}`,
+        message: `Incident ${ticket.ticket_number} has been transferred to another technician (${assignedTechName}).`,
+        roleTarget: 'Technician',
+        priority: 'normal',
+        metadata: { ticketNumber: ticket.ticket_number, newTechnician: assignedTechName },
+      });
+    }
+
+    // 4. Administrator notification: Assignment changed
+    notifyRole('Administrator', {
+      ticketId,
+      eventType: 'ASSIGNMENT_CHANGED',
+      title: `Assignment Changed: ${ticket.ticket_number}`,
+      message: `${user.name} assigned ${ticket.ticket_number} to ${assignedTechName}.`,
+      priority: 'normal',
+      metadata: { ticketNumber: ticket.ticket_number, technicianName: assignedTechName },
+    });
 
     return res.json({
       success: true,

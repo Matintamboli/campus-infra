@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import db from '../db.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
+import { createNotification, notifyRole } from '../services/notificationService.js';
 
 const router = Router();
 
@@ -386,7 +387,7 @@ router.patch('/tickets/:id/priority', (req, res) => {
       return res.status(400).json({ error: 'INVALID_PRIORITY', message: 'Priority must be Low, Medium, High, or Critical' });
     }
 
-    const ticket = db.prepare('SELECT id, ticket_number, priority FROM tickets WHERE id = ?').get(ticketId);
+    const ticket = db.prepare('SELECT id, ticket_number, title, priority, reporter_id, technician_id FROM tickets WHERE id = ?').get(ticketId);
     if (!ticket) {
       return res.status(404).json({ error: 'NOT_FOUND', message: 'Ticket not found' });
     }
@@ -402,6 +403,44 @@ router.patch('/tickets/:id/priority', (req, res) => {
       INSERT INTO ticket_notes (ticket_id, user_id, note, is_internal)
       VALUES (?, ?, ?, 0)
     `).run(ticketId, req.user.id, `[ADMINISTRATIVE SLA OVERRIDE]: Priority updated from ${ticket.priority} to ${priority}.`);
+
+    // Notification: Technician priority changed
+    if (ticket.technician_id) {
+      createNotification({
+        userId: ticket.technician_id,
+        ticketId,
+        eventType: 'PRIORITY_CHANGED',
+        title: `Priority Changed: ${ticket.ticket_number}`,
+        message: `Administrative priority for ${ticket.ticket_number} updated to "${priority}".`,
+        roleTarget: 'Technician',
+        priority: priority.toLowerCase(),
+        metadata: { ticketNumber: ticket.ticket_number, oldPriority: ticket.priority, newPriority: priority },
+      });
+    }
+
+    // Notification: Reporter priority changed
+    createNotification({
+      userId: ticket.reporter_id,
+      ticketId,
+      eventType: 'PRIORITY_CHANGED',
+      title: `Priority Updated: ${ticket.ticket_number}`,
+      message: `Priority on your incident report ${ticket.ticket_number} was adjusted to "${priority}".`,
+      roleTarget: 'Reporter',
+      priority: priority.toLowerCase(),
+      metadata: { ticketNumber: ticket.ticket_number, newPriority: priority },
+    });
+
+    // If escalated to Critical, broadcast to all field technicians
+    if (priority === 'Critical') {
+      notifyRole('Technician', {
+        ticketId,
+        eventType: 'CRITICAL_INCIDENT',
+        title: `Critical Incident Priority Escalation: ${ticket.ticket_number}`,
+        message: `Incident ${ticket.ticket_number} has been escalated to Critical SLA status.`,
+        priority: 'critical',
+        metadata: { ticketNumber: ticket.ticket_number },
+      });
+    }
 
     return res.json({ success: true, message: `Priority updated to ${priority}` });
   } catch (err) {

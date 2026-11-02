@@ -24,6 +24,8 @@ import {
   Activity
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
+import NotificationBell from '../notifications/NotificationBell';
 import ReportIncidentModule from '../incident/ReportIncidentModule';
 import MyIncidentsModule from '../incident/MyIncidentsModule';
 
@@ -76,33 +78,28 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
   // Selected Incident for Details Drawer / Modal
   const [selectedIncident, setSelectedIncident] = useState(null);
 
-  // Notifications State
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: 'Field Technician Assigned',
-      desc: 'Marcus Vance has been dispatched to investigate Wi-Fi access point in Engineering Block B.',
-      time: '10 minutes ago',
-      read: false,
-      type: 'assignment',
-    },
-    {
-      id: 2,
-      title: 'Infrastructure Maintenance Notice',
-      desc: 'Scheduled eduroam wireless certificate rotation completed across dormitories.',
-      time: '1 hour ago',
-      read: false,
-      type: 'system',
-    },
-    {
-      id: 3,
-      title: 'Diagnostic Log Updated',
-      desc: 'PoE power injector swapped; 4-hour telemetry saturation check initiated.',
-      time: '3 hours ago',
-      read: true,
-      type: 'update',
-    },
-  ]);
+  // Global Notification Engine Hook
+  const {
+    notifications,
+    unreadCount: unreadNotificationsCount,
+    markAsRead,
+    markAllAsRead: markAllNotificationsAsRead,
+    openCenterModal,
+    activeIncidentToOpen,
+    clearActiveIncident,
+  } = useNotifications();
+
+  // Sync opening incident from notification click
+  useEffect(() => {
+    if (activeIncidentToOpen?.ticketId) {
+      const target = tickets.find((t) => t.id === activeIncidentToOpen.ticketId);
+      if (target) {
+        setSelectedIncident(target);
+        setActiveTab('my-incidents');
+      }
+      clearActiveIncident();
+    }
+  }, [activeIncidentToOpen, tickets, clearActiveIncident]);
 
   // Fetch Tickets from Backend API
   const fetchTickets = useCallback(async () => {
@@ -260,13 +257,6 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
   const handleLogout = async () => {
     await logout();
     if (onNotify) onNotify('Signed out of CampusFix', 'info');
-  };
-
-  const unreadNotificationsCount = notifications.filter((n) => !n.read).length;
-
-  const markAllNotificationsAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    if (onNotify) onNotify('All notifications marked as read', 'info');
   };
 
   return (
@@ -460,22 +450,16 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
               <span>Report Issue</span>
             </button>
 
-            {/* Notification Bell */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setActiveTab('notifications')}
-                className="relative p-2 rounded-xl bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 text-slate-300 hover:text-white transition-all"
-                title="Notifications"
-              >
-                <Bell className="w-4 h-4" />
-                {unreadNotificationsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#D99B7F] text-[#0F3040] text-[10px] font-extrabold flex items-center justify-center animate-pulse">
-                    {unreadNotificationsCount}
-                  </span>
-                )}
-              </button>
-            </div>
+            {/* Professional Top Navigation Notification Bell */}
+            <NotificationBell
+              onNavigateToIncident={(ticketId) => {
+                const target = tickets.find((t) => t.id === ticketId);
+                if (target) {
+                  setSelectedIncident(target);
+                  setActiveTab('my-incidents');
+                }
+              }}
+            />
 
             {/* Refresh Tickets Button */}
             <button
@@ -1093,10 +1077,10 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
           {activeTab === 'notifications' && (
             <div className="space-y-6 animate-fadeIn max-w-3xl mx-auto">
               <div className="p-6 rounded-2xl bg-[#1a222d]/90 border border-[#A56F63]/30 shadow-xl space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-[#A56F63]/25">
+                <div className="flex items-center justify-between pb-3 border-b border-[#A56F63]/25 flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <Bell className="w-5 h-5 text-[#D99B7F]" />
-                    <h2 className="text-xl font-bold text-white font-heading">Notifications</h2>
+                    <h2 className="text-xl font-bold text-white font-heading">Student Notification Feed</h2>
                     {unreadNotificationsCount > 0 && (
                       <span className="px-2 py-0.5 rounded-full bg-[#D99B7F]/20 text-[#D99B7F] font-bold text-xs">
                         {unreadNotificationsCount} New
@@ -1104,38 +1088,74 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                     )}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={markAllNotificationsAsRead}
-                    className="text-xs text-[#D99B7F] hover:underline"
-                  >
-                    Mark all as read
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {unreadNotificationsCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={markAllNotificationsAsRead}
+                        className="text-xs text-[#D99B7F] hover:underline"
+                      >
+                        Mark all as read
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={openCenterModal}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#0F3040] shadow flex items-center gap-1.5"
+                      style={{ background: 'linear-gradient(135deg, #A56F63, #D99B7F)' }}
+                    >
+                      <span>Notification Center</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="space-y-2.5">
-                  {notifications.map((notif) => (
-                    <div 
-                      key={notif.id}
-                      className={`p-3.5 rounded-xl border transition-all ${
-                        notif.read 
-                          ? 'bg-[#202733]/40 border-slate-600/20 text-slate-400' 
-                          : 'bg-[#202733]/80 border-[#D99B7F]/40 text-slate-200 shadow-md'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            {!notif.read && <span className="w-2 h-2 rounded-full bg-[#D99B7F]" />}
-                            <h4 className="font-bold text-white text-xs">{notif.title}</h4>
+                {notifications.length === 0 ? (
+                  <div className="py-12 text-center text-slate-400">
+                    <Bell className="w-8 h-8 mx-auto mb-2 opacity-40 text-slate-400" />
+                    <p className="text-xs font-semibold">No notifications in your feed yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {notifications.map((notif) => (
+                      <div 
+                        key={notif.id}
+                        onClick={() => {
+                          if (!notif.is_read) markAsRead(notif.id);
+                          if (notif.ticket_id) {
+                            const target = tickets.find((t) => t.id === notif.ticket_id);
+                            if (target) {
+                              setSelectedIncident(target);
+                              setActiveTab('my-incidents');
+                            }
+                          }
+                        }}
+                        className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                          !notif.is_read 
+                            ? 'bg-[#202733]/90 border-[#D99B7F]/40 text-slate-200 shadow-md'
+                            : 'bg-[#202733]/40 border-slate-600/20 text-slate-400 hover:border-slate-500/40'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {!notif.is_read && <span className="w-2 h-2 rounded-full bg-[#D99B7F] shrink-0" />}
+                              <h4 className="font-bold text-white text-xs">{notif.title}</h4>
+                              {notif.ticket_number && (
+                                <span className="px-1.5 py-0.2 rounded font-mono text-[10px] font-bold bg-[#0F3040] text-[#D99B7F] border border-[#D99B7F]/30">
+                                  {notif.ticket_number}
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-1 text-xs text-slate-300 leading-relaxed">{notif.message}</p>
                           </div>
-                          <p className="mt-1 text-xs text-slate-300 leading-relaxed">{notif.desc}</p>
+                          <span className="text-[10px] text-slate-400 whitespace-nowrap shrink-0">
+                            {formatTimeAgo(notif.created_at)}
+                          </span>
                         </div>
-                        <span className="text-[10px] text-slate-400 whitespace-nowrap">{notif.time}</span>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

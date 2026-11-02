@@ -3,31 +3,93 @@
 @layer base {
   :root {
     --color-deep-teal: #0F3040;
+    --color-teal-slate: #183E4C;
     --color-muted-slate: #464858;
-    --color-dusty-terracotta: #A56F63;
+    --color-warm-ivory: #F5F3EF;
+    --color-white: #FFFFFF;
+    --color-soft-border: #E7E4DF;
+    --color-terracotta: #A56F63;
     --color-soft-peach: #D99B7F;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    /* Status Tokens */
+    --status-resolved-bg: #DCEDE4;
+    --status-resolved-text: #286448;
+    --status-inprogress-bg: #F8EBD2;
+    --status-inprogress-text: #93651C;
+    --status-critical-bg: #F5DEDA;
+    --status-critical-text: #A33D35;
+    --status-open-bg: #E5EAF0;
+    --status-open-text: #405C78;
+
+    font-family: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   h1, h2, h3, .font-heading {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Manrope', 'Outfit', sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
-/* Custom Scrollbar for sleek UI */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(15, 48, 64, 0.6);
+  background: #F5F3EF;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(165, 111, 99, 0.4);
+  background: #D1CDC7;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(217, 155, 127, 0.6);
+  background: #A56F63;
+}
+
+/* Premium Enterprise SaaS Surface Utilities */
+.saas-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E7E4DF;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(15, 48, 64, 0.04), 0 1px 2px -1px rgba(15, 48, 64, 0.04);
+}
+
+.saas-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(15, 48, 64, 0.06), 0 2px 4px -2px rgba(15, 48, 64, 0.04);
+}
+
+.saas-input {
+  background-color: #FFFFFF;
+  border: 1px solid #E7E4DF;
+  border-radius: 0.75rem;
+  color: #0F3040;
+  transition: all 0.15s ease-in-out;
+}
+
+.saas-input:focus {
+  border-color: #0F3040;
+  box-shadow: 0 0 0 3px rgba(15, 48, 64, 0.08);
+  outline: none;
+}
+
+.status-badge-resolved {
+  background-color: #DCEDE4;
+  color: #286448;
+}
+
+.status-badge-inprogress {
+  background-color: #F8EBD2;
+  color: #93651C;
+}
+
+.status-badge-critical {
+  background-color: #F5DEDA;
+  color: #A33D35;
+}
+
+.status-badge-open {
+  background-color: #E5EAF0;
+  color: #405C78;
 }
 
 /* Glassmorphism & Lighting Utilities - Metallic Silver Theme */

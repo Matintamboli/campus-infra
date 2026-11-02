@@ -9,6 +9,7 @@ import {
   Terminal
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import NotificationBell from '../notifications/NotificationBell';
 
 export default function PlatformHeader({ onOpenRoleTester, onNotify }) {
   const { user, logout, effectiveRole } = useAuth();
@@ -112,6 +113,9 @@ export default function PlatformHeader({ onOpenRoleTester, onNotify }) {
             <BadgeIcon className="w-3.5 h-3.5" />
             <span className="uppercase tracking-wider">{badge.label}</span>
           </div>
+
+          {/* Professional Notification Bell */}
+          <NotificationBell />
 
           {/* User Menu Trigger */}
           <div className="relative">
