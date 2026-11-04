@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import db from '../db.js';
+import prisma from '../prismaClient.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
 import {
   createNotification,
@@ -13,35 +13,65 @@ const router = Router();
 router.use(authenticateToken);
 
 /**
- * Helper: Attach notes and reporter/technician objects to a ticket or list of tickets
+ * Helper: Enrich ticket with comments for response
  */
-function enrichTicket(ticket, user = null) {
-  if (!ticket) return null;
-  let notesQuery = `
-    SELECT tn.id, tn.note, tn.is_internal, tn.created_at, u.id AS author_id, u.name AS author_name, u.role AS author_role, u.college_id AS author_college_id
-    FROM ticket_notes tn
-    JOIN users u ON tn.user_id = u.id
-    WHERE tn.ticket_id = ?
-  `;
-  if (user && user.role === 'Reporter') {
-    notesQuery += ' AND (tn.is_internal IS NULL OR tn.is_internal = 0)';
-  }
-  notesQuery += ' ORDER BY tn.created_at ASC';
-  const notes = db.prepare(notesQuery).all(ticket.id);
+function enrichTicketResponse(incident, user = null) {
+  if (!incident) return null;
 
-  let parsedAttachments = [];
-  if (ticket.attachments) {
-    try {
-      parsedAttachments = typeof ticket.attachments === 'string' ? JSON.parse(ticket.attachments) : ticket.attachments;
-    } catch {
-      parsedAttachments = [];
-    }
-  }
+  // Filter internal comments if user is Reporter
+  const rawComments = user && user.role === 'Reporter' 
+    ? incident.comments?.filter(c => !c.isInternal) 
+    : incident.comments;
+
+  // Map comments to expected frontend format
+  const notes = rawComments?.map(c => ({
+    id: c.id,
+    note: c.message,
+    is_internal: c.isInternal,
+    created_at: c.createdAt,
+    author_id: c.user?.id,
+    author_name: c.user?.name,
+    author_role: c.user?.role,
+    author_college_id: c.user?.collegeId,
+  })) || [];
+
+  // Format attachments
+  const attachments = incident.attachments ? JSON.parse(incident.attachments) : [];
 
   return {
-    ...ticket,
-    notes: notes || [],
-    attachments: parsedAttachments,
+    id: incident.id,
+    ticketNumber: incident.ticketNumber,
+    title: incident.title,
+    description: incident.description,
+    category: incident.categoryName,
+    categoryId: incident.categoryId,
+    priority: incident.priority,
+    status: incident.status,
+    building: incident.building,
+    floor: incident.floor,
+    room: incident.room,
+    affectedService: incident.affectedService,
+    reporter_id: incident.reporterId,
+    reporter_name: incident.reporter?.name,
+    reporter_email: incident.reporter?.email,
+    reporter_college_id: incident.reporter?.collegeId,
+    reporter_department: incident.reporter?.department,
+    technician_id: incident.technicianId,
+    technician_name: incident.technician?.name,
+    technician_email: incident.technician?.email,
+    technician_college_id: incident.technician?.collegeId,
+    slaDeadline: incident.slaDeadline,
+    firstResponseAt: incident.firstResponseAt,
+    resolvedAt: incident.resolvedAt,
+    closedAt: incident.closedAt,
+    resolutionNotes: incident.resolutionNotes,
+    resolution_details: incident.resolutionNotes, // Legacy field
+    isRecurring: incident.isRecurring,
+    createdAt: incident.createdAt,
+    updated_at: incident.updatedAt,
+    created_at: incident.createdAt,
+    attachments,
+    notes,
   };
 }
 
@@ -49,7 +79,7 @@ function enrichTicket(ticket, user = null) {
  * GET /api/tickets
  * Retrieve tickets with role-based access scoping and filtering
  */
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { status, category, priority, search, view } = req.query;
     const user = req.user;
@@ -57,67 +87,94 @@ router.get('/', (req, res) => {
     console.log('[GET /api/tickets] User:', { id: user.id, name: user.name, role: user.role });
     console.log('[GET /api/tickets] Query params:', { status, category, priority, search, view });
 
-    let query = `
-      SELECT 
-        t.*,
-        rep.name AS reporter_name,
-        rep.email AS reporter_email,
-        rep.college_id AS reporter_college_id,
-        rep.department AS reporter_department,
-        tech.name AS technician_name,
-        tech.email AS technician_email,
-        tech.college_id AS technician_college_id
-      FROM tickets t
-      JOIN users rep ON t.reporter_id = rep.id
-      LEFT JOIN users tech ON t.technician_id = tech.id
-      WHERE 1=1
-    `;
-    const params = [];
+    const where = {};
 
     // Role-based scoping
     if (user.role === 'Reporter') {
       // Reporters can only see tickets they submitted
-      query += ' AND t.reporter_id = ?';
-      params.push(user.id);
+      where.reporterId = user.id;
     } else if (user.role === 'Technician') {
-      // Technicians: view=all lets them inspect campus-wide incidents; default view shows their assigned queue + open unassigned
+      // Technicians: view=all lets them inspect campus-wide incidents
+      // view=assigned shows only their assigned tickets
+      // default view shows their assigned queue + open unassigned
       if (view === 'assigned') {
-        query += ' AND t.technician_id = ?';
-        params.push(user.id);
+        where.technicianId = user.id;
       } else if (view !== 'all') {
-        query += ' AND (t.technician_id = ? OR t.status = "Open")';
-        params.push(user.id);
+        where.OR = [
+          { technicianId: user.id },
+          { status: 'Open' }
+        ];
       }
     }
     // Administrator can see everything (no default restriction)
 
     // Optional query filters
     if (status && status !== 'all') {
-      query += ' AND LOWER(t.status) = LOWER(?)';
-      params.push(status);
+      where.status = status;
     }
     if (category && category !== 'all') {
-      query += ' AND LOWER(t.category) = LOWER(?)';
-      params.push(category);
+      where.categoryName = category;
     }
     if (priority && priority !== 'all') {
-      query += ' AND LOWER(t.priority) = LOWER(?)';
-      params.push(priority);
+      where.priority = priority;
     }
     if (search && search.trim()) {
-      const searchTerm = `%${search.trim().toLowerCase()}%`;
-      query += ' AND (LOWER(t.title) LIKE ? OR LOWER(t.ticket_number) LIKE ? OR LOWER(t.building) LIKE ? OR LOWER(t.room) LIKE ?)';
-      params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+      const searchTerm = search.trim();
+      where.OR = [
+        { title: { contains: searchTerm, mode: 'insensitive' } },
+        { ticketNumber: { contains: searchTerm, mode: 'insensitive' } },
+        { building: { contains: searchTerm, mode: 'insensitive' } },
+        { room: { contains: searchTerm, mode: 'insensitive' } }
+      ];
     }
 
-    query += ' ORDER BY t.created_at DESC';
+    console.log('[GET /api/tickets] Prisma where clause:', JSON.stringify(where, null, 2));
 
-    console.log('[GET /api/tickets] Final query params:', params);
-    const rawTickets = db.prepare(query).all(...params);
-    console.log('[GET /api/tickets] Raw tickets count:', rawTickets.length);
-    const tickets = rawTickets.map((t) => enrichTicket(t, user));
+    const incidents = await prisma.incident.findMany({
+      where,
+      include: {
+        reporter: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            collegeId: true,
+            department: true,
+          }
+        },
+        technician: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            collegeId: true,
+          }
+        },
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                role: true,
+                collegeId: true,
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'asc'
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
 
-    console.log('[GET /api/tickets] Enriched tickets count:', tickets.length);
+    console.log('[GET /api/tickets] Incidents found:', incidents.length);
+
+    const tickets = incidents.map((incident) => enrichTicketResponse(incident, user));
+
     return res.json({
       success: true,
       count: tickets.length,
@@ -133,37 +190,72 @@ router.get('/', (req, res) => {
  * GET /api/tickets/:id
  * Retrieve a single ticket with full details and history notes
  */
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const ticketId = parseInt(req.params.id, 10);
     const user = req.user;
 
-    const rawTicket = db.prepare(`
-      SELECT 
-        t.*,
-        rep.name AS reporter_name,
-        rep.email AS reporter_email,
-        rep.college_id AS reporter_college_id,
-        rep.department AS reporter_department,
-        tech.name AS technician_name,
-        tech.email AS technician_email,
-        tech.college_id AS technician_college_id
-      FROM tickets t
-      JOIN users rep ON t.reporter_id = rep.id
-      LEFT JOIN users tech ON t.technician_id = tech.id
-      WHERE t.id = ?
-    `).get(ticketId);
+    const incident = await prisma.incident.findUnique({
+      where: { id: ticketId },
+      include: {
+        reporter: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            collegeId: true,
+            department: true,
+          }
+        },
+        technician: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            collegeId: true,
+          }
+        },
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                role: true,
+                collegeId: true,
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
+        activities: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                role: true,
+              }
+            }
+          },
+          orderBy: {
+            timestamp: 'desc'
+          }
+        }
+      }
+    });
 
-    if (!rawTicket) {
+    if (!incident) {
       return res.status(404).json({ error: 'NOT_FOUND', message: 'Ticket not found' });
     }
 
     // Access control check: Reporters can only view their own ticket
-    if (user.role === 'Reporter' && rawTicket.reporter_id !== user.id) {
+    if (user.role === 'Reporter' && incident.reporterId !== user.id) {
       return res.status(403).json({ error: 'FORBIDDEN', message: 'Access denied to this ticket' });
     }
 
-    const ticket = enrichTicket(rawTicket, user);
+    const ticket = enrichTicketResponse(incident, user);
     return res.json({ success: true, ticket });
   } catch (err) {
     console.error('[Get Ticket Error]:', err);
@@ -175,7 +267,7 @@ router.get('/:id', (req, res) => {
  * POST /api/tickets
  * Create a new infrastructure incident report
  */
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { 
       title, 
@@ -210,64 +302,66 @@ router.post('/', (req, res) => {
     const chosenPriority = validPriorities.includes(priority) ? priority : 'Medium';
 
     // Generate unique readable ticket number (e.g. INC-1085)
-    const maxIdRow = db.prepare('SELECT MAX(id) as maxId FROM tickets').get();
-    const nextSeq = (maxIdRow?.maxId || 0) + 1;
+    const maxIncident = await prisma.incident.findFirst({
+      orderBy: { id: 'desc' },
+      select: { id: true }
+    });
+    const nextSeq = (maxIncident?.id || 0) + 1;
     const ticketNumber = `INC-${1080 + nextSeq}`;
 
-    const attachmentsJson = typeof attachments === 'string' ? attachments : JSON.stringify(attachments);
+    const attachmentsJson = JSON.stringify(attachments);
 
-    const insertResult = db.prepare(`
-      INSERT INTO tickets (
-        ticket_number, title, description, category, priority, status, 
-        building, floor, room, affected_service, attachments, reporter_id
-      )
-      VALUES (?, ?, ?, ?, ?, 'Open', ?, ?, ?, ?, ?, ?)
-    `).run(
-      ticketNumber,
-      title.trim(),
-      description.trim(),
-      category.trim(),
-      chosenPriority,
-      building.trim(),
-      floor ? floor.trim() : 'Ground Floor',
-      room.trim(),
-      affectedService ? affectedService.trim() : 'General Campus Infrastructure',
-      attachmentsJson,
-      user.id
-    );
-
-    const newTicketId = insertResult.lastInsertRowid;
+    const incident = await prisma.incident.create({
+      data: {
+        ticketNumber,
+        title: title.trim(),
+        description: description.trim(),
+        categoryName: category.trim(),
+        priority: chosenPriority,
+        status: 'Open',
+        building: building.trim(),
+        floor: floor ? floor.trim() : 'Ground Floor',
+        room: room.trim(),
+        affectedService: affectedService ? affectedService.trim() : 'General Campus Infrastructure',
+        attachments: attachmentsJson,
+        reporterId: user.id,
+      },
+      include: {
+        reporter: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            collegeId: true,
+            department: true,
+          }
+        },
+        technician: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            collegeId: true,
+          }
+        },
+        comments: true
+      }
+    });
 
     // Record in Audit Log
-    db.prepare(`
-      INSERT INTO audit_logs (user_id, action, details)
-      VALUES (?, 'CREATE_TICKET', ?)
-    `).run(
-      user.id,
-      `User ${user.name} (${user.role}) reported incident ${ticketNumber}: "${title.trim()}" in ${building} (${room})`
-    );
-
-    const createdTicket = db.prepare(`
-      SELECT 
-        t.*,
-        rep.name AS reporter_name,
-        rep.email AS reporter_email,
-        rep.college_id AS reporter_college_id,
-        rep.department AS reporter_department,
-        tech.name AS technician_name,
-        tech.email AS technician_email,
-        tech.college_id AS technician_college_id
-      FROM tickets t
-      JOIN users rep ON t.reporter_id = rep.id
-      LEFT JOIN users tech ON t.technician_id = tech.id
-      WHERE t.id = ?
-    `).get(newTicketId);
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: 'CREATE_TICKET',
+        details: `User ${user.name} (${user.role}) reported incident ${ticketNumber}: "${title.trim()}" in ${building} (${room})`,
+      }
+    });
 
     // Notifications Dispatch
     // 1. For Student/Faculty Reporter: Incident successfully submitted
     createNotification({
       userId: user.id,
-      ticketId: newTicketId,
+      ticketId: incident.id,
       eventType: 'INCIDENT_SUBMITTED',
       title: 'Incident Successfully Submitted',
       message: `Your incident report ${ticketNumber} ("${title.trim()}") has been received and queued for operations triage.`,
@@ -278,7 +372,7 @@ router.post('/', (req, res) => {
 
     // 2. For Administrators: New incident submitted
     notifyRole('Administrator', {
-      ticketId: newTicketId,
+      ticketId: incident.id,
       eventType: 'NEW_INCIDENT_SUBMITTED',
       title: `New Incident Reported: ${ticketNumber}`,
       message: `${user.name} reported "${title.trim()}" in ${building} (${room}) under ${category}.`,
@@ -286,10 +380,10 @@ router.post('/', (req, res) => {
       metadata: { ticketNumber, building, room, reporterName: user.name },
     });
 
-    // 3. If Critical Priority: Immediate urgent broadcast to Admins & Field Technicians
+    // 3. If Critical Priority: Immediate urgent broadcast
     if (chosenPriority === 'Critical') {
       notifyRole('Administrator', {
-        ticketId: newTicketId,
+        ticketId: incident.id,
         eventType: 'CRITICAL_INCIDENT',
         title: `CRITICAL ALERT: Urgent Incident ${ticketNumber}`,
         message: `CRITICAL SLA PRIORITY: ${ticketNumber} reported in ${building} (${room}). Immediate response required.`,
@@ -298,7 +392,7 @@ router.post('/', (req, res) => {
       });
 
       notifyRole('Technician', {
-        ticketId: newTicketId,
+        ticketId: incident.id,
         eventType: 'CRITICAL_INCIDENT',
         title: `Critical Incident Logged: ${ticketNumber}`,
         message: `High-priority work order ${ticketNumber} logged in ${building} (${room}). Ready for dispatch.`,
@@ -308,12 +402,12 @@ router.post('/', (req, res) => {
     }
 
     // 4. Repeated Infrastructure Issue Detection
-    checkRepeatedIssues(createdTicket);
+    checkRepeatedIssues(enrichTicketResponse(incident));
 
     return res.status(201).json({
       success: true,
       message: `Incident ticket ${ticketNumber} registered successfully`,
-      ticket: enrichTicket(createdTicket),
+      ticket: enrichTicketResponse(incident),
     });
   } catch (err) {
     console.error('[Create Ticket Error]:', err);
@@ -323,16 +417,12 @@ router.post('/', (req, res) => {
 
 /**
  * PATCH /api/tickets/:id/status
- * Update ticket lifecycle status (Open -> Assigned -> In Progress -> Resolved -> Closed)
- * Technicians & Admins can change freely.
- * Reporters who created the ticket can:
- * - Confirm resolution: transition 'Resolved' -> 'Closed'
- * - Reopen ticket: transition 'Resolved'/'Closed' -> 'Open' (with reason)
+ * Update ticket lifecycle status
  */
-router.patch('/:id/status', (req, res) => {
+router.patch('/:id/status', async (req, res) => {
   try {
     const ticketId = parseInt(req.params.id, 10);
-    const { status, note, reopenReason } = req.body;
+    const { status, note, reopenReason, resolutionDetails } = req.body;
     const user = req.user;
 
     const validStatuses = ['Open', 'Assigned', 'In Progress', 'Resolved', 'Closed'];
@@ -343,14 +433,17 @@ router.patch('/:id/status', (req, res) => {
       });
     }
 
-    const existingTicket = db.prepare('SELECT * FROM tickets WHERE id = ?').get(ticketId);
+    const existingTicket = await prisma.incident.findUnique({
+      where: { id: ticketId }
+    });
+
     if (!existingTicket) {
       return res.status(404).json({ error: 'NOT_FOUND', message: 'Ticket not found' });
     }
 
-    // Role-based authorization:
+    // Role-based authorization
     if (user.role === 'Reporter') {
-      if (existingTicket.reporter_id !== user.id) {
+      if (existingTicket.reporterId !== user.id) {
         return res.status(403).json({ error: 'FORBIDDEN', message: 'Access denied: You do not own this ticket' });
       }
       const isConfirming = existingTicket.status === 'Resolved' && status === 'Closed';
@@ -363,8 +456,7 @@ router.patch('/:id/status', (req, res) => {
         });
       }
     } else if (user.role === 'Technician') {
-      // Technicians can only update tickets that are assigned to them or unassigned
-      if (existingTicket.technician_id && existingTicket.technician_id !== user.id) {
+      if (existingTicket.technicianId && existingTicket.technicianId !== user.id) {
         return res.status(403).json({
           error: 'FORBIDDEN',
           message: 'Access denied: Only the assigned technician or an administrator can update this incident.',
@@ -372,139 +464,134 @@ router.patch('/:id/status', (req, res) => {
       }
     }
 
-    const { resolutionDetails } = req.body;
-
-    // If a technician claims or starts work on an unassigned ticket, assign them automatically
-    let updatedTechnicianId = existingTicket.technician_id;
-    if (user.role === 'Technician' && !existingTicket.technician_id) {
+    // Auto-assign technician if claiming work
+    let updatedTechnicianId = existingTicket.technicianId;
+    if (user.role === 'Technician' && !existingTicket.technicianId) {
       updatedTechnicianId = user.id;
     }
 
-    let resDetails = existingTicket.resolution_details;
+    const updateData = {
+      status,
+      technicianId: updatedTechnicianId,
+    };
+
     if (resolutionDetails !== undefined) {
-      resDetails = resolutionDetails;
+      updateData.resolutionNotes = resolutionDetails;
     }
 
-    db.prepare(`
-      UPDATE tickets 
-      SET status = ?, technician_id = ?, resolution_details = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).run(status, updatedTechnicianId, resDetails, ticketId);
+    if (status === 'Resolved' && !existingTicket.resolvedAt) {
+      updateData.resolvedAt = new Date();
+    }
 
-    // If a note, resolutionDetails, or reopenReason was provided, record it in ticket_notes
+    if (status === 'Closed' && !existingTicket.closedAt) {
+      updateData.closedAt = new Date();
+    }
+
+    const updatedIncident = await prisma.incident.update({
+      where: { id: ticketId },
+      data: updateData,
+      include: {
+        reporter: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            collegeId: true,
+            department: true,
+          }
+        },
+        technician: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            collegeId: true,
+          }
+        },
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                role: true,
+                collegeId: true,
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'asc'
+          }
+        }
+      }
+    });
+
+    // Add note if provided
     let noteText = reopenReason ? `[REOPENED BY REPORTER]: ${reopenReason}` : note;
     if (resolutionDetails && resolutionDetails.trim()) {
       noteText = noteText ? `${noteText}\n[RESOLUTION DETAILS]: ${resolutionDetails.trim()}` : `[RESOLUTION DETAILS]: ${resolutionDetails.trim()}`;
     }
 
     if (noteText && noteText.trim()) {
-      db.prepare(`
-        INSERT INTO ticket_notes (ticket_id, user_id, note, is_internal)
-        VALUES (?, ?, ?, 0)
-      `).run(ticketId, user.id, noteText.trim());
+      await prisma.incidentComment.create({
+        data: {
+          incidentId: ticketId,
+          userId: user.id,
+          message: noteText.trim(),
+          isInternal: false,
+        }
+      });
     } else if (existingTicket.status === 'Resolved' && status === 'Closed' && user.role === 'Reporter') {
-      db.prepare(`
-        INSERT INTO ticket_notes (ticket_id, user_id, note, is_internal)
-        VALUES (?, ?, ?, 0)
-      `).run(ticketId, user.id, 'Reporter verified campus infrastructure operation and confirmed resolution.');
+      await prisma.incidentComment.create({
+        data: {
+          incidentId: ticketId,
+          userId: user.id,
+          message: 'Reporter verified campus infrastructure operation and confirmed resolution.',
+          isInternal: false,
+        }
+      });
     }
 
     // Audit log
-    db.prepare(`
-      INSERT INTO audit_logs (user_id, action, details)
-      VALUES (?, 'UPDATE_TICKET_STATUS', ?)
-    `).run(
-      user.id,
-      `${user.role} ${user.name} changed status of ${existingTicket.ticket_number} from "${existingTicket.status}" to "${status}"`
-    );
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: 'UPDATE_TICKET_STATUS',
+        details: `${user.role} ${user.name} changed status of ${existingTicket.ticketNumber} from "${existingTicket.status}" to "${status}"`,
+      }
+    });
 
-    const updated = db.prepare(`
-      SELECT 
-        t.*,
-        rep.name AS reporter_name,
-        rep.email AS reporter_email,
-        rep.college_id AS reporter_college_id,
-        rep.department AS reporter_department,
-        tech.name AS technician_name,
-        tech.email AS technician_email,
-        tech.college_id AS technician_college_id
-      FROM tickets t
-      JOIN users rep ON t.reporter_id = rep.id
-      LEFT JOIN users tech ON t.technician_id = tech.id
-      WHERE t.id = ?
-    `).get(ticketId);
-
-    // Notification Dispatch for Status Changes
+    // Notifications
     if (existingTicket.status !== status) {
       if (status === 'Resolved') {
-        // Reporter: Incident marked as resolved
         createNotification({
-          userId: existingTicket.reporter_id,
+          userId: existingTicket.reporterId,
           ticketId,
           eventType: 'INCIDENT_RESOLVED',
-          title: `Incident Resolved: ${existingTicket.ticket_number}`,
-          message: `${user.name} marked incident ${existingTicket.ticket_number} as Resolved.`,
+          title: `Incident Resolved: ${existingTicket.ticketNumber}`,
+          message: `${user.name} marked incident ${existingTicket.ticketNumber} as Resolved.`,
           roleTarget: 'Reporter',
           priority: 'high',
-          metadata: { ticketNumber: existingTicket.ticket_number, status },
-        });
-
-        // Reporter: Confirmation requested
-        createNotification({
-          userId: existingTicket.reporter_id,
-          ticketId,
-          eventType: 'CONFIRMATION_REQUESTED',
-          title: 'Resolution Confirmation Requested',
-          message: `Please verify that infrastructure repairs on ${existingTicket.ticket_number} are functioning properly and confirm resolution.`,
-          roleTarget: 'Reporter',
-          priority: 'high',
-          metadata: { ticketNumber: existingTicket.ticket_number },
+          metadata: { ticketNumber: existingTicket.ticketNumber, status },
         });
       } else if (status === 'Closed') {
-        // Reporter: Incident closed
         createNotification({
-          userId: existingTicket.reporter_id,
+          userId: existingTicket.reporterId,
           ticketId,
           eventType: 'INCIDENT_CLOSED',
-          title: `Incident Closed: ${existingTicket.ticket_number}`,
-          message: `Incident ${existingTicket.ticket_number} has been verified and officially closed.`,
+          title: `Incident Closed: ${existingTicket.ticketNumber}`,
+          message: `Incident ${existingTicket.ticketNumber} has been verified and officially closed.`,
           roleTarget: 'Reporter',
           priority: 'normal',
-          metadata: { ticketNumber: existingTicket.ticket_number, status },
-        });
-      } else {
-        // Reporter: Incident status changed
-        createNotification({
-          userId: existingTicket.reporter_id,
-          ticketId,
-          eventType: 'STATUS_CHANGED',
-          title: `Status Updated: ${existingTicket.ticket_number}`,
-          message: `Incident ${existingTicket.ticket_number} is now marked as "${status}".`,
-          roleTarget: 'Reporter',
-          priority: 'normal',
-          metadata: { ticketNumber: existingTicket.ticket_number, oldStatus: existingTicket.status, newStatus: status },
-        });
-      }
-
-      // If assigned technician exists and wasn't the one updating
-      if (existingTicket.technician_id && existingTicket.technician_id !== user.id) {
-        createNotification({
-          userId: existingTicket.technician_id,
-          ticketId,
-          eventType: 'STATUS_CHANGED',
-          title: `Status Changed: ${existingTicket.ticket_number}`,
-          message: `${user.name} (${user.role}) changed incident status to "${status}".`,
-          roleTarget: 'Technician',
-          priority: 'normal',
-          metadata: { ticketNumber: existingTicket.ticket_number, newStatus: status },
+          metadata: { ticketNumber: existingTicket.ticketNumber, status },
         });
       }
     }
 
     return res.json({
       success: true,
-      message: `Status for ticket ${existingTicket.ticket_number} changed to ${status}`,
-      ticket: enrichTicket(updated, user),
+      message: `Status for ticket ${existingTicket.ticketNumber} changed to ${status}`,
+      ticket: enrichTicketResponse(updatedIncident, user),
     });
   } catch (err) {
     console.error('[Update Ticket Status Error]:', err);
@@ -514,10 +601,9 @@ router.patch('/:id/status', (req, res) => {
 
 /**
  * POST /api/tickets/:id/attachments
- * Upload additional supporting evidence (images or documents)
- * Allowed for ticket reporter, assigned technician, or admin
+ * Upload additional supporting evidence
  */
-router.post('/:id/attachments', (req, res) => {
+router.post('/:id/attachments', async (req, res) => {
   try {
     const ticketId = parseInt(req.params.id, 10);
     const { attachments } = req.body;
@@ -527,22 +613,25 @@ router.post('/:id/attachments', (req, res) => {
       return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Attachments array is required' });
     }
 
-    const ticket = db.prepare('SELECT * FROM tickets WHERE id = ?').get(ticketId);
+    const ticket = await prisma.incident.findUnique({
+      where: { id: ticketId }
+    });
+
     if (!ticket) {
       return res.status(404).json({ error: 'NOT_FOUND', message: 'Ticket not found' });
     }
 
-    if (user.role === 'Reporter' && ticket.reporter_id !== user.id) {
+    if (user.role === 'Reporter' && ticket.reporterId !== user.id) {
       return res.status(403).json({ error: 'FORBIDDEN', message: 'Cannot upload attachments to tickets not owned by you' });
     }
-    if (user.role === 'Technician' && ticket.technician_id && ticket.technician_id !== user.id) {
+    if (user.role === 'Technician' && ticket.technicianId && ticket.technicianId !== user.id) {
       return res.status(403).json({ error: 'FORBIDDEN', message: 'Cannot upload attachments to tickets assigned to another technician' });
     }
 
     let existingAttachments = [];
     if (ticket.attachments) {
       try {
-        existingAttachments = typeof ticket.attachments === 'string' ? JSON.parse(ticket.attachments) : ticket.attachments;
+        existingAttachments = JSON.parse(ticket.attachments);
       } catch {
         existingAttachments = [];
       }
@@ -550,47 +639,70 @@ router.post('/:id/attachments', (req, res) => {
 
     const combined = [...existingAttachments, ...attachments];
 
-    db.prepare(`
-      UPDATE tickets 
-      SET attachments = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).run(JSON.stringify(combined), ticketId);
+    const updatedIncident = await prisma.incident.update({
+      where: { id: ticketId },
+      data: {
+        attachments: JSON.stringify(combined),
+      },
+      include: {
+        reporter: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            collegeId: true,
+            department: true,
+          }
+        },
+        technician: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            collegeId: true,
+          }
+        },
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                role: true,
+                collegeId: true,
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'asc'
+          }
+        }
+      }
+    });
 
-    // Note in investigation log
-    db.prepare(`
-      INSERT INTO ticket_notes (ticket_id, user_id, note)
-      VALUES (?, ?, ?)
-    `).run(ticketId, user.id, `Uploaded ${attachments.length} additional supporting evidence attachment(s): ${attachments.map(a => a.name).join(', ')}`);
+    // Add note
+    await prisma.incidentComment.create({
+      data: {
+        incidentId: ticketId,
+        userId: user.id,
+        message: `Uploaded ${attachments.length} additional supporting evidence attachment(s): ${attachments.map(a => a.name).join(', ')}`,
+        isInternal: false,
+      }
+    });
 
     // Audit log
-    db.prepare(`
-      INSERT INTO audit_logs (user_id, action, details)
-      VALUES (?, 'UPLOAD_ATTACHMENT', ?)
-    `).run(
-      user.id,
-      `${user.role} ${user.name} added ${attachments.length} attachment(s) to ticket ${ticket.ticket_number}`
-    );
-
-    const updated = db.prepare(`
-      SELECT 
-        t.*,
-        rep.name AS reporter_name,
-        rep.email AS reporter_email,
-        rep.college_id AS reporter_college_id,
-        rep.department AS reporter_department,
-        tech.name AS technician_name,
-        tech.email AS technician_email,
-        tech.college_id AS technician_college_id
-      FROM tickets t
-      JOIN users rep ON t.reporter_id = rep.id
-      LEFT JOIN users tech ON t.technician_id = tech.id
-      WHERE t.id = ?
-    `).get(ticketId);
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: 'UPLOAD_ATTACHMENT',
+        details: `${user.role} ${user.name} added ${attachments.length} attachment(s) to ticket ${ticket.ticketNumber}`,
+      }
+    });
 
     return res.json({
       success: true,
       message: `${attachments.length} attachment(s) uploaded successfully`,
-      ticket: enrichTicket(updated, user),
+      ticket: enrichTicketResponse(updatedIncident, user),
     });
   } catch (err) {
     console.error('[Upload Attachments Error]:', err);
@@ -601,9 +713,8 @@ router.post('/:id/attachments', (req, res) => {
 /**
  * POST /api/tickets/:id/notes
  * Add technical diagnostics note or investigation log
- * Allowed: Assigned technician, administrator, or ticket creator
  */
-router.post('/:id/notes', (req, res) => {
+router.post('/:id/notes', async (req, res) => {
   try {
     const ticketId = parseInt(req.params.id, 10);
     const { note, isInternal } = req.body;
@@ -613,68 +724,88 @@ router.post('/:id/notes', (req, res) => {
       return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'Note text cannot be empty' });
     }
 
-    const ticket = db.prepare('SELECT id, ticket_number, reporter_id, technician_id FROM tickets WHERE id = ?').get(ticketId);
+    const ticket = await prisma.incident.findUnique({
+      where: { id: ticketId },
+      select: { id: true, ticketNumber: true, reporterId: true, technicianId: true }
+    });
+
     if (!ticket) {
       return res.status(404).json({ error: 'NOT_FOUND', message: 'Ticket not found' });
     }
 
-    // Role check: Reporter must own it; Technician or Admin can add
-    if (user.role === 'Reporter' && ticket.reporter_id !== user.id) {
+    if (user.role === 'Reporter' && ticket.reporterId !== user.id) {
       return res.status(403).json({ error: 'FORBIDDEN', message: 'Cannot add notes to tickets not owned by you' });
     }
-    if (user.role === 'Technician' && ticket.technician_id && ticket.technician_id !== user.id) {
+    if (user.role === 'Technician' && ticket.technicianId && ticket.technicianId !== user.id) {
       return res.status(403).json({ error: 'FORBIDDEN', message: 'Cannot add notes to tickets assigned to another technician' });
     }
 
-    const isInternalVal = ((user.role === 'Technician' || user.role === 'Administrator') && isInternal) ? 1 : 0;
+    const isInternalVal = ((user.role === 'Technician' || user.role === 'Administrator') && isInternal) ? true : false;
 
-    const insertResult = db.prepare(`
-      INSERT INTO ticket_notes (ticket_id, user_id, note, is_internal)
-      VALUES (?, ?, ?, ?)
-    `).run(ticketId, user.id, note.trim(), isInternalVal);
+    const createdComment = await prisma.incidentComment.create({
+      data: {
+        incidentId: ticketId,
+        userId: user.id,
+        message: note.trim(),
+        isInternal: isInternalVal,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+            collegeId: true,
+          }
+        }
+      }
+    });
 
     // Update ticket timestamp
-    db.prepare('UPDATE tickets SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(ticketId);
+    await prisma.incident.update({
+      where: { id: ticketId },
+      data: { updatedAt: new Date() }
+    });
 
-    const createdNote = db.prepare(`
-      SELECT tn.id, tn.note, tn.is_internal, tn.created_at, u.id AS author_id, u.name AS author_name, u.role AS author_role, u.college_id AS author_college_id
-      FROM ticket_notes tn
-      JOIN users u ON tn.user_id = u.id
-      WHERE tn.id = ?
-    `).get(insertResult.lastInsertRowid);
-
-    // Notification Dispatch for Notes / Comments
+    // Notification Dispatch
     const snippet = note.trim().length > 90 ? `${note.trim().slice(0, 90)}...` : note.trim();
-    if ((user.role === 'Technician' || user.role === 'Administrator') && isInternalVal === 0) {
-      // Reporter receives technician update
+    if ((user.role === 'Technician' || user.role === 'Administrator') && !isInternalVal) {
       createNotification({
-        userId: ticket.reporter_id,
+        userId: ticket.reporterId,
         ticketId,
         eventType: 'NOTE_ADDED',
-        title: `Technician Update on ${ticket.ticket_number}`,
+        title: `Technician Update on ${ticket.ticketNumber}`,
         message: `${user.name} posted an update: "${snippet}"`,
         roleTarget: 'Reporter',
         priority: 'normal',
-        metadata: { ticketNumber: ticket.ticket_number },
+        metadata: { ticketNumber: ticket.ticketNumber },
       });
-    } else if (user.role === 'Reporter' && ticket.technician_id) {
-      // Assigned Technician receives reporter comment
+    } else if (user.role === 'Reporter' && ticket.technicianId) {
       createNotification({
-        userId: ticket.technician_id,
+        userId: ticket.technicianId,
         ticketId,
         eventType: 'REPORTER_COMMENT',
-        title: `Reporter Comment on ${ticket.ticket_number}`,
+        title: `Reporter Comment on ${ticket.ticketNumber}`,
         message: `Reporter ${user.name} commented: "${snippet}"`,
         roleTarget: 'Technician',
         priority: 'normal',
-        metadata: { ticketNumber: ticket.ticket_number },
+        metadata: { ticketNumber: ticket.ticketNumber },
       });
     }
 
     return res.status(201).json({
       success: true,
       message: 'Note added successfully',
-      note: createdNote,
+      note: {
+        id: createdComment.id,
+        note: createdComment.message,
+        is_internal: createdComment.isInternal,
+        created_at: createdComment.createdAt,
+        author_id: createdComment.user.id,
+        author_name: createdComment.user.name,
+        author_role: createdComment.user.role,
+        author_college_id: createdComment.user.collegeId,
+      },
     });
   } catch (err) {
     console.error('[Add Ticket Note Error]:', err);
@@ -685,28 +816,33 @@ router.post('/:id/notes', (req, res) => {
 /**
  * PATCH /api/tickets/:id/assign
  * Assign or reassign ticket to a technician
- * Allowed: Administrator, or Technician claiming self-assignment
  */
-router.patch('/:id/assign', requireRole(['Technician', 'Administrator']), (req, res) => {
+router.patch('/:id/assign', requireRole(['Technician', 'Administrator']), async (req, res) => {
   try {
     const ticketId = parseInt(req.params.id, 10);
     const { technicianId } = req.body;
     const user = req.user;
 
-    const ticket = db.prepare('SELECT * FROM tickets WHERE id = ?').get(ticketId);
+    const ticket = await prisma.incident.findUnique({
+      where: { id: ticketId }
+    });
+
     if (!ticket) {
       return res.status(404).json({ error: 'NOT_FOUND', message: 'Ticket not found' });
     }
 
     let targetTechId = technicianId ? parseInt(technicianId, 10) : null;
 
-    // If technician is claiming the ticket themselves
     if (user.role === 'Technician' && (!targetTechId || targetTechId === user.id)) {
       targetTechId = user.id;
     }
 
     if (targetTechId) {
-      const techUser = db.prepare('SELECT id, name, role FROM users WHERE id = ?').get(targetTechId);
+      const techUser = await prisma.user.findUnique({
+        where: { id: targetTechId },
+        select: { id: true, name: true, role: true }
+      });
+
       if (!techUser || (techUser.role !== 'Technician' && techUser.role !== 'Administrator')) {
         return res.status(400).json({
           error: 'INVALID_TECHNICIAN',
@@ -717,94 +853,88 @@ router.patch('/:id/assign', requireRole(['Technician', 'Administrator']), (req, 
 
     const newStatus = ticket.status === 'Open' && targetTechId ? 'Assigned' : ticket.status;
 
-    db.prepare(`
-      UPDATE tickets 
-      SET technician_id = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).run(targetTechId, newStatus, ticketId);
+    const updatedIncident = await prisma.incident.update({
+      where: { id: ticketId },
+      data: {
+        technicianId: targetTechId,
+        status: newStatus,
+      },
+      include: {
+        reporter: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            collegeId: true,
+            department: true,
+          }
+        },
+        technician: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            collegeId: true,
+          }
+        },
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                role: true,
+                collegeId: true,
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'asc'
+          }
+        }
+      }
+    });
 
     // Audit log
-    db.prepare(`
-      INSERT INTO audit_logs (user_id, action, details)
-      VALUES (?, 'ASSIGN_TICKET', ?)
-    `).run(
-      user.id,
-      `${user.name} assigned ticket ${ticket.ticket_number} to technician ID ${targetTechId || 'Unassigned'}`
-    );
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: 'ASSIGN_TICKET',
+        details: `${user.name} assigned ticket ${ticket.ticketNumber} to technician ID ${targetTechId || 'Unassigned'}`,
+      }
+    });
 
-    const updated = db.prepare(`
-      SELECT 
-        t.*,
-        rep.name AS reporter_name,
-        rep.email AS reporter_email,
-        rep.college_id AS reporter_college_id,
-        rep.department AS reporter_department,
-        tech.name AS technician_name,
-        tech.email AS technician_email,
-        tech.college_id AS technician_college_id
-      FROM tickets t
-      JOIN users rep ON t.reporter_id = rep.id
-      LEFT JOIN users tech ON t.technician_id = tech.id
-      WHERE t.id = ?
-    `).get(ticketId);
+    const assignedTechName = updatedIncident.technician?.name || 'Specialist';
 
-    // Notification Dispatch for Technician Assignment
-    const assignedTechName = updated.technician_name || 'Specialist';
-
-    // 1. Reporter notification: Technician assigned
+    // Notifications
     createNotification({
-      userId: ticket.reporter_id,
+      userId: ticket.reporterId,
       ticketId,
       eventType: 'INCIDENT_ASSIGNED',
       title: 'Technician Assigned to Incident',
-      message: `Technician ${assignedTechName} has been assigned to investigate ${ticket.ticket_number}.`,
+      message: `Technician ${assignedTechName} has been assigned to investigate ${ticket.ticketNumber}.`,
       roleTarget: 'Reporter',
       priority: 'normal',
-      metadata: { ticketNumber: ticket.ticket_number, technicianName: assignedTechName },
+      metadata: { ticketNumber: ticket.ticketNumber, technicianName: assignedTechName },
     });
 
-    // 2. Target Technician notification: New work order assigned
     if (targetTechId) {
       createNotification({
         userId: targetTechId,
         ticketId,
         eventType: 'NEW_INCIDENT_ASSIGNED',
-        title: `New Work Order Assigned: ${ticket.ticket_number}`,
-        message: `You have been dispatched to ${ticket.ticket_number} ("${ticket.title}") at ${ticket.building} (${ticket.room}).`,
+        title: `New Work Order Assigned: ${ticket.ticketNumber}`,
+        message: `You have been dispatched to ${ticket.ticketNumber} ("${ticket.title}") at ${ticket.building} (${ticket.room}).`,
         roleTarget: 'Technician',
         priority: ticket.priority === 'Critical' ? 'critical' : 'high',
-        metadata: { ticketNumber: ticket.ticket_number, priority: ticket.priority, building: ticket.building, room: ticket.room },
+        metadata: { ticketNumber: ticket.ticketNumber, priority: ticket.priority, building: ticket.building, room: ticket.room },
       });
     }
-
-    // 3. Reassignment notice to previous technician if changed
-    if (ticket.technician_id && ticket.technician_id !== targetTechId) {
-      createNotification({
-        userId: ticket.technician_id,
-        ticketId,
-        eventType: 'INCIDENT_REASSIGNED',
-        title: `Work Order Reassigned: ${ticket.ticket_number}`,
-        message: `Incident ${ticket.ticket_number} has been transferred to another technician (${assignedTechName}).`,
-        roleTarget: 'Technician',
-        priority: 'normal',
-        metadata: { ticketNumber: ticket.ticket_number, newTechnician: assignedTechName },
-      });
-    }
-
-    // 4. Administrator notification: Assignment changed
-    notifyRole('Administrator', {
-      ticketId,
-      eventType: 'ASSIGNMENT_CHANGED',
-      title: `Assignment Changed: ${ticket.ticket_number}`,
-      message: `${user.name} assigned ${ticket.ticket_number} to ${assignedTechName}.`,
-      priority: 'normal',
-      metadata: { ticketNumber: ticket.ticket_number, technicianName: assignedTechName },
-    });
 
     return res.json({
       success: true,
-      message: `Ticket ${ticket.ticket_number} assigned successfully`,
-      ticket: enrichTicket(updated, user),
+      message: `Ticket ${ticket.ticketNumber} ${targetTechId ? 'assigned to' : 'unassigned from'} technician`,
+      ticket: enrichTicketResponse(updatedIncident, user),
     });
   } catch (err) {
     console.error('[Assign Ticket Error]:', err);
@@ -812,37 +942,4 @@ router.patch('/:id/assign', requireRole(['Technician', 'Administrator']), (req, 
   }
 });
 
-/**
- * DELETE /api/tickets/:id
- * Delete an incident record. Strictly restricted to Administrator role.
- */
-router.delete('/:id', requireRole(['Administrator']), (req, res) => {
-  try {
-    const ticketId = parseInt(req.params.id, 10);
-    const ticket = db.prepare('SELECT id, ticket_number, title FROM tickets WHERE id = ?').get(ticketId);
-    if (!ticket) {
-      return res.status(404).json({ error: 'NOT_FOUND', message: 'Ticket not found' });
-    }
-
-    db.prepare('DELETE FROM tickets WHERE id = ?').run(ticketId);
-
-    db.prepare(`
-      INSERT INTO audit_logs (user_id, action, details)
-      VALUES (?, 'DELETE_TICKET', ?)
-    `).run(
-      req.user.id,
-      `Administrator ${req.user.name} deleted incident ticket ${ticket.ticket_number} ("${ticket.title}")`
-    );
-
-    return res.json({
-      success: true,
-      message: `Incident ${ticket.ticket_number} deleted successfully`,
-    });
-  } catch (err) {
-    console.error('[Delete Ticket Error]:', err);
-    return res.status(500).json({ error: 'SERVER_ERROR', message: 'Failed to delete ticket' });
-  }
-});
-
 export default router;
-
