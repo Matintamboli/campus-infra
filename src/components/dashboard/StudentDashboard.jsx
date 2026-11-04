@@ -28,6 +28,7 @@ import { useNotifications } from '../../context/NotificationContext';
 import NotificationBell from '../notifications/NotificationBell';
 import ReportIncidentModule from '../incident/ReportIncidentModule';
 import MyIncidentsModule from '../incident/MyIncidentsModule';
+import UnifiedSidebar from './UnifiedSidebar';
 
 /**
  * Helper: Format timestamps cleanly
@@ -259,155 +260,51 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
     if (onNotify) onNotify('Signed out of CampusFix', 'info');
   };
 
+  const navItems = [
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'report', label: 'Report an Incident', icon: PlusCircle, highlight: true },
+    { id: 'my-incidents', label: 'My Incidents', icon: FileText, badge: tickets.length },
+    { id: 'notifications', label: 'Notifications', icon: Bell, badge: unreadNotificationsCount },
+    { id: 'help', label: 'Help & Support', icon: HelpCircle },
+    { id: 'profile', label: 'Profile', icon: UserIcon },
+  ];
+
   return (
-    <div className="relative min-h-screen w-full flex bg-[#0c121c] text-slate-100 overflow-x-hidden selection:bg-[#D99B7F] selection:text-[#0F3040]">
-      {/* ========================================================
-          1. SIDEBAR (Desktop + Responsive Mobile Drawer)
-          ======================================================== */}
-      {/* Mobile Backdrop */}
-      {isMobileSidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm lg:hidden transition-opacity"
-          onClick={() => setIsMobileSidebarOpen(false)}
-        />
-      )}
+    <div className="flex h-screen overflow-hidden bg-[#F5F3EF] text-[#0F3040]">
+      <UnifiedSidebar
+        brandRole="STUDENT"
+        brandSub="Campus Operations"
+        navItems={navItems}
+        activeTab={activeTab}
+        onTabChange={(tabId) => {
+          setActiveTab(tabId);
+          setSelectedIncident(null);
+        }}
+        user={user}
+        onLogout={handleLogout}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        onOpenRoleTester={onOpenRoleTester}
+      />
 
-      <aside className={`
-        fixed top-0 bottom-0 left-0 z-50 w-64 bg-[#0F3040]/95 backdrop-blur-2xl border-r border-[#A56F63]/25 flex flex-col justify-between transition-transform duration-300 ease-out
-        lg:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        {/* Top: Brand Logo */}
-        <div>
-          <div className="p-5 border-b border-[#A56F63]/20 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A56F63] to-[#D99B7F] p-[1.5px] shadow-lg shadow-black/40">
-                <div className="w-full h-full rounded-[10px] bg-[#1a222d] flex items-center justify-center">
-                  <svg viewBox="0 0 48 48" className="w-6 h-6 text-[#D99B7F]" fill="none" stroke="currentColor">
-                    <path d="M8 38V20L24 10L40 20V38" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                    <circle cx="24" cy="20" r="3" fill="#D99B7F" />
-                  </svg>
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-lg font-bold text-white tracking-tight font-heading">Campus<span className="text-[#D99B7F]">Fix</span></span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#464858]/60 text-[#D99B7F] border border-[#A56F63]/40 font-bold">STUDENT</span>
-                </div>
-                <p className="text-[10px] text-slate-400">IT Infrastructure Portal</p>
-              </div>
-            </div>
-
-            {/* Mobile Close Button */}
-            <button
-              onClick={() => setIsMobileSidebarOpen(false)}
-              className="p-1 rounded-lg text-slate-400 hover:text-white lg:hidden"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Navigation Links */}
-          <nav className="p-3.5 space-y-1">
-            {[
-              { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-              { id: 'report', label: 'Report an Incident', icon: PlusCircle, highlight: true },
-              { id: 'my-incidents', label: 'My Incidents', icon: FileText, badge: tickets.length },
-              { id: 'notifications', label: 'Notifications', icon: Bell, badge: unreadNotificationsCount },
-              { id: 'help', label: 'Help & Support', icon: HelpCircle },
-              { id: 'profile', label: 'Profile', icon: UserIcon },
-            ].map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    setIsMobileSidebarOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                    isActive
-                      ? 'bg-gradient-to-r from-[#D99B7F]/20 to-[#A56F63]/10 text-white border border-[#D99B7F]/40 shadow-sm'
-                      : item.highlight
-                      ? 'bg-[#464858]/40 text-[#D99B7F] hover:bg-[#464858]/70 border border-[#A56F63]/30'
-                      : 'text-slate-300 hover:text-white hover:bg-[#464858]/35'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#D99B7F]' : 'text-slate-400'}`} />
-                    <span>{item.label}</span>
-                  </div>
-                  {item.badge !== undefined && item.badge > 0 && (
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      isActive ? 'bg-[#D99B7F] text-[#0F3040]' : 'bg-[#464858] text-slate-200'
-                    }`}>
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* Bottom Sidebar: Role Diagnostics & Sign Out */}
-        <div className="p-3.5 border-t border-[#A56F63]/20 space-y-2">
-          {/* Security Tester Quick Trigger */}
-          <button
-            type="button"
-            onClick={onOpenRoleTester}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-[#464858]/30 hover:bg-[#464858]/60 text-slate-300 text-xs font-medium border border-[#A56F63]/25 transition-all"
-          >
-            <ShieldAlert className="w-4 h-4 text-[#D99B7F]" />
-            <span className="truncate">Verify Role Matrix</span>
-          </button>
-
-          {/* User Preview & Sign Out */}
-          <div className="pt-1 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <div className="w-7 h-7 rounded-lg bg-[#D99B7F]/20 border border-[#D99B7F]/40 flex items-center justify-center text-[#D99B7F] font-bold text-xs flex-shrink-0">
-                {user?.name ? user.name.charAt(0).toUpperCase() : 'S'}
-              </div>
-              <div className="truncate">
-                <p className="text-white text-xs font-semibold truncate">{user?.name || 'Student'}</p>
-                <p className="text-[10px] text-slate-400 font-mono truncate">{user?.collegeId || 'STU'}</p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-red-300 hover:bg-red-500/20 transition-colors"
-              title="Sign Out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* ========================================================
-          2. MAIN CONTENT WRAPPER
-          ======================================================== */}
-      <div className="flex-1 flex flex-col lg:pl-64 min-w-0">
-        {/* ========================================================
-            TOP NAVIGATION BAR
-            ======================================================== */}
-        <header className="sticky top-0 z-30 w-full h-16 bg-[#0F3040]/85 backdrop-blur-xl border-b border-[#A56F63]/25 px-4 sm:px-6 flex items-center justify-between gap-4">
-          {/* Left: Mobile Toggle & Welcome Message */}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top Header */}
+        <header className="shrink-0 flex items-center justify-between gap-4 px-4 sm:px-6 py-3.5 border-b border-[#E7E4DF] bg-white">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="p-2 rounded-xl bg-[#464858]/40 border border-[#A56F63]/30 text-slate-300 hover:text-white lg:hidden"
+              className="p-2 min-w-[42px] min-h-[42px] flex items-center justify-center rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] active:scale-95 transition-all lg:hidden"
+              aria-label="Open navigation menu"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            <div>
-              <h1 className="text-sm sm:text-base font-bold text-white font-heading tracking-tight flex items-center gap-1.5">
-                <span>Welcome back, <span className="text-[#D99B7F]">{user?.name || 'Student'}</span> 👋</span>
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-base font-bold text-[#0F3040] font-heading tracking-tight flex items-center gap-1.5 truncate">
+                <span>Welcome back, <span className="text-[#A56F63]">{user?.name || 'Student'}</span> 👋</span>
               </h1>
-              <p className="text-[11px] text-slate-400 hidden sm:block">
+              <p className="text-[11px] text-[#464858] hidden sm:block truncate">
                 Campus Infrastructure Incident Operations • Active Student View
               </p>
             </div>
@@ -416,18 +313,18 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
           {/* Center: Search Bar */}
           <div className="hidden md:flex flex-1 max-w-md mx-4">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8D8B96]" />
               <input
                 type="text"
                 placeholder="Search incident title, ID, building, or category..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-8 py-1.5 rounded-xl bg-[#202733]/80 border border-slate-500/25 focus:border-[#D99B7F] text-xs text-white placeholder-slate-400 focus:outline-none transition-all"
+                className="w-full pl-9 pr-8 py-2 rounded-xl saas-input text-xs text-[#0F3040] placeholder-[#8D8B96]"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8D8B96] hover:text-[#0F3040]"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -441,10 +338,7 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
             <button
               type="button"
               onClick={() => setActiveTab('report')}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs text-[#0F3040] shadow-md transition-all hover:brightness-105 active:scale-95"
-              style={{
-                background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)',
-              }}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs text-white bg-[#0F3040] hover:bg-[#183E4C] shadow-xs transition-all active:scale-95"
             >
               <PlusCircle className="w-3.5 h-3.5" />
               <span>Report Issue</span>
@@ -465,10 +359,10 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
             <button
               type="button"
               onClick={fetchTickets}
-              className="p-2 rounded-xl bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 text-slate-300 hover:text-white transition-all"
+              className="p-2 rounded-xl bg-white hover:bg-[#F5F3EF] border border-[#E7E4DF] text-[#464858] hover:text-[#0F3040] transition-all shadow-xs"
               title="Refresh incident data"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoadingTickets ? 'animate-spin text-[#D99B7F]' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${isLoadingTickets ? 'animate-spin text-[#A56F63]' : ''}`} />
             </button>
 
             {/* Profile Avatar Dropdown Trigger */}
@@ -476,28 +370,28 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
               <button
                 type="button"
                 onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                className="flex items-center gap-2 p-1 rounded-xl hover:bg-[#464858]/40 border border-transparent hover:border-[#A56F63]/30 transition-all text-left"
+                className="flex items-center gap-2 p-1 rounded-xl hover:bg-[#F5F3EF] border border-transparent hover:border-[#E7E4DF] transition-all text-left"
               >
                 <div className="relative">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#0F3040] to-[#464858] border border-[#D99B7F]/50 flex items-center justify-center text-[#D99B7F] font-bold text-xs shadow-sm">
+                  <div className="w-8 h-8 rounded-xl bg-[#0F3040] text-white flex items-center justify-center font-bold text-xs shadow-xs">
                     {user?.name ? user.name.charAt(0).toUpperCase() : 'S'}
                   </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#0F3040]" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#286448] border-2 border-white" />
                 </div>
               </button>
 
               {/* Profile Dropdown Menu */}
               {isProfileDropdownOpen && (
                 <div 
-                  className="absolute right-0 mt-2 w-60 rounded-2xl bg-[#0F3040]/95 border border-[#A56F63]/40 shadow-2xl backdrop-blur-2xl p-3 z-50 animate-fadeIn"
+                  className="absolute right-0 mt-2 w-60 rounded-2xl bg-white border border-[#E7E4DF] shadow-xl p-3 z-50 text-[#0F3040]"
                   onClick={() => setIsProfileDropdownOpen(false)}
                 >
-                  <div className="pb-2.5 border-b border-[#A56F63]/25 mb-2">
-                    <p className="text-xs font-bold text-white truncate">{user?.name || 'Student'}</p>
-                    <p className="text-[11px] text-slate-300 truncate">{user?.email}</p>
+                  <div className="pb-2.5 border-b border-[#E7E4DF] mb-2">
+                    <p className="text-xs font-bold text-[#0F3040] truncate">{user?.name || 'Student'}</p>
+                    <p className="text-[11px] text-[#464858] truncate">{user?.email}</p>
                     <div className="mt-1 flex items-center justify-between text-[11px]">
-                      <span className="text-slate-400">ID:</span>
-                      <span className="font-mono text-[#D99B7F] font-bold">{user?.collegeId || 'STU-0000'}</span>
+                      <span className="text-[#464858]">ID:</span>
+                      <span className="font-mono text-[#A56F63] font-bold">{user?.collegeId || 'STU-0000'}</span>
                     </div>
                   </div>
 
@@ -505,31 +399,31 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                     <button
                       type="button"
                       onClick={() => setActiveTab('profile')}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-[#464858]/40 transition-colors"
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] transition-colors"
                     >
-                      <UserIcon className="w-3.5 h-3.5 text-[#D99B7F]" />
+                      <UserIcon className="w-3.5 h-3.5 text-[#A56F63]" />
                       <span>View Profile</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveTab('help')}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-[#464858]/40 transition-colors"
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] transition-colors"
                     >
-                      <HelpCircle className="w-3.5 h-3.5 text-[#D99B7F]" />
+                      <HelpCircle className="w-3.5 h-3.5 text-[#A56F63]" />
                       <span>Campus Support Desk</span>
                     </button>
                     <button
                       type="button"
                       onClick={onOpenRoleTester}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-[#464858]/40 transition-colors"
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] transition-colors"
                     >
-                      <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                      <ShieldAlert className="w-3.5 h-3.5 text-[#93651C]" />
                       <span>Role Security Diagnostic</span>
                     </button>
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-red-300 hover:text-red-200 hover:bg-red-500/20 transition-colors"
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#A33D35] hover:bg-[#F5DEDA]/50 transition-colors"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>Sign Out</span>
@@ -542,15 +436,15 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
         </header>
 
         {/* Mobile Search Input (Visible only on small viewports) */}
-        <div className="p-3 bg-[#0F3040]/70 border-b border-[#A56F63]/20 md:hidden">
+        <div className="p-3 bg-white border-b border-[#E7E4DF] md:hidden">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8D8B96]" />
             <input
               type="text"
               placeholder="Search incidents..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#202733] border border-slate-500/25 text-xs text-white placeholder-slate-400"
+              className="w-full pl-9 pr-4 py-2 rounded-xl saas-input text-xs text-[#0F3040] placeholder-[#8D8B96]"
             />
           </div>
         </div>
@@ -558,16 +452,13 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
         {/* ========================================================
             3. TAB CONTENT ROUTING
             ======================================================== */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6 bg-[#F5F3EF]">
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="space-y-6 animate-fadeIn">
               {/* Quick Action Hero Banner */}
               <div 
-                className="relative rounded-2xl p-6 sm:p-7 border border-[#A56F63]/30 overflow-hidden shadow-xl"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(15, 48, 64, 0.95) 0%, rgba(70, 72, 88, 0.45) 100%)',
-                }}
+                className="relative rounded-2xl p-6 sm:p-7 bg-[#0F3040] text-white overflow-hidden shadow-xs"
               >
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
@@ -575,12 +466,12 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                       <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#D99B7F]/20 text-[#D99B7F] border border-[#D99B7F]/40 uppercase tracking-wider">
                         Student Operations Desk
                       </span>
-                      <span className="text-xs text-slate-400 font-mono">Status: Connected to University Dispatch</span>
+                      <span className="text-xs text-white/70 font-mono">Status: Connected to University Dispatch</span>
                     </div>
                     <h2 className="mt-2 text-xl sm:text-2xl font-extrabold text-white font-heading tracking-tight">
                       Campus Infrastructure Incident Hub
                     </h2>
-                    <p className="mt-1 text-xs sm:text-sm text-slate-300 max-w-2xl font-light">
+                    <p className="mt-1 text-xs sm:text-sm text-white/80 max-w-2xl font-light">
                       Experiencing classroom AV failure, Wi-Fi connectivity degradation, or lab equipment malfunctions? File a work order directly to field dispatch.
                     </p>
                   </div>
@@ -588,10 +479,7 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('report')}
-                    className="flex-shrink-0 px-4 py-2.5 rounded-xl font-bold text-xs tracking-wide text-[#0F3040] shadow-lg transition-all hover:brightness-105 active:scale-95 flex items-center gap-2"
-                    style={{
-                      background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)',
-                    }}
+                    className="flex-shrink-0 px-4 py-2.5 rounded-xl font-bold text-xs tracking-wide text-white bg-[#A56F63] hover:bg-[#8e5e54] shadow-xs transition-all active:scale-95 flex items-center gap-2"
                   >
                     <PlusCircle className="w-4 h-4" />
                     <span>REPORT NEW INCIDENT</span>
@@ -602,78 +490,78 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
               {/* 4 Attractive Statistic Cards (Computed from actual incident data) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Total Incidents Reported */}
-                <div className="p-4 rounded-2xl bg-[#1a222d]/85 border border-[#A56F63]/25 shadow-lg backdrop-blur-md transition-all hover:border-[#D99B7F]/40">
+                <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs transition-all hover:border-[#A56F63]/50">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <span className="text-[11px] font-semibold text-[#464858] uppercase tracking-wider">
                       Total Reported
                     </span>
-                    <div className="p-2 rounded-xl bg-[#D99B7F]/15 border border-[#D99B7F]/30 text-[#D99B7F]">
+                    <div className="p-2 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-[#A56F63]">
                       <FileText className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="mt-3 text-3xl font-extrabold text-white font-heading tracking-tight">
+                  <div className="mt-3 text-3xl font-extrabold text-[#0F3040] font-heading tracking-tight">
                     {stats.total}
                   </div>
-                  <div className="mt-1 flex items-center justify-between text-[11px] text-slate-400">
+                  <div className="mt-1 flex items-center justify-between text-[11px] text-[#464858]">
                     <span>Lifetime student tickets</span>
-                    <span className="text-[#D99B7F] font-semibold">Active</span>
+                    <span className="text-[#A56F63] font-semibold">Active</span>
                   </div>
                 </div>
 
                 {/* Open Incidents */}
-                <div className="p-4 rounded-2xl bg-[#1a222d]/85 border border-[#A56F63]/25 shadow-lg backdrop-blur-md transition-all hover:border-amber-400/40">
+                <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs transition-all hover:border-[#93651C]/50">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <span className="text-[11px] font-semibold text-[#464858] uppercase tracking-wider">
                       Open Incidents
                     </span>
-                    <div className="p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400">
+                    <div className="p-2 rounded-xl bg-[#F8EBD2] border border-[#93651C]/30 text-[#93651C]">
                       <Clock className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="mt-3 text-3xl font-extrabold text-white font-heading tracking-tight text-amber-300">
+                  <div className="mt-3 text-3xl font-extrabold text-[#93651C] font-heading tracking-tight">
                     {stats.open}
                   </div>
-                  <div className="mt-1 flex items-center justify-between text-[11px] text-slate-400">
+                  <div className="mt-1 flex items-center justify-between text-[11px] text-[#464858]">
                     <span>Awaiting triage queue</span>
-                    <span className="text-amber-400 font-semibold">{stats.statusDist.openPct}%</span>
+                    <span className="text-[#93651C] font-semibold">{stats.statusDist.openPct}%</span>
                   </div>
                 </div>
 
                 {/* In Progress */}
-                <div className="p-4 rounded-2xl bg-[#1a222d]/85 border border-[#A56F63]/25 shadow-lg backdrop-blur-md transition-all hover:border-sky-400/40">
+                <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs transition-all hover:border-[#405C78]/50">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <span className="text-[11px] font-semibold text-[#464858] uppercase tracking-wider">
                       In Progress
                     </span>
-                    <div className="p-2 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-400">
+                    <div className="p-2 rounded-xl bg-[#E5EAF0] border border-[#405C78]/30 text-[#405C78]">
                       <Wrench className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="mt-3 text-3xl font-extrabold text-white font-heading tracking-tight text-sky-300">
+                  <div className="mt-3 text-3xl font-extrabold text-[#405C78] font-heading tracking-tight">
                     {stats.inProgress}
                   </div>
-                  <div className="mt-1 flex items-center justify-between text-[11px] text-slate-400">
+                  <div className="mt-1 flex items-center justify-between text-[11px] text-[#464858]">
                     <span>Field tech active on-site</span>
-                    <span className="text-sky-400 font-semibold">{stats.statusDist.inProgressPct}%</span>
+                    <span className="text-[#405C78] font-semibold">{stats.statusDist.inProgressPct}%</span>
                   </div>
                 </div>
 
                 {/* Resolved Incidents */}
-                <div className="p-4 rounded-2xl bg-[#1a222d]/85 border border-[#A56F63]/25 shadow-lg backdrop-blur-md transition-all hover:border-emerald-400/40">
+                <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs transition-all hover:border-[#286448]/50">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <span className="text-[11px] font-semibold text-[#464858] uppercase tracking-wider">
                       Resolved Incidents
                     </span>
-                    <div className="p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                    <div className="p-2 rounded-xl bg-[#DCEDE4] border border-[#286448]/30 text-[#286448]">
                       <CheckCircle2 className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="mt-3 text-3xl font-extrabold text-white font-heading tracking-tight text-emerald-400">
+                  <div className="mt-3 text-3xl font-extrabold text-[#286448] font-heading tracking-tight">
                     {stats.resolved}
                   </div>
-                  <div className="mt-1 flex items-center justify-between text-[11px] text-slate-400">
+                  <div className="mt-1 flex items-center justify-between text-[11px] text-[#464858]">
                     <span>Confirmed fixed & verified</span>
-                    <span className="text-emerald-400 font-semibold">{stats.statusDist.resolvedPct}%</span>
+                    <span className="text-[#286448] font-semibold">{stats.statusDist.resolvedPct}%</span>
                   </div>
                 </div>
               </div>
@@ -681,19 +569,19 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
               {/* Middle Grid: Charts & Activity Timeline */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Status Distribution Donut Chart */}
-                <div className="lg:col-span-4 p-5 rounded-2xl bg-[#1a222d]/85 border border-[#A56F63]/25 shadow-xl flex flex-col justify-between">
+                <div className="lg:col-span-4 p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center justify-between pb-3 border-b border-[#A56F63]/20 mb-4">
-                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">Status Distribution</h3>
-                      <span className="text-[10px] text-slate-400">Calculated Live</span>
+                    <div className="flex items-center justify-between pb-3 border-b border-[#E7E4DF] mb-4">
+                      <h3 className="text-xs font-bold text-[#0F3040] uppercase tracking-wider">Status Distribution</h3>
+                      <span className="text-[10px] text-[#464858]">Calculated Live</span>
                     </div>
 
                     {stats.total === 0 ? (
-                      <div className="py-10 text-center text-slate-400 text-xs">
-                        <div className="w-16 h-16 mx-auto mb-3 rounded-full border-2 border-dashed border-slate-600 flex items-center justify-center text-slate-500">
+                      <div className="py-10 text-center text-[#464858] text-xs">
+                        <div className="w-16 h-16 mx-auto mb-3 rounded-full border-2 border-dashed border-[#E7E4DF] flex items-center justify-center text-[#8D8B96]">
                           0%
                         </div>
-                        <p className="font-semibold text-slate-300">No Incidents Recorded</p>
+                        <p className="font-semibold text-[#0F3040]">No Incidents Recorded</p>
                         <p className="mt-1 text-[11px]">Report an incident to populate status metrics.</p>
                       </div>
                     ) : (
@@ -702,7 +590,7 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                         <div className="relative w-44 h-44 my-2">
                           <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                             {/* Base Background Track */}
-                            <circle cx="50" cy="50" r="38" fill="transparent" stroke="#202733" strokeWidth="12" />
+                            <circle cx="50" cy="50" r="38" fill="transparent" stroke="#E7E4DF" strokeWidth="12" />
 
                             {/* Open Slice */}
                             {stats.statusDist.openPct > 0 && (
@@ -711,7 +599,7 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                                 cy="50"
                                 r="38"
                                 fill="transparent"
-                                stroke="#F59E0B"
+                                stroke="#405C78"
                                 strokeWidth="12"
                                 strokeDasharray={`${(stats.statusDist.openPct / 100) * 238.76} 238.76`}
                                 strokeDashoffset="0"
@@ -727,7 +615,7 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                                 cy="50"
                                 r="38"
                                 fill="transparent"
-                                stroke="#38BDF8"
+                                stroke="#93651C"
                                 strokeWidth="12"
                                 strokeDasharray={`${(stats.statusDist.inProgressPct / 100) * 238.76} 238.76`}
                                 strokeDashoffset={`-${(stats.statusDist.openPct / 100) * 238.76}`}
@@ -743,7 +631,7 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                                 cy="50"
                                 r="38"
                                 fill="transparent"
-                                stroke="#34D399"
+                                stroke="#286448"
                                 strokeWidth="12"
                                 strokeDasharray={`${(stats.statusDist.resolvedPct / 100) * 238.76} 238.76`}
                                 strokeDashoffset={`-${((stats.statusDist.openPct + stats.statusDist.inProgressPct) / 100) * 238.76}`}
@@ -754,35 +642,35 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                           </svg>
 
                           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                            <span className="text-2xl font-black text-white font-heading">{stats.total}</span>
-                            <span className="text-[10px] uppercase tracking-wider text-slate-400">Tickets</span>
+                            <span className="text-2xl font-black text-[#0F3040] font-heading">{stats.total}</span>
+                            <span className="text-[10px] uppercase tracking-wider text-[#464858]">Tickets</span>
                           </div>
                         </div>
 
                         {/* Chart Legend */}
                         <div className="w-full mt-4 space-y-1.5 text-xs">
-                          <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#202733]/60">
+                          <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#F5F3EF]">
                             <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                              <span className="text-slate-300">Open</span>
+                              <span className="w-2.5 h-2.5 rounded-full bg-[#405C78]" />
+                              <span className="text-[#464858]">Open</span>
                             </div>
-                            <span className="font-mono text-white font-bold">{stats.open} ({stats.statusDist.openPct}%)</span>
+                            <span className="font-mono text-[#0F3040] font-bold">{stats.open} ({stats.statusDist.openPct}%)</span>
                           </div>
 
-                          <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#202733]/60">
+                          <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#F5F3EF]">
                             <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-sky-400" />
-                              <span className="text-slate-300">In Progress</span>
+                              <span className="w-2.5 h-2.5 rounded-full bg-[#93651C]" />
+                              <span className="text-[#464858]">In Progress</span>
                             </div>
-                            <span className="font-mono text-white font-bold">{stats.inProgress} ({stats.statusDist.inProgressPct}%)</span>
+                            <span className="font-mono text-[#0F3040] font-bold">{stats.inProgress} ({stats.statusDist.inProgressPct}%)</span>
                           </div>
 
-                          <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#202733]/60">
+                          <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#F5F3EF]">
                             <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                              <span className="text-slate-300">Resolved</span>
+                              <span className="w-2.5 h-2.5 rounded-full bg-[#286448]" />
+                              <span className="text-[#464858]">Resolved</span>
                             </div>
-                            <span className="font-mono text-white font-bold">{stats.resolved} ({stats.statusDist.resolvedPct}%)</span>
+                            <span className="font-mono text-[#0F3040] font-bold">{stats.resolved} ({stats.statusDist.resolvedPct}%)</span>
                           </div>
                         </div>
                       </div>
@@ -791,17 +679,17 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                 </div>
 
                 {/* Priority Distribution Chart */}
-                <div className="lg:col-span-4 p-5 rounded-2xl bg-[#1a222d]/85 border border-[#A56F63]/25 shadow-xl flex flex-col justify-between">
+                <div className="lg:col-span-4 p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center justify-between pb-3 border-b border-[#A56F63]/20 mb-4">
-                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">Priority Distribution</h3>
-                      <span className="text-[10px] text-slate-400">Severity Breakdown</span>
+                    <div className="flex items-center justify-between pb-3 border-b border-[#E7E4DF] mb-4">
+                      <h3 className="text-xs font-bold text-[#0F3040] uppercase tracking-wider">Priority Distribution</h3>
+                      <span className="text-[10px] text-[#464858]">Severity Breakdown</span>
                     </div>
 
                     {stats.total === 0 ? (
-                      <div className="py-10 text-center text-slate-400 text-xs">
-                        <AlertCircle className="w-10 h-10 mx-auto mb-2 text-slate-600" />
-                        <p className="font-semibold text-slate-300">No Priority Data</p>
+                      <div className="py-10 text-center text-[#464858] text-xs">
+                        <AlertCircle className="w-10 h-10 mx-auto mb-2 text-[#8D8B96]" />
+                        <p className="font-semibold text-[#0F3040]">No Priority Data</p>
                         <p className="mt-1 text-[11px]">Telemetry will populate as incidents are filed.</p>
                       </div>
                     ) : (
@@ -809,52 +697,52 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                         {/* Critical */}
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="font-semibold text-red-400 flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-red-400" /> Critical
+                            <span className="font-semibold text-[#A33D35] flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-[#A33D35]" /> Critical
                             </span>
-                            <span className="font-mono text-white">{stats.priorityDist.critical} ({stats.priorityDist.criticalPct}%)</span>
+                            <span className="font-mono text-[#0F3040]">{stats.priorityDist.critical} ({stats.priorityDist.criticalPct}%)</span>
                           </div>
-                          <div className="h-2 w-full bg-[#202733] rounded-full overflow-hidden">
-                            <div className="h-full bg-red-500 rounded-full transition-all duration-500" style={{ width: `${stats.priorityDist.criticalPct}%` }} />
+                          <div className="h-2 w-full bg-[#E7E4DF] rounded-full overflow-hidden">
+                            <div className="h-full bg-[#A33D35] rounded-full transition-all duration-500" style={{ width: `${stats.priorityDist.criticalPct}%` }} />
                           </div>
                         </div>
 
                         {/* High */}
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="font-semibold text-amber-400 flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-amber-400" /> High
+                            <span className="font-semibold text-[#93651C] flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-[#93651C]" /> High
                             </span>
-                            <span className="font-mono text-white">{stats.priorityDist.high} ({stats.priorityDist.highPct}%)</span>
+                            <span className="font-mono text-[#0F3040]">{stats.priorityDist.high} ({stats.priorityDist.highPct}%)</span>
                           </div>
-                          <div className="h-2 w-full bg-[#202733] rounded-full overflow-hidden">
-                            <div className="h-full bg-amber-400 rounded-full transition-all duration-500" style={{ width: `${stats.priorityDist.highPct}%` }} />
+                          <div className="h-2 w-full bg-[#E7E4DF] rounded-full overflow-hidden">
+                            <div className="h-full bg-[#93651C] rounded-full transition-all duration-500" style={{ width: `${stats.priorityDist.highPct}%` }} />
                           </div>
                         </div>
 
                         {/* Medium */}
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="font-semibold text-[#D99B7F] flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-[#D99B7F]" /> Medium
+                            <span className="font-semibold text-[#405C78] flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-[#405C78]" /> Medium
                             </span>
-                            <span className="font-mono text-white">{stats.priorityDist.medium} ({stats.priorityDist.mediumPct}%)</span>
+                            <span className="font-mono text-[#0F3040]">{stats.priorityDist.medium} ({stats.priorityDist.mediumPct}%)</span>
                           </div>
-                          <div className="h-2 w-full bg-[#202733] rounded-full overflow-hidden">
-                            <div className="h-full bg-[#D99B7F] rounded-full transition-all duration-500" style={{ width: `${stats.priorityDist.mediumPct}%` }} />
+                          <div className="h-2 w-full bg-[#E7E4DF] rounded-full overflow-hidden">
+                            <div className="h-full bg-[#405C78] rounded-full transition-all duration-500" style={{ width: `${stats.priorityDist.mediumPct}%` }} />
                           </div>
                         </div>
 
                         {/* Low */}
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-slate-400" /> Low
+                            <span className="font-semibold text-[#464858] flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-[#464858]" /> Low
                             </span>
-                            <span className="font-mono text-white">{stats.priorityDist.low} ({stats.priorityDist.lowPct}%)</span>
+                            <span className="font-mono text-[#0F3040]">{stats.priorityDist.low} ({stats.priorityDist.lowPct}%)</span>
                           </div>
-                          <div className="h-2 w-full bg-[#202733] rounded-full overflow-hidden">
-                            <div className="h-full bg-slate-400 rounded-full transition-all duration-500" style={{ width: `${stats.priorityDist.lowPct}%` }} />
+                          <div className="h-2 w-full bg-[#E7E4DF] rounded-full overflow-hidden">
+                            <div className="h-full bg-[#464858] rounded-full transition-all duration-500" style={{ width: `${stats.priorityDist.lowPct}%` }} />
                           </div>
                         </div>
                       </div>
@@ -863,17 +751,17 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                 </div>
 
                 {/* Recent Activity Timeline */}
-                <div className="lg:col-span-4 p-5 rounded-2xl bg-[#1a222d]/85 border border-[#A56F63]/25 shadow-xl flex flex-col justify-between">
+                <div className="lg:col-span-4 p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center justify-between pb-3 border-b border-[#A56F63]/20 mb-4">
-                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">Activity Timeline</h3>
-                      <Activity className="w-3.5 h-3.5 text-[#D99B7F]" />
+                    <div className="flex items-center justify-between pb-3 border-b border-[#E7E4DF] mb-4">
+                      <h3 className="text-xs font-bold text-[#0F3040] uppercase tracking-wider">Activity Timeline</h3>
+                      <Activity className="w-3.5 h-3.5 text-[#A56F63]" />
                     </div>
 
                     {timelineEvents.length === 0 ? (
-                      <div className="py-10 text-center text-slate-400 text-xs">
-                        <Clock className="w-8 h-8 mx-auto mb-2 text-slate-600" />
-                        <p className="font-semibold text-slate-300">No Recent Activity</p>
+                      <div className="py-10 text-center text-[#464858] text-xs">
+                        <Clock className="w-8 h-8 mx-auto mb-2 text-[#8D8B96]" />
+                        <p className="font-semibold text-[#0F3040]">No Recent Activity</p>
                         <p className="mt-1 text-[11px]">Updates will appear as tickets progress.</p>
                       </div>
                     ) : (
@@ -882,13 +770,13 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                           const EvtIcon = evt.icon;
                           return (
                             <div key={evt.id} className="flex items-start gap-3 text-xs">
-                              <div className={`p-1.5 rounded-lg ${evt.bg} ${evt.color} flex-shrink-0 mt-0.5`}>
+                              <div className={`p-1.5 rounded-lg bg-[#F5F3EF] text-[#0F3040] border border-[#E7E4DF] flex-shrink-0 mt-0.5`}>
                                 <EvtIcon className="w-3.5 h-3.5" />
                               </div>
                               <div className="flex-1 overflow-hidden">
-                                <p className="text-slate-200 font-medium truncate">{evt.title}</p>
-                                <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                                  <span className="font-mono text-[#D99B7F]">{evt.ticketNumber}</span>
+                                <p className="text-[#0F3040] font-medium truncate">{evt.title}</p>
+                                <div className="flex items-center gap-2 text-[10px] text-[#464858] mt-0.5">
+                                  <span className="font-mono text-[#A56F63] font-semibold">{evt.ticketNumber}</span>
                                   <span>•</span>
                                   <span>{evt.time}</span>
                                 </div>
@@ -903,12 +791,12 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
               </div>
 
               {/* Recent Incidents Table */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-[#1a222d]/85 border border-[#A56F63]/25 shadow-xl space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#A56F63]/20">
+              <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E7E4DF]">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-[#D99B7F]" />
-                    <h3 className="text-base font-bold text-white font-heading">Recent Incidents</h3>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-[#D99B7F]/20 text-[#D99B7F] font-bold">
+                    <FileText className="w-5 h-5 text-[#A56F63]" />
+                    <h3 className="text-base font-bold text-[#0F3040] font-heading">Recent Incidents</h3>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-[#F5F3EF] border border-[#E7E4DF] text-[#A56F63] font-bold">
                       {filteredTickets.length} Found
                     </span>
                   </div>
@@ -917,7 +805,7 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                     <button
                       type="button"
                       onClick={() => setActiveTab('my-incidents')}
-                      className="text-xs text-[#D99B7F] hover:text-white font-semibold flex items-center gap-1 transition-colors"
+                      className="text-xs text-[#A56F63] hover:text-[#0F3040] font-semibold flex items-center gap-1 transition-colors"
                     >
                       <span>View All in My Incidents</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -926,12 +814,12 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                 </div>
 
                 {filteredTickets.length === 0 ? (
-                  <div className="py-12 text-center text-slate-400 space-y-2">
-                    <div className="w-14 h-14 mx-auto rounded-2xl bg-[#202733] border border-slate-600/40 flex items-center justify-center text-slate-500 mb-2">
+                  <div className="py-12 text-center text-[#464858] space-y-2">
+                    <div className="w-14 h-14 mx-auto rounded-2xl bg-[#F5F3EF] border border-[#E7E4DF] flex items-center justify-center text-[#8D8B96] mb-2">
                       <FileText className="w-7 h-7" />
                     </div>
-                    <p className="text-sm font-bold text-white">No Incidents Found</p>
-                    <p className="text-xs max-w-sm mx-auto text-slate-400">
+                    <p className="text-sm font-bold text-[#0F3040]">No Incidents Found</p>
+                    <p className="text-xs max-w-sm mx-auto text-[#464858]">
                       {searchQuery
                         ? `No reported issues matched your query "${searchQuery}".`
                         : 'You haven\'t submitted any campus infrastructure issues yet.'}
@@ -940,15 +828,14 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                       {searchQuery ? (
                         <button
                           onClick={() => setSearchQuery('')}
-                          className="px-3.5 py-1.5 rounded-xl bg-[#464858]/50 text-slate-200 text-xs font-semibold hover:bg-[#464858]"
+                          className="px-3.5 py-1.5 rounded-xl bg-white border border-[#E7E4DF] text-[#464858] text-xs font-semibold hover:text-[#0F3040]"
                         >
                           Clear Search Filter
                         </button>
                       ) : (
                         <button
                           onClick={() => setActiveTab('report')}
-                          className="px-4 py-2 rounded-xl text-xs font-bold text-[#0F3040] transition-all hover:brightness-105 active:scale-95"
-                          style={{ background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)' }}
+                          className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#0F3040] hover:bg-[#183E4C] transition-all active:scale-95 shadow-xs"
                         >
                           Report Your First Incident
                         </button>
@@ -956,83 +843,85 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                     </div>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-700/50 text-slate-400 uppercase tracking-wider text-[11px]">
-                          <th className="py-3 px-3 font-semibold">Incident ID</th>
-                          <th className="py-3 px-3 font-semibold">Title</th>
-                          <th className="py-3 px-3 font-semibold">Category</th>
-                          <th className="py-3 px-3 font-semibold">Location</th>
-                          <th className="py-3 px-3 font-semibold">Priority</th>
-                          <th className="py-3 px-3 font-semibold">Status</th>
-                          <th className="py-3 px-3 font-semibold">Date Reported</th>
-                          <th className="py-3 px-3 font-semibold text-right">View Details</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-700/30">
-                        {filteredTickets.slice(0, 5).map((tkt) => (
-                          <tr 
-                            key={tkt.id}
-                            onClick={() => {
-                              setSelectedIncident(tkt);
-                              setActiveTab('my-incidents');
-                            }}
-                            className="hover:bg-[#202733]/50 transition-colors cursor-pointer group"
-                          >
-                            <td className="py-3 px-3 font-mono font-bold text-[#D99B7F] whitespace-nowrap">
-                              {tkt.ticket_number || `TKT-${tkt.id}`}
-                            </td>
-                            <td className="py-3 px-3 font-medium text-white max-w-[200px] truncate">
-                              {tkt.title}
-                            </td>
-                            <td className="py-3 px-3 text-slate-300 whitespace-nowrap">
-                              <span className="px-2 py-0.5 rounded-md bg-[#202733] border border-slate-500/30 text-[11px]">
-                                {tkt.category}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 text-slate-300 whitespace-nowrap text-[11px]">
-                              📍 {tkt.building} • {tkt.room}
-                            </td>
-                            <td className="py-3 px-3 whitespace-nowrap">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                tkt.priority === 'Critical' ? 'bg-red-500/20 text-red-300 border border-red-500/40' :
-                                tkt.priority === 'High' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
-                                tkt.priority === 'Medium' ? 'bg-[#D99B7F]/20 text-[#D99B7F] border border-[#D99B7F]/40' :
-                                'bg-slate-500/20 text-slate-300 border border-slate-500/40'
-                              }`}>
-                                {tkt.priority}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 whitespace-nowrap">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                tkt.status === 'In Progress' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' :
-                                tkt.status === 'Resolved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
-                                'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                              }`}>
-                                {tkt.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 text-slate-400 whitespace-nowrap text-[11px]">
-                              {formatTimeAgo(tkt.created_at)}
-                            </td>
-                            <td className="py-3 px-3 text-right whitespace-nowrap">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedIncident(tkt);
-                                  setActiveTab('my-incidents');
-                                }}
-                                className="px-2.5 py-1 rounded-lg bg-[#464858]/40 hover:bg-[#D99B7F] text-slate-300 hover:text-[#0F3040] font-semibold text-[11px] transition-all"
-                              >
-                                View Details
-                              </button>
-                            </td>
+                  <div className="rounded-xl border border-[#E7E4DF] overflow-hidden bg-white">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="border-b border-[#E7E4DF] text-[#464858] uppercase tracking-wider text-[10px] font-bold bg-[#F5F3EF]/90">
+                            <th className="py-3.5 px-4">Incident ID</th>
+                            <th className="py-3.5 px-4">Title</th>
+                            <th className="py-3.5 px-4 hidden sm:table-cell">Category</th>
+                            <th className="py-3.5 px-4 hidden md:table-cell">Location</th>
+                            <th className="py-3.5 px-4">Priority</th>
+                            <th className="py-3.5 px-4">Status</th>
+                            <th className="py-3.5 px-4 hidden lg:table-cell">Date Reported</th>
+                            <th className="py-3.5 px-4 text-right">Action</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-[#E7E4DF]/70">
+                          {filteredTickets.slice(0, 5).map((tkt) => (
+                            <tr 
+                              key={tkt.id}
+                              onClick={() => {
+                                setSelectedIncident(tkt);
+                                setActiveTab('my-incidents');
+                              }}
+                              className="hover:bg-[#F5F3EF]/50 transition-colors cursor-pointer group"
+                            >
+                              <td className="py-3.5 px-4 font-mono font-bold text-[#A56F63] whitespace-nowrap group-hover:underline">
+                                {tkt.ticket_number || `TKT-${tkt.id}`}
+                              </td>
+                              <td className="py-3.5 px-4 font-medium text-[#0F3040] max-w-[220px] truncate group-hover:text-[#A56F63] transition-colors">
+                                {tkt.title}
+                              </td>
+                              <td className="py-3.5 px-4 hidden sm:table-cell text-[#464858] whitespace-nowrap">
+                                <span className="px-2 py-0.5 rounded-md bg-[#F5F3EF] border border-[#E7E4DF] text-[11px] font-medium text-[#464858]">
+                                  {tkt.category}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 hidden md:table-cell text-[#464858] whitespace-nowrap text-[11px]">
+                                <span className="font-semibold text-[#0F3040]">{tkt.building}</span> {tkt.room && <span className="text-[#8D8B96] font-mono">• {tkt.room}</span>}
+                              </td>
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  tkt.priority === 'Critical' ? 'bg-[#F5DEDA] text-[#A33D35] border border-[#A33D35]/30' :
+                                  tkt.priority === 'High' ? 'bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30' :
+                                  tkt.priority === 'Medium' ? 'bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30' :
+                                  'bg-[#F5F3EF] text-[#464858] border border-[#E7E4DF]'
+                                }`}>
+                                  {tkt.priority}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  tkt.status === 'In Progress' ? 'bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30' :
+                                  tkt.status === 'Resolved' || tkt.status === 'Closed' ? 'bg-[#DCEDE4] text-[#286448] border border-[#286448]/30' :
+                                  'bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30'
+                                }`}>
+                                  {tkt.status}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 hidden lg:table-cell text-[#464858] font-mono whitespace-nowrap text-[11px]">
+                                {formatTimeAgo(tkt.created_at)}
+                              </td>
+                              <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                     e.stopPropagation();
+                                     setSelectedIncident(tkt);
+                                     setActiveTab('my-incidents');
+                                  }}
+                                  className="px-2.5 py-1 rounded-lg bg-[#F5F3EF] hover:bg-[#E7E4DF] text-[#0F3040] border border-[#E7E4DF] font-semibold text-[11px] transition-all shadow-xs"
+                                >
+                                  View Details
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1076,13 +965,13 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
           {/* TAB 4: NOTIFICATIONS */}
           {activeTab === 'notifications' && (
             <div className="space-y-6 animate-fadeIn max-w-3xl mx-auto">
-              <div className="p-6 rounded-2xl bg-[#1a222d]/90 border border-[#A56F63]/30 shadow-xl space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-[#A56F63]/25 flex-wrap gap-2">
+              <div className="p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-[#E7E4DF] flex-wrap gap-2">
                   <div className="flex items-center gap-2">
-                    <Bell className="w-5 h-5 text-[#D99B7F]" />
-                    <h2 className="text-xl font-bold text-white font-heading">Student Notification Feed</h2>
+                    <Bell className="w-5 h-5 text-[#A56F63]" />
+                    <h2 className="text-xl font-bold text-[#0F3040] font-heading">Student Notification Feed</h2>
                     {unreadNotificationsCount > 0 && (
-                      <span className="px-2 py-0.5 rounded-full bg-[#D99B7F]/20 text-[#D99B7F] font-bold text-xs">
+                      <span className="px-2 py-0.5 rounded-full bg-[#F5DEDA] text-[#A33D35] font-bold text-xs">
                         {unreadNotificationsCount} New
                       </span>
                     )}
@@ -1093,7 +982,7 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                       <button
                         type="button"
                         onClick={markAllNotificationsAsRead}
-                        className="text-xs text-[#D99B7F] hover:underline"
+                        className="text-xs text-[#A56F63] hover:underline font-semibold"
                       >
                         Mark all as read
                       </button>
@@ -1101,8 +990,7 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                     <button
                       type="button"
                       onClick={openCenterModal}
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#0F3040] shadow flex items-center gap-1.5"
-                      style={{ background: 'linear-gradient(135deg, #A56F63, #D99B7F)' }}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-[#0F3040] hover:bg-[#183E4C] shadow-xs flex items-center gap-1.5"
                     >
                       <span>Notification Center</span>
                     </button>
@@ -1110,8 +998,8 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                 </div>
 
                 {notifications.length === 0 ? (
-                  <div className="py-12 text-center text-slate-400">
-                    <Bell className="w-8 h-8 mx-auto mb-2 opacity-40 text-slate-400" />
+                  <div className="py-12 text-center text-[#464858]">
+                    <Bell className="w-8 h-8 mx-auto mb-2 opacity-40 text-[#464858]" />
                     <p className="text-xs font-semibold">No notifications in your feed yet.</p>
                   </div>
                 ) : (
@@ -1131,24 +1019,24 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                         }}
                         className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
                           !notif.is_read 
-                            ? 'bg-[#202733]/90 border-[#D99B7F]/40 text-slate-200 shadow-md'
-                            : 'bg-[#202733]/40 border-slate-600/20 text-slate-400 hover:border-slate-500/40'
+                            ? 'bg-white border-l-4 border-l-[#A56F63] border-[#E7E4DF] shadow-xs'
+                            : 'bg-white border-[#E7E4DF] hover:bg-[#F5F3EF]/60'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              {!notif.is_read && <span className="w-2 h-2 rounded-full bg-[#D99B7F] shrink-0" />}
-                              <h4 className="font-bold text-white text-xs">{notif.title}</h4>
+                              {!notif.is_read && <span className="w-2 h-2 rounded-full bg-[#A56F63] shrink-0" />}
+                              <h4 className="font-bold text-[#0F3040] text-xs">{notif.title}</h4>
                               {notif.ticket_number && (
-                                <span className="px-1.5 py-0.2 rounded font-mono text-[10px] font-bold bg-[#0F3040] text-[#D99B7F] border border-[#D99B7F]/30">
+                                <span className="px-1.5 py-0.2 rounded font-mono text-[10px] font-bold bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30">
                                   {notif.ticket_number}
                                 </span>
                               )}
                             </div>
-                            <p className="mt-1 text-xs text-slate-300 leading-relaxed">{notif.message}</p>
+                            <p className="mt-1 text-xs text-[#464858] leading-relaxed">{notif.message}</p>
                           </div>
-                          <span className="text-[10px] text-slate-400 whitespace-nowrap shrink-0">
+                          <span className="text-[10px] text-[#464858] whitespace-nowrap shrink-0">
                             {formatTimeAgo(notif.created_at)}
                           </span>
                         </div>
@@ -1163,42 +1051,42 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
           {/* TAB 5: HELP & SUPPORT */}
           {activeTab === 'help' && (
             <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
-              <div className="p-6 rounded-2xl bg-[#1a222d]/90 border border-[#A56F63]/30 shadow-xl space-y-6">
+              <div className="p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-white font-heading">Campus IT Help & Support</h2>
-                  <p className="text-xs text-slate-300 mt-1">Student self-service guides and emergency technician dispatch</p>
+                  <h2 className="text-2xl font-bold text-[#0F3040] font-heading">Campus IT Help & Support</h2>
+                  <p className="text-xs text-[#464858] mt-1">Student self-service guides and emergency technician dispatch</p>
                 </div>
 
                 {/* Service Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-xl bg-[#202733]/60 border border-slate-500/20 space-y-2">
-                    <Wifi className="w-5 h-5 text-emerald-400" />
-                    <h4 className="text-sm font-bold text-white">eduroam Wi-Fi Guide</h4>
-                    <p className="text-xs text-slate-300">Connect your laptop and phone using your college email and campus password with 802.1X PEAP authentication.</p>
+                  <div className="p-4 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] space-y-2">
+                    <Wifi className="w-5 h-5 text-[#286448]" />
+                    <h4 className="text-sm font-bold text-[#0F3040]">eduroam Wi-Fi Guide</h4>
+                    <p className="text-xs text-[#464858]">Connect your laptop and phone using your college email and campus password with 802.1X PEAP authentication.</p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-[#202733]/60 border border-slate-500/20 space-y-2">
-                    <Printer className="w-5 h-5 text-[#D99B7F]" />
-                    <h4 className="text-sm font-bold text-white">Student Cloud Printing</h4>
-                    <p className="text-xs text-slate-300">Each student is allocated 200 free duplex prints per semester at library and residential hall kiosks.</p>
+                  <div className="p-4 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] space-y-2">
+                    <Printer className="w-5 h-5 text-[#A56F63]" />
+                    <h4 className="text-sm font-bold text-[#0F3040]">Student Cloud Printing</h4>
+                    <p className="text-xs text-[#464858]">Each student is allocated 200 free duplex prints per semester at library and residential hall kiosks.</p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-[#202733]/60 border border-slate-500/20 space-y-2">
-                    <Monitor className="w-5 h-5 text-sky-400" />
-                    <h4 className="text-sm font-bold text-white">Computer Lab Access</h4>
-                    <p className="text-xs text-slate-300">Computer Science labs 102 & 304 are open 24/7 with active university student ID badge swipe access.</p>
+                  <div className="p-4 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] space-y-2">
+                    <Monitor className="w-5 h-5 text-[#405C78]" />
+                    <h4 className="text-sm font-bold text-[#0F3040]">Computer Lab Access</h4>
+                    <p className="text-xs text-[#464858]">Computer Science labs 102 & 304 are open 24/7 with active university student ID badge swipe access.</p>
                   </div>
                 </div>
 
                 {/* Helpdesk Contact Info */}
-                <div className="p-4 rounded-xl bg-[#0F3040]/70 border border-[#A56F63]/30 text-xs space-y-2">
+                <div className="p-5 rounded-xl bg-[#0F3040] text-white text-xs space-y-2">
                   <h4 className="font-bold text-white text-sm">Need In-Person Support?</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-slate-300">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-white/90">
                     <div>📍 <strong>Location:</strong> CS Building, Room 101</div>
                     <div>📞 <strong>Telephone:</strong> (555) 019-4821</div>
                     <div>✉️ <strong>Email:</strong> helpdesk@campus.edu</div>
                   </div>
-                  <p className="text-[11px] text-slate-400 pt-1">
+                  <p className="text-[11px] text-white/70 pt-1 border-t border-white/10 mt-2">
                     Walk-in desk hours: Monday – Friday: 8:00 AM – 8:00 PM • Saturday: 10:00 AM – 4:00 PM
                   </p>
                 </div>
@@ -1209,39 +1097,39 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
           {/* TAB 6: PROFILE */}
           {activeTab === 'profile' && (
             <div className="space-y-6 animate-fadeIn max-w-2xl mx-auto">
-              <div className="p-6 sm:p-8 rounded-2xl bg-[#1a222d]/90 border border-[#A56F63]/30 shadow-2xl space-y-6">
-                <div className="flex items-center gap-4 pb-4 border-b border-[#A56F63]/25">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#0F3040] to-[#464858] border border-[#D99B7F] flex items-center justify-center text-[#D99B7F] text-2xl font-black shadow-lg">
+              <div className="p-6 sm:p-8 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-6">
+                <div className="flex items-center gap-4 pb-4 border-b border-[#E7E4DF]">
+                  <div className="w-16 h-16 rounded-2xl bg-[#0F3040] text-white border border-[#E7E4DF] flex items-center justify-center text-2xl font-black shadow-xs">
                     {user?.name ? user.name.charAt(0).toUpperCase() : 'S'}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white font-heading">{user?.name || 'Campus Student'}</h2>
-                    <p className="text-xs text-[#D99B7F] font-mono">{user?.collegeId || 'STU-0000'}</p>
-                    <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#D99B7F]/20 text-[#D99B7F] border border-[#D99B7F]/40 uppercase tracking-wider">
+                    <h2 className="text-xl font-bold text-[#0F3040] font-heading">{user?.name || 'Campus Student'}</h2>
+                    <p className="text-xs text-[#A56F63] font-mono">{user?.collegeId || 'STU-0000'}</p>
+                    <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30 uppercase tracking-wider">
                       Student Account • Reporter Access
                     </span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div className="p-3.5 rounded-xl bg-[#202733]/60 border border-slate-600/25">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Campus Email</span>
-                    <span className="text-sm font-semibold text-white mt-0.5 block">{user?.email}</span>
+                  <div className="p-3.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+                    <span className="text-[10px] text-[#464858] uppercase tracking-wider font-semibold block">Campus Email</span>
+                    <span className="text-sm font-semibold text-[#0F3040] mt-0.5 block">{user?.email}</span>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-[#202733]/60 border border-slate-600/25">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Academic Department</span>
-                    <span className="text-sm font-semibold text-white mt-0.5 block">{user?.department || 'Undergraduate Studies'}</span>
+                  <div className="p-3.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+                    <span className="text-[10px] text-[#464858] uppercase tracking-wider font-semibold block">Academic Department</span>
+                    <span className="text-sm font-semibold text-[#0F3040] mt-0.5 block">{user?.department || 'Undergraduate Studies'}</span>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-[#202733]/60 border border-slate-600/25">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Session Security</span>
-                    <span className="text-sm font-semibold text-emerald-400 mt-0.5 block">256-Bit Encrypted JWT</span>
+                  <div className="p-3.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+                    <span className="text-[10px] text-[#464858] uppercase tracking-wider font-semibold block">Session Security</span>
+                    <span className="text-sm font-semibold text-[#286448] mt-0.5 block">256-Bit Encrypted JWT</span>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-[#202733]/60 border border-slate-600/25">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Campus Status</span>
-                    <span className="text-sm font-semibold text-white mt-0.5 block">Active Enrolled Student</span>
+                  <div className="p-3.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+                    <span className="text-[10px] text-[#464858] uppercase tracking-wider font-semibold block">Campus Status</span>
+                    <span className="text-sm font-semibold text-[#0F3040] mt-0.5 block">Active Enrolled Student</span>
                   </div>
                 </div>
 
@@ -1249,7 +1137,7 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                   <button
                     type="button"
                     onClick={onOpenRoleTester}
-                    className="px-4 py-2 rounded-xl bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 text-xs font-semibold text-slate-200 transition-colors"
+                    className="px-4 py-2 rounded-xl bg-[#F5F3EF] hover:bg-[#E7E4DF] border border-[#E7E4DF] text-xs font-semibold text-[#0F3040] transition-colors"
                   >
                     Test Role Privileges
                   </button>
@@ -1257,7 +1145,7 @@ export default function StudentDashboard({ onNotify, onOpenRoleTester }) {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/40 border border-red-500/40 text-xs font-semibold text-red-200 transition-colors flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-[#F5DEDA] hover:bg-[#F5DEDA]/80 border border-[#A33D35]/30 text-xs font-semibold text-[#A33D35] transition-colors flex items-center gap-1.5"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     <span>Sign Out</span>

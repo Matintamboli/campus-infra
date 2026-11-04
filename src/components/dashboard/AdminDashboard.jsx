@@ -27,18 +27,24 @@ import {
   RotateCcw,
   UserCheck,
   AlertTriangle,
+  Clock,
+  Zap,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import NotificationBell from '../notifications/NotificationBell';
 import AnalyticsDashboard from '../analytics/AnalyticsDashboard';
+import UnifiedSidebar from './UnifiedSidebar';
 
 // ─── Theme Colors ────────────────────────────────────────────────────────────
 const COLORS = {
-  darkTeal: '#0F3040',
-  slate: '#464858',
+  deepTeal: '#0F3040',
+  tealSlate: '#183E4C',
+  mutedSlate: '#464858',
+  warmIvory: '#F5F3EF',
+  softBorder: '#E7E4DF',
   terracotta: '#A56F63',
-  roseGold: '#D99B7F',
+  softPeach: '#D99B7F',
 };
 
 // ─── Formatting Helpers ──────────────────────────────────────────────────────
@@ -82,24 +88,25 @@ function formatFullDate(dateStr) {
 }
 
 const PRIORITY_STYLES = {
-  Critical: { color: 'text-red-300', bg: 'bg-red-500/20', border: 'border-red-500/40', dot: 'bg-red-400' },
-  High: { color: 'text-amber-300', bg: 'bg-amber-500/20', border: 'border-amber-500/40', dot: 'bg-amber-400' },
-  Medium: { color: 'text-sky-300', bg: 'bg-sky-500/20', border: 'border-sky-500/40', dot: 'bg-sky-400' },
-  Low: { color: 'text-slate-300', bg: 'bg-slate-500/20', border: 'border-slate-500/40', dot: 'bg-slate-400' },
+  Critical: { color: 'text-[#A33D35]', bg: 'bg-[#F5DEDA]', border: 'border-[#A33D35]/30', dot: 'bg-[#A33D35]' },
+  High: { color: 'text-[#93651C]', bg: 'bg-[#F8EBD2]', border: 'border-[#93651C]/30', dot: 'bg-[#93651C]' },
+  Medium: { color: 'text-[#405C78]', bg: 'bg-[#E5EAF0]', border: 'border-[#405C78]/30', dot: 'bg-[#405C78]' },
+  Low: { color: 'text-[#464858]', bg: 'bg-[#F5F3EF]', border: 'border-[#E7E4DF]', dot: 'bg-[#464858]' },
 };
 
 const STATUS_STYLES = {
-  Open: { color: 'text-amber-300', bg: 'bg-amber-500/20', border: 'border-amber-500/40' },
-  Assigned: { color: 'text-blue-300', bg: 'bg-blue-500/20', border: 'border-blue-500/40' },
-  'In Progress': { color: 'text-sky-300', bg: 'bg-sky-500/20', border: 'border-sky-500/40' },
-  Resolved: { color: 'text-emerald-300', bg: 'bg-emerald-500/20', border: 'border-emerald-500/40' },
-  Closed: { color: 'text-purple-300', bg: 'bg-purple-500/20', border: 'border-purple-500/40' },
+  Open: { color: 'text-[#405C78]', bg: 'bg-[#E5EAF0]', border: 'border-[#405C78]/30' },
+  Assigned: { color: 'text-[#405C78]', bg: 'bg-[#E5EAF0]', border: 'border-[#405C78]/30' },
+  'In Progress': { color: 'text-[#93651C]', bg: 'bg-[#F8EBD2]', border: 'border-[#93651C]/30' },
+  Resolved: { color: 'text-[#286448]', bg: 'bg-[#DCEDE4]', border: 'border-[#286448]/30' },
+  Closed: { color: 'text-[#286448]', bg: 'bg-[#DCEDE4]', border: 'border-[#286448]/30' },
 };
 
 function StatusBadge({ status }) {
   const cfg = STATUS_STYLES[status] || STATUS_STYLES.Open;
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.bg} ${cfg.color} ${cfg.border}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono tracking-wider border ${cfg.bg} ${cfg.color} ${cfg.border}`}>
+      <span className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: 'currentColor' }} />
       {status}
     </span>
   );
@@ -108,7 +115,7 @@ function StatusBadge({ status }) {
 function PriorityBadge({ priority }) {
   const cfg = PRIORITY_STYLES[priority] || PRIORITY_STYLES.Low;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.bg} ${cfg.color} ${cfg.border}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono tracking-wider border ${cfg.bg} ${cfg.color} ${cfg.border}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
       {priority}
     </span>
@@ -712,23 +719,23 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
       <div className="space-y-6">
         {/* Banner */}
         <div
-          className="relative rounded-2xl p-6 sm:p-8 border border-purple-500/30 overflow-hidden shadow-2xl"
+          className="relative rounded-2xl p-6 sm:p-8 border border-[#183E4C] overflow-hidden shadow-xs text-white"
           style={{
-            background: 'linear-gradient(135deg, rgba(15, 48, 64, 0.98) 0%, rgba(99, 102, 241, 0.25) 100%)',
+            background: 'linear-gradient(135deg, #0F3040 0%, #183E4C 100%)',
           }}
         >
           <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40 uppercase tracking-widest">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#183E4C] text-[#D99B7F] border border-[#D99B7F]/40 uppercase tracking-widest font-mono">
                   Command & Governance Center
                 </span>
-                <span className="text-xs text-slate-400 font-mono">Executive: {user?.name}</span>
+                <span className="text-xs text-slate-300 font-mono">Executive: {user?.name}</span>
               </div>
-              <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-white font-heading tracking-tight">
+              <h1 className="mt-2 text-2xl sm:text-3xl font-black text-white font-heading tracking-tight">
                 Campus Infrastructure Executive Console
               </h1>
-              <p className="mt-1 text-xs sm:text-sm text-slate-300 max-w-2xl font-light">
+              <p className="mt-1 text-xs sm:text-sm text-slate-300 max-w-2xl font-normal leading-relaxed">
                 Monitor institutional incident resolution velocities, allocate field technicians, govern SLA categories, and audit platform security actions.
               </p>
             </div>
@@ -737,18 +744,18 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
               <button
                 type="button"
                 onClick={fetchAllData}
-                className="px-3.5 py-2 rounded-xl bg-[#202733]/80 hover:bg-[#202733] border border-slate-300/20 text-slate-300 text-xs font-semibold transition-all flex items-center gap-2"
+                className="px-3.5 py-2 rounded-xl bg-[#183E4C] hover:bg-[#235061] border border-[#D99B7F]/30 text-white text-xs font-semibold transition-all flex items-center gap-2 shadow-xs"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-purple-400' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#D99B7F]' : ''}`} />
                 <span>Synchronize</span>
               </button>
               {onOpenRoleTester && (
                 <button
                   type="button"
                   onClick={onOpenRoleTester}
-                  className="px-3.5 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-xs font-semibold transition-all flex items-center gap-2"
+                  className="px-3.5 py-2 rounded-xl bg-[#A56F63] hover:bg-[#8e5e54] text-white text-xs font-semibold transition-all flex items-center gap-2 shadow-xs"
                 >
-                  <ShieldAlert className="w-3.5 h-3.5 text-purple-400" />
+                  <ShieldAlert className="w-3.5 h-3.5 text-white" />
                   <span>Verify RBAC</span>
                 </button>
               )}
@@ -756,75 +763,122 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
           </div>
         </div>
 
-        {/* 8 Metric Cards specified in requirements */}
+        {/* 8 Metric Cards specified in requirements (Clean White Cards) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-slate-300/15">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Incidents</span>
-            <div className="mt-1 text-2xl sm:text-3xl font-extrabold text-white font-heading">{metrics.totalIncidents}</div>
-            <p className="mt-1 text-[11px] text-slate-500">All registered tickets</p>
+          <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#0F3040]/30 transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">Total Incidents</span>
+              <div className="p-1.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040]">
+                <ClipboardList className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-[#0F3040] font-heading tracking-tight">{metrics.totalIncidents}</div>
+            <p className="mt-1 text-[11px] text-[#464858]">All registered tickets</p>
           </div>
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-amber-500/20">
-            <span className="text-[10px] text-amber-400 uppercase font-bold tracking-wider">Open Incidents</span>
-            <div className="mt-1 text-2xl sm:text-3xl font-extrabold text-amber-300 font-heading">{metrics.openIncidents}</div>
-            <p className="mt-1 text-[11px] text-slate-500">Unassigned / awaiting triage</p>
+
+          <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#405C78]/40 transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-[#405C78] uppercase font-bold tracking-wider">Open Incidents</span>
+              <div className="p-1.5 rounded-xl bg-[#E5EAF0] border border-[#405C78]/20 text-[#405C78]">
+                <Clock className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-[#405C78] font-heading tracking-tight">{metrics.openIncidents}</div>
+            <p className="mt-1 text-[11px] text-[#464858]">Unassigned / awaiting triage</p>
           </div>
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-red-500/20">
-            <span className="text-[10px] text-red-400 uppercase font-bold tracking-wider">Critical Incidents</span>
-            <div className="mt-1 text-2xl sm:text-3xl font-extrabold text-red-300 font-heading">{metrics.criticalIncidents}</div>
-            <p className="mt-1 text-[11px] text-slate-500">Urgent SLA dispatch required</p>
+
+          <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#A33D35]/40 transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-[#A33D35] uppercase font-bold tracking-wider">Critical Incidents</span>
+              <div className="p-1.5 rounded-xl bg-[#F5DEDA] border border-[#A33D35]/20 text-[#A33D35]">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-[#A33D35] font-heading tracking-tight">{metrics.criticalIncidents}</div>
+            <p className="mt-1 text-[11px] text-[#464858]">Urgent SLA dispatch required</p>
           </div>
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-blue-500/20">
-            <span className="text-[10px] text-blue-400 uppercase font-bold tracking-wider">Assigned Incidents</span>
-            <div className="mt-1 text-2xl sm:text-3xl font-extrabold text-blue-300 font-heading">{metrics.assignedIncidents}</div>
-            <p className="mt-1 text-[11px] text-slate-500">Dispatched to specialists</p>
+
+          <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#93651C]/40 transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-[#93651C] uppercase font-bold tracking-wider">Assigned Incidents</span>
+              <div className="p-1.5 rounded-xl bg-[#F8EBD2] border border-[#93651C]/20 text-[#93651C]">
+                <Wrench className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-[#93651C] font-heading tracking-tight">{metrics.assignedIncidents}</div>
+            <p className="mt-1 text-[11px] text-[#464858]">Dispatched to specialists</p>
           </div>
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-emerald-500/20">
-            <span className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider">Resolved Incidents</span>
-            <div className="mt-1 text-2xl sm:text-3xl font-extrabold text-emerald-300 font-heading">{metrics.resolvedIncidents}</div>
-            <p className="mt-1 text-[11px] text-slate-500">Completed repair orders</p>
+
+          <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#286448]/40 transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-[#286448] uppercase font-bold tracking-wider">Resolved Incidents</span>
+              <div className="p-1.5 rounded-xl bg-[#DCEDE4] border border-[#286448]/20 text-[#286448]">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-[#286448] font-heading tracking-tight">{metrics.resolvedIncidents}</div>
+            <p className="mt-1 text-[11px] text-[#464858]">Completed repair orders</p>
           </div>
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-slate-300/15">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Avg Response Time</span>
-            <div className="mt-1 text-2xl sm:text-3xl font-extrabold text-purple-300 font-heading">{metrics.avgResponseTime}</div>
-            <p className="mt-1 text-[11px] text-slate-500">Time to first dispatch action</p>
+
+          <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#183E4C]/40 transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-[#183E4C] uppercase font-bold tracking-wider">Avg Response Time</span>
+              <div className="p-1.5 rounded-xl bg-[#E5EAF0] border border-[#183E4C]/20 text-[#183E4C]">
+                <Zap className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-[#183E4C] font-heading tracking-tight">{metrics.avgResponseTime}</div>
+            <p className="mt-1 text-[11px] text-[#464858]">Time to first dispatch action</p>
           </div>
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-slate-300/15">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Avg Resolution Time</span>
-            <div className="mt-1 text-2xl sm:text-3xl font-extrabold text-[#D99B7F] font-heading">{metrics.avgResolutionTime}</div>
-            <p className="mt-1 text-[11px] text-slate-500">Lifecycle completion speed</p>
+
+          <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#A56F63]/40 transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-[#A56F63] uppercase font-bold tracking-wider">Avg Resolution Time</span>
+              <div className="p-1.5 rounded-xl bg-[#F5F3EF] border border-[#A56F63]/25 text-[#A56F63]">
+                <Clock className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-[#A56F63] font-heading tracking-tight">{metrics.avgResolutionTime}</div>
+            <p className="mt-1 text-[11px] text-[#464858]">Lifecycle completion speed</p>
           </div>
-          <div className="p-4 rounded-2xl bg-[#202733]/70 border border-slate-300/15">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Active Technicians</span>
-            <div className="mt-1 text-2xl sm:text-3xl font-extrabold text-white font-heading">{technicians.length}</div>
-            <p className="mt-1 text-[11px] text-slate-500">Field workforce available</p>
+
+          <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#0F3040]/30 transition-all duration-200 hover:-translate-y-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">Active Technicians</span>
+              <div className="p-1.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040]">
+                <Users className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-2 text-2xl sm:text-3xl font-extrabold text-[#0F3040] font-heading tracking-tight">{technicians.length}</div>
+            <p className="mt-1 text-[11px] text-[#464858]">Field workforce available</p>
           </div>
         </div>
 
         {/* 2-Column Split: Recurring Issues & Incident Distribution */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           {/* Recurring Issues */}
-          <div className="lg:col-span-6 p-5 rounded-2xl bg-[#1a222d]/80 border border-slate-300/15 shadow space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-300/10">
+          <div className="lg:col-span-6 p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E7E4DF]">
               <div className="flex items-center gap-2">
-                <RotateCcw className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                <RotateCcw className="w-4 h-4 text-[#93651C]" />
+                <h3 className="text-xs font-bold text-[#0F3040] uppercase tracking-wider">
                   Recurring Campus Infrastructure Issues
                 </h3>
               </div>
-              <span className="text-[10px] text-slate-400 font-mono">Location Clusters</span>
+              <span className="text-[10px] text-[#464858] font-mono">Location Clusters</span>
             </div>
 
             {(!metrics.recurringIssues || metrics.recurringIssues.length === 0) ? (
-              <p className="text-xs text-slate-500 py-6 text-center">No recurring incident hot-spots detected yet.</p>
+              <p className="text-xs text-[#464858] py-6 text-center">No recurring incident hot-spots detected yet.</p>
             ) : (
               <div className="space-y-2">
                 {metrics.recurringIssues.map((item, idx) => (
-                  <div key={idx} className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10 flex items-center justify-between">
+                  <div key={idx} className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-white">{item.building}</p>
-                      <p className="text-[11px] text-slate-400">{item.category}</p>
+                      <p className="text-xs font-bold text-[#0F3040]">{item.building}</p>
+                      <p className="text-[11px] text-[#464858]">{item.category}</p>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/20 font-mono">
                       {item.incident_count} Incidents
                     </span>
                   </div>
@@ -834,15 +888,15 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
           </div>
 
           {/* Category Breakdown & Technician Availability */}
-          <div className="lg:col-span-6 p-5 rounded-2xl bg-[#1a222d]/80 border border-slate-300/15 shadow space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-300/10">
+          <div className="lg:col-span-6 p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E7E4DF]">
               <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-purple-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                <BarChart3 className="w-4 h-4 text-[#0F3040]" />
+                <h3 className="text-xs font-bold text-[#0F3040] uppercase tracking-wider">
                   Workload by Category Classification
                 </h3>
               </div>
-              <span className="text-[10px] text-slate-400 font-mono">SLA Breakdown</span>
+              <span className="text-[10px] text-[#464858] font-mono">SLA Breakdown</span>
             </div>
 
             <div className="space-y-2.5">
@@ -851,12 +905,12 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                 return (
                   <div key={cat.id} className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-300 font-semibold">{cat.name}</span>
-                      <span className="text-purple-300 font-mono font-bold">{count} tickets ({cat.sla_hours || 4}h SLA)</span>
+                      <span className="text-[#183E4C] font-semibold">{cat.name}</span>
+                      <span className="text-[#0F3040] font-mono font-bold">{count} tickets ({cat.sla_hours || 4}h SLA)</span>
                     </div>
-                    <div className="h-1.5 w-full bg-slate-700/50 rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-[#E7E4DF] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full"
+                        className="h-full bg-[#0F3040] rounded-full"
                         style={{ width: `${Math.min(100, (count / Math.max(1, tickets.length)) * 100)}%` }}
                       />
                     </div>
@@ -871,15 +925,15 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ClipboardList className="w-4 h-4 text-purple-400" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              <ClipboardList className="w-4 h-4 text-[#0F3040]" />
+              <h3 className="text-xs font-bold text-[#0F3040] uppercase tracking-wider">
                 Recent Campus Incidents Needing Attention
               </h3>
             </div>
             <button
               type="button"
               onClick={() => setActiveTab('all-incidents')}
-              className="text-xs text-purple-300 hover:underline flex items-center gap-1"
+              className="text-xs text-[#A56F63] hover:underline font-bold flex items-center gap-1"
             >
               <span>View All ({tickets.length})</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -893,47 +947,50 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
   // ─── View 2: All Incidents (Management & Dispatch) ─────────────────────────
   const renderIncidentsTable = (items = paginatedTickets) => (
-    <div className="rounded-2xl border border-slate-300/15 overflow-hidden bg-[#1a222d]/70 shadow-lg">
+    <div className="rounded-2xl border border-[#E7E4DF] overflow-hidden bg-white shadow-xs">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="bg-[#0F3040]/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-300/10">
-              <th className="px-4 py-3 font-semibold">Incident ID</th>
-              <th className="px-4 py-3 font-semibold">Title</th>
-              <th className="px-4 py-3 font-semibold hidden sm:table-cell">Category</th>
-              <th className="px-4 py-3 font-semibold hidden md:table-cell">Location</th>
-              <th className="px-4 py-3 font-semibold">Priority</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold hidden lg:table-cell">Assigned Tech</th>
-              <th className="px-4 py-3 font-semibold hidden xl:table-cell">Reported Date</th>
-              <th className="px-4 py-3 font-semibold text-center">Administrative Actions</th>
+            <tr className="bg-[#F5F3EF]/90 text-[#464858] uppercase text-[10px] font-bold tracking-wider border-b border-[#E7E4DF]">
+              <th className="px-4 py-3.5">Incident ID</th>
+              <th className="px-4 py-3.5">Title</th>
+              <th className="px-4 py-3.5 hidden sm:table-cell">Category</th>
+              <th className="px-4 py-3.5 hidden md:table-cell">Location</th>
+              <th className="px-4 py-3.5">Priority</th>
+              <th className="px-4 py-3.5">Status</th>
+              <th className="px-4 py-3.5 hidden lg:table-cell">Assigned Tech</th>
+              <th className="px-4 py-3.5 hidden xl:table-cell">Reported Date</th>
+              <th className="px-4 py-3.5 text-center">Administrative Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-300/10">
+          <tbody className="divide-y divide-[#E7E4DF]/70">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-12 text-center text-slate-500">
-                  <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                  <p className="text-xs font-semibold">No incidents found matching current filters.</p>
+                <td colSpan={9} className="py-14 text-center text-[#464858]">
+                  <CheckCircle2 className="w-9 h-9 mx-auto mb-2.5 opacity-30 text-[#464858]" />
+                  <p className="text-xs font-semibold text-[#0F3040]">No incidents found matching current filters.</p>
+                  <p className="text-[11px] text-[#464858] mt-0.5">Try clearing your search query or adjusting priority filters.</p>
                 </td>
               </tr>
             ) : (
               items.map((tkt) => (
-                <tr key={tkt.id} className="hover:bg-[#202733]/80 transition-colors">
-                  <td className="px-4 py-3 font-mono font-bold text-[#D99B7F]">
+                <tr key={tkt.id} className="hover:bg-[#F5F3EF]/50 transition-colors group">
+                  <td className="px-4 py-3.5 font-mono font-bold text-[#0F3040] group-hover:text-[#A56F63] transition-colors">
                     {tkt.ticket_number || `INC-${tkt.id}`}
                   </td>
-                  <td className="px-4 py-3 font-medium text-white max-w-[200px] truncate">
+                  <td className="px-4 py-3.5 font-medium text-[#0F3040] max-w-[220px] truncate">
                     {tkt.title}
                   </td>
-                  <td className="px-4 py-3 hidden sm:table-cell text-slate-300">
-                    {tkt.category}
+                  <td className="px-4 py-3.5 hidden sm:table-cell text-[#464858]">
+                    <span className="px-2 py-0.5 rounded-md bg-[#F5F3EF] border border-[#E7E4DF] text-[11px] font-medium text-[#464858]">
+                      {tkt.category}
+                    </span>
                   </td>
-                  <td className="px-4 py-3 hidden md:table-cell text-slate-300">
-                    <div>{tkt.building}</div>
-                    <div className="text-[10px] text-slate-500">{tkt.room}</div>
+                  <td className="px-4 py-3.5 hidden md:table-cell text-[#464858]">
+                    <div className="font-semibold text-[#0F3040]">{tkt.building}</div>
+                    {tkt.room && <div className="text-[10px] text-[#464858] font-mono">{tkt.room}</div>}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3.5">
                     <button
                       type="button"
                       onClick={() => {
@@ -947,25 +1004,30 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                       <PriorityBadge priority={tkt.priority} />
                     </button>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3.5">
                     <StatusBadge status={tkt.status} />
                   </td>
-                  <td className="px-4 py-3 hidden lg:table-cell">
+                  <td className="px-4 py-3.5 hidden lg:table-cell">
                     {tkt.technician_name ? (
-                      <span className="text-slate-200 font-semibold">{tkt.technician_name}</span>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F3040]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#286448]" />
+                        {tkt.technician_name}
+                      </span>
                     ) : (
-                      <span className="text-amber-400/80 font-bold text-[11px] italic">Unassigned</span>
+                      <span className="text-[#93651C] font-semibold text-[11px] px-2 py-0.5 rounded bg-[#F8EBD2]/80 border border-[#93651C]/20">
+                        Unassigned
+                      </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 hidden xl:table-cell text-slate-400">
+                  <td className="px-4 py-3.5 hidden xl:table-cell text-[#464858] font-mono text-[11px]">
                     <span title={formatFullDate(tkt.created_at)}>{formatTimeAgo(tkt.created_at)}</span>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3.5 text-center">
                     <div className="flex items-center justify-center gap-1.5 flex-wrap">
                       <button
                         type="button"
                         onClick={() => setSelectedTicketId(tkt.id)}
-                        className="p-1.5 rounded-lg text-slate-300 hover:text-white bg-[#202733] border border-slate-300/20"
+                        className="p-1.5 rounded-lg text-[#0F3040] hover:bg-[#F5F3EF] hover:border-[#0F3040]/30 border border-[#E7E4DF] transition-all"
                         title="Open incident dossier"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -977,7 +1039,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                           setSelectedTechId(tkt.technician_id || '');
                           setShowAssignModal(true);
                         }}
-                        className="px-2 py-1 rounded-lg text-[11px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30"
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#F5F3EF] text-[#0F3040] border border-[#E7E4DF] hover:bg-[#E7E4DF] transition-all"
                         title="Assign or reassign technician"
                       >
                         {tkt.technician_id ? 'Reassign' : 'Assign'}
@@ -986,7 +1048,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                         <button
                           type="button"
                           onClick={() => handleUpdateTicketStatus(tkt.id, 'Closed')}
-                          className="px-2 py-1 rounded-lg text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30"
+                          className="px-2 py-1 rounded-lg text-[11px] font-bold bg-[#DCEDE4] text-[#286448] border border-[#286448]/30 hover:bg-[#c9e4d5] transition-all"
                           title="Confirm and close"
                         >
                           Close
@@ -996,7 +1058,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                         <button
                           type="button"
                           onClick={() => handleUpdateTicketStatus(tkt.id, 'Open')}
-                          className="px-2 py-1 rounded-lg text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30"
+                          className="px-2 py-1 rounded-lg text-[11px] font-bold bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30 hover:bg-[#f3dfba] transition-all"
                           title="Reopen incident"
                         >
                           Reopen
@@ -1005,7 +1067,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                       <button
                         type="button"
                         onClick={() => handleDeleteTicket(tkt)}
-                        className="p-1.5 rounded-lg text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20"
+                        className="p-1.5 rounded-lg text-[#A33D35] hover:bg-[#F5DEDA] border border-[#A33D35]/20 transition-all"
                         title="Delete incident"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1021,27 +1083,31 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       {/* Pagination Bar */}
       {filteredTickets.length > pageSize && (
-        <div className="px-4 py-3 bg-[#0F3040]/80 border-t border-slate-300/10 flex items-center justify-between text-xs text-slate-400">
-          <span>
-            Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filteredTickets.length)} of {filteredTickets.length} incidents
+        <div className="px-5 py-3.5 bg-[#F5F3EF]/80 border-t border-[#E7E4DF] flex items-center justify-between text-xs text-[#464858]">
+          <span className="font-medium">
+            Showing <strong className="text-[#0F3040]">{(currentPage - 1) * pageSize + 1}</strong> to <strong className="text-[#0F3040]">{Math.min(currentPage * pageSize, filteredTickets.length)}</strong> of <strong className="text-[#0F3040]">{filteredTickets.length}</strong> incidents
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="p-1 rounded-lg border border-slate-300/20 disabled:opacity-40 hover:text-white"
+              className="px-2.5 py-1 rounded-lg border border-[#E7E4DF] bg-white hover:bg-slate-50 disabled:opacity-40 text-[#0F3040] text-xs font-semibold transition-all flex items-center gap-1 shadow-xs"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Prev</span>
             </button>
-            <span className="px-2 font-mono text-white">{currentPage} / {Math.ceil(filteredTickets.length / pageSize)}</span>
+            <span className="px-3 py-1 rounded-lg font-mono text-xs font-bold bg-white border border-[#E7E4DF] text-[#0F3040] shadow-xs">
+              {currentPage} / {Math.ceil(filteredTickets.length / pageSize)}
+            </span>
             <button
               type="button"
               disabled={currentPage === Math.ceil(filteredTickets.length / pageSize)}
               onClick={() => setCurrentPage((p) => p + 1)}
-              className="p-1 rounded-lg border border-slate-300/20 disabled:opacity-40 hover:text-white"
+              className="px-2.5 py-1 rounded-lg border border-[#E7E4DF] bg-white hover:bg-slate-50 disabled:opacity-40 text-[#0F3040] text-xs font-semibold transition-all flex items-center gap-1 shadow-xs"
             >
-              <ChevronRight className="w-4 h-4" />
+              <span>Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -1053,21 +1119,21 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-purple-400" />
+          <h2 className="text-lg font-black text-[#0F3040] font-heading flex items-center gap-2">
+            <ClipboardList className="w-5 h-5 text-[#A56F63]" />
             <span>All Campus Infrastructure Incidents</span>
-            <span className="text-xs text-slate-400 font-mono">({filteredTickets.length} / {tickets.length})</span>
+            <span className="text-xs text-[#464858] font-mono">({filteredTickets.length} / {tickets.length})</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#464858] mt-0.5">
             Full operational view of reported issues across buildings, departments, and services with administrative override actions.
           </p>
         </div>
       </div>
 
       {/* Filter and Search Toolbar */}
-      <div className="p-3.5 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 flex flex-col md:flex-row items-center gap-3">
+      <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs flex flex-col md:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#464858]" />
           <input
             type="text"
             placeholder="Search by ID, title, building, room, reporter, or technician..."
@@ -1076,7 +1142,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-9 pr-3 py-2 rounded-xl glass-input text-white text-xs placeholder-slate-400"
+            className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040] text-xs placeholder-slate-400 focus:outline-none focus:border-[#0F3040]"
           />
         </div>
 
@@ -1087,7 +1153,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
               setStatusFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-3 py-2 rounded-xl glass-input text-white text-xs bg-[#0F3040] flex-1 sm:flex-none"
+            className="px-3 py-2 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040] text-xs font-semibold focus:outline-none focus:border-[#0F3040] flex-1 sm:flex-none"
           >
             <option value="all">All Statuses</option>
             <option value="Open">Open</option>
@@ -1103,7 +1169,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
               setPriorityFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-3 py-2 rounded-xl glass-input text-white text-xs bg-[#0F3040] flex-1 sm:flex-none"
+            className="px-3 py-2 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040] text-xs font-semibold focus:outline-none focus:border-[#0F3040] flex-1 sm:flex-none"
           >
             <option value="all">All Priorities</option>
             <option value="Critical">Critical</option>
@@ -1118,7 +1184,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
               setCategoryFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-3 py-2 rounded-xl glass-input text-white text-xs bg-[#0F3040] flex-1 sm:flex-none"
+            className="px-3 py-2 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040] text-xs font-semibold focus:outline-none focus:border-[#0F3040] flex-1 sm:flex-none"
           >
             <option value="all">All Categories</option>
             {categories.map((c) => (
@@ -1136,7 +1202,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                 setCategoryFilter('all');
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-[#202733] border border-slate-300/20"
+              className="px-3 py-2 rounded-xl text-xs font-bold text-[#A33D35] hover:bg-[#F5DEDA] border border-[#A33D35]/20"
             >
               Reset
             </button>
@@ -1157,11 +1223,11 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
-            <UserCheck className="w-5 h-5 text-purple-400" />
+          <h2 className="text-lg font-black text-[#0F3040] font-heading flex items-center gap-2">
+            <UserCheck className="w-5 h-5 text-[#A56F63]" />
             <span>Incident Assignments & Dispatch Governance</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#464858] mt-0.5">
             Allocate unassigned incident work orders to qualified field technicians based on real-time availability and domain expertise.
           </p>
         </div>
@@ -1172,29 +1238,29 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
             const activeCount = tech.activeTasks || 0;
             const isHeavy = activeCount >= 4;
             return (
-              <div key={tech.id} className="p-4 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 space-y-3">
+              <div key={tech.id} className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center font-bold text-xs">
+                    <div className="w-8 h-8 rounded-xl bg-[#0F3040] text-white flex items-center justify-center font-bold text-xs">
                       {tech.name[0].toUpperCase()}
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-white">{tech.name}</h4>
-                      <p className="text-[10px] text-slate-400">{tech.department || 'Field Ops'}</p>
+                      <h4 className="text-xs font-bold text-[#0F3040]">{tech.name}</h4>
+                      <p className="text-[10px] text-[#464858]">{tech.department || 'Field Ops'}</p>
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     isHeavy
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      ? 'bg-[#F8EBD2] text-[#93651C]'
+                      : 'bg-[#DCEDE4] text-[#286448]'
                   }`}>
                     {isHeavy ? 'High Load' : 'Available'}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-300/10">
-                  <span className="text-slate-400">Active Work Orders:</span>
-                  <span className="font-mono font-bold text-purple-300">{activeCount}</span>
+                <div className="flex items-center justify-between text-xs pt-2 border-t border-[#E7E4DF]">
+                  <span className="text-[#464858]">Active Work Orders:</span>
+                  <span className="font-mono font-bold text-[#0F3040]">{activeCount}</span>
                 </div>
               </div>
             );
@@ -1205,8 +1271,8 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              <AlertTriangle className="w-4 h-4 text-[#93651C]" />
+              <h3 className="text-xs font-bold text-[#0F3040] uppercase tracking-wider">
                 Unassigned Incidents Awaiting Technician Allocation ({unassignedTickets.length})
               </h3>
             </div>
@@ -1218,8 +1284,8 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Wrench className="w-4 h-4 text-sky-400" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              <Wrench className="w-4 h-4 text-[#0F3040]" />
+              <h3 className="text-xs font-bold text-[#0F3040] uppercase tracking-wider">
                 Active Assignments in Field ({assignedTickets.length})
               </h3>
             </div>
@@ -1247,12 +1313,12 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
-            <Users className="w-5 h-5 text-purple-400" />
+          <h2 className="text-lg font-black text-[#0F3040] font-heading flex items-center gap-2">
+            <Users className="w-5 h-5 text-[#A56F63]" />
             <span>Campus Member Directory & Role Provisioning</span>
-            <span className="text-xs text-slate-400 font-mono">({filteredUsers.length})</span>
+            <span className="text-xs text-[#464858] font-mono">({filteredUsers.length})</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#464858] mt-0.5">
             Manage user accounts, assign technician or administrator privileges, and toggle account activation.
           </p>
         </div>
@@ -1260,8 +1326,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
         <button
           type="button"
           onClick={() => setShowCreateUserModal(true)}
-          className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-lg flex items-center gap-2 transition-all active:scale-95"
-          style={{ background: 'linear-gradient(135deg, #a855f7, #6366f1)' }}
+          className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#0F3040] hover:bg-[#183E4C] shadow-sm flex items-center gap-2 transition-all active:scale-95"
         >
           <Plus className="w-4 h-4" />
           <span>Provision User / Tech</span>
@@ -1269,22 +1334,22 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
       </div>
 
       {/* Filter Bar */}
-      <div className="p-3.5 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 flex flex-col sm:flex-row items-center gap-3">
+      <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#464858]" />
           <input
             type="text"
             placeholder="Search by name, email, campus ID, or department..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-xl glass-input text-white text-xs placeholder-slate-400"
+            className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040] text-xs placeholder-slate-400 focus:outline-none focus:border-[#0F3040]"
           />
         </div>
 
         <select
           value={userRoleFilter}
           onChange={(e) => setUserRoleFilter(e.target.value)}
-          className="px-3 py-2 rounded-xl glass-input text-white text-xs bg-[#0F3040] w-full sm:w-auto"
+          className="px-3 py-2 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040] text-xs font-semibold focus:outline-none focus:border-[#0F3040] w-full sm:w-auto"
         >
           <option value="all">All Roles</option>
           <option value="Reporter">Reporter (Student/Faculty)</option>
@@ -1294,57 +1359,58 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
       </div>
 
       {/* Users Table */}
-      <div className="rounded-2xl border border-slate-300/15 overflow-hidden bg-[#1a222d]/70 shadow-lg">
+      <div className="rounded-2xl border border-[#E7E4DF] overflow-hidden bg-white shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="bg-[#0F3040]/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-300/10">
-                <th className="px-4 py-3 font-semibold">User Profile</th>
-                <th className="px-4 py-3 font-semibold">Campus ID</th>
-                <th className="px-4 py-3 font-semibold hidden md:table-cell">Type & Dept</th>
-                <th className="px-4 py-3 font-semibold">Role Designation</th>
-                <th className="px-4 py-3 font-semibold">Account Status</th>
-                <th className="px-4 py-3 font-semibold text-center">Governance Actions</th>
+              <tr className="bg-[#F5F3EF]/90 text-[#464858] uppercase text-[10px] font-bold tracking-wider border-b border-[#E7E4DF]">
+                <th className="px-4 py-3.5">User Profile</th>
+                <th className="px-4 py-3.5">Campus ID</th>
+                <th className="px-4 py-3.5 hidden md:table-cell">Type & Dept</th>
+                <th className="px-4 py-3.5">Role Designation</th>
+                <th className="px-4 py-3.5">Account Status</th>
+                <th className="px-4 py-3.5 text-center">Governance Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-300/10">
+            <tbody className="divide-y divide-[#E7E4DF]/70">
               {filteredUsers.map((u) => {
                 const isSelf = u.id === user?.id;
                 const isRoleLoading = actionLoadingId === `role-${u.id}`;
                 const isStatusLoading = actionLoadingId === `status-${u.id}`;
 
                 return (
-                  <tr key={u.id} className="hover:bg-[#202733]/80 transition-colors">
+                  <tr key={u.id} className="hover:bg-[#F5F3EF]/50 transition-colors">
                     <td className="px-4 py-3">
-                      <div className="font-bold text-white flex items-center gap-2">
+                      <div className="font-bold text-[#0F3040] flex items-center gap-2">
                         <span>{u.name}</span>
                         {isSelf && (
-                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#E5EAF0] text-[#405C78] font-bold">
                             You
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-slate-400">{u.email}</div>
+                      <div className="text-[11px] text-[#464858]">{u.email}</div>
                     </td>
 
-                    <td className="px-4 py-3 font-mono text-slate-300 font-bold">
+                    <td className="px-4 py-3 font-mono text-[#183E4C] font-bold">
                       {u.college_id}
                     </td>
 
-                    <td className="px-4 py-3 hidden md:table-cell text-slate-300">
-                      <div>{u.user_type}</div>
-                      <div className="text-[10px] text-slate-500">{u.department || 'General'}</div>
+                    <td className="px-4 py-3 hidden md:table-cell text-[#464858]">
+                      <div className="font-medium text-[#0F3040]">{u.user_type}</div>
+                      <div className="text-[10px] text-[#464858]">{u.department || 'General'}</div>
                     </td>
 
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         {isRoleLoading ? (
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-purple-400" />
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#A56F63]" />
                         ) : (
                           <select
                             value={u.role}
-                            onChange={(e) => handleRoleChange(u, e.target.value)}
-                            className="px-2 py-1 rounded-lg text-[11px] font-bold bg-[#0F3040] text-purple-200 border border-purple-500/30 focus:border-purple-400"
+                            disabled={isSelf}
+                            onChange={(e) => handleChangeUserRole(u.id, e.target.value)}
+                            className="px-2 py-1 rounded-lg bg-[#F5F3EF] border border-[#E7E4DF] text-xs text-[#0F3040] font-semibold disabled:opacity-50"
                           >
                             <option value="Reporter">Reporter</option>
                             <option value="Technician">Technician</option>
@@ -1355,13 +1421,11 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                     </td>
 
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                          u.status === 'active'
-                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                            : 'bg-red-500/20 text-red-300 border-red-500/30'
-                        }`}
-                      >
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        u.status === 'active'
+                          ? 'bg-[#DCEDE4] text-[#286448]'
+                          : 'bg-[#F5DEDA] text-[#A33D35]'
+                      }`}>
                         {u.status === 'active' ? 'Active' : 'Suspended'}
                       </span>
                     </td>
@@ -1371,31 +1435,23 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                         <button
                           type="button"
                           onClick={() => setSelectedUser(u)}
-                          className="px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-300 bg-[#202733] border border-slate-300/20 hover:text-white"
+                          className="p-1.5 rounded-lg text-[#0F3040] hover:bg-[#F5F3EF] border border-[#E7E4DF]"
+                          title="View user details"
                         >
-                          Profile
+                          <Eye className="w-3.5 h-3.5" />
                         </button>
-
-                        {!isSelf && (
-                          <button
-                            type="button"
-                            disabled={isStatusLoading}
-                            onClick={() => handleToggleUserStatus(u)}
-                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all ${
-                              u.status === 'active'
-                                ? 'bg-red-500/10 text-red-300 border-red-500/30 hover:bg-red-500/20'
-                                : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
-                            }`}
-                          >
-                            {isStatusLoading ? (
-                              <RefreshCw className="w-3 h-3 animate-spin" />
-                            ) : u.status === 'active' ? (
-                              'Deactivate'
-                            ) : (
-                              'Activate'
-                            )}
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          disabled={isSelf || isStatusLoading}
+                          onClick={() => handleToggleUserStatus(u.id, u.status)}
+                          className={`px-2 py-1 rounded-lg text-[11px] font-bold disabled:opacity-40 border ${
+                            u.status === 'active'
+                              ? 'bg-[#F5DEDA] text-[#A33D35] border-[#A33D35]/30 hover:bg-[#edd1cc]'
+                              : 'bg-[#DCEDE4] text-[#286448] border-[#286448]/30 hover:bg-[#cbe5d7]'
+                          }`}
+                        >
+                          {u.status === 'active' ? 'Deactivate' : 'Activate'}
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -1413,12 +1469,12 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
-            <Wrench className="w-5 h-5 text-amber-400" />
+          <h2 className="text-lg font-bold text-[#0F3040] font-heading flex items-center gap-2">
+            <Wrench className="w-5 h-5 text-[#A56F63]" />
             <span>Field Technician Workforce & Workload Dispatch</span>
-            <span className="text-xs text-slate-400 font-mono">({technicians.length} Specialists)</span>
+            <span className="text-xs text-[#464858] font-mono">({technicians.length} Specialists)</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#464858] mt-0.5">
             Monitor technician task saturation, completed repair histories, and assign work based on availability.
           </p>
         </div>
@@ -1426,23 +1482,23 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {technicians.map((tech) => (
-          <div key={tech.id} className="p-5 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 shadow-lg space-y-4">
+          <div key={tech.id} className="p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center font-bold text-amber-300">
+                <div className="w-10 h-10 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] flex items-center justify-center font-bold text-[#0F3040]">
                   {tech.name[0].toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">{tech.name}</h3>
-                  <p className="text-xs text-slate-400">{tech.email}</p>
-                  <p className="text-[10px] text-amber-300/80 font-mono">{tech.college_id}</p>
+                  <h3 className="text-sm font-bold text-[#0F3040]">{tech.name}</h3>
+                  <p className="text-xs text-[#464858]">{tech.email}</p>
+                  <p className="text-[11px] text-[#A56F63] font-mono font-semibold">{tech.college_id}</p>
                 </div>
               </div>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                   tech.status === 'active'
-                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                    : 'bg-red-500/20 text-red-300 border-red-500/30'
+                    ? 'bg-[#DCEDE4] text-[#286448] border-[#286448]/30'
+                    : 'bg-[#F5DEDA] text-[#A33D35] border-[#A33D35]/30'
                 }`}
               >
                 {tech.status}
@@ -1450,33 +1506,33 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-2.5 rounded-xl bg-[#202733]/80 border border-slate-300/10">
-                <span className="text-[10px] text-slate-400 uppercase font-bold">Active Load</span>
-                <p className="text-lg font-extrabold text-sky-300 font-heading mt-0.5">{tech.activeTasks || 0}</p>
+              <div className="p-2.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+                <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">Active Load</span>
+                <p className="text-lg font-bold text-[#0F3040] font-heading mt-0.5">{tech.activeTasks || 0}</p>
               </div>
-              <div className="p-2.5 rounded-xl bg-[#202733]/80 border border-slate-300/10">
-                <span className="text-[10px] text-slate-400 uppercase font-bold">Completed</span>
-                <p className="text-lg font-extrabold text-emerald-400 font-heading mt-0.5">{tech.completedTasks || 0}</p>
+              <div className="p-2.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+                <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">Completed</span>
+                <p className="text-lg font-bold text-[#286448] font-heading mt-0.5">{tech.completedTasks || 0}</p>
               </div>
             </div>
 
             {/* Currently Assigned Orders preview */}
             <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              <p className="text-[11px] font-bold text-[#464858] uppercase tracking-wider mb-1.5">
                 Current Assigned Tasks ({tech.assignedTickets?.length || 0}):
               </p>
               {(!tech.assignedTickets || tech.assignedTickets.length === 0) ? (
-                <p className="text-xs text-slate-500 italic py-2">Available for new work order assignment</p>
+                <p className="text-xs text-[#464858]/70 italic py-2">Available for new work order assignment</p>
               ) : (
                 <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
                   {tech.assignedTickets.map((t) => (
                     <div
                       key={t.id}
                       onClick={() => setSelectedTicketId(t.id)}
-                      className="p-2 rounded-lg bg-[#202733]/60 hover:bg-[#202733] border border-slate-300/10 cursor-pointer flex items-center justify-between text-xs"
+                      className="p-2 rounded-lg bg-[#F5F3EF] hover:bg-[#E5EAF0] border border-[#E7E4DF] cursor-pointer flex items-center justify-between text-xs transition-colors"
                     >
-                      <span className="font-mono text-[10px] text-[#D99B7F] font-bold">{t.ticket_number}</span>
-                      <span className="text-white truncate max-w-[140px]">{t.title}</span>
+                      <span className="font-mono text-[10px] text-[#A56F63] font-bold">{t.ticket_number}</span>
+                      <span className="text-[#0F3040] font-medium truncate max-w-[140px]">{t.title}</span>
                       <PriorityBadge priority={t.priority} />
                     </div>
                   ))}
@@ -1494,12 +1550,12 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
-            <Server className="w-5 h-5 text-sky-400" />
+          <h2 className="text-lg font-bold text-[#0F3040] font-heading flex items-center gap-2">
+            <Server className="w-5 h-5 text-[#0F3040]" />
             <span>Campus Infrastructure Services</span>
-            <span className="text-xs text-slate-400 font-mono">({services.length})</span>
+            <span className="text-xs text-[#464858] font-mono">({services.length})</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#464858] mt-0.5">
             Configure affected campus service catalog and default SLA resolution targets.
           </p>
         </div>
@@ -1511,8 +1567,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
             setServiceFormData({ name: '', category: 'Network Infrastructure', sla_hours: 4, description: '', status: 'active' });
             setShowServiceModal(true);
           }}
-          className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow flex items-center gap-2"
-          style={{ background: 'linear-gradient(135deg, #0ea5e9, #38bdf8)' }}
+          className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#0F3040] hover:bg-[#183E4C] shadow-xs flex items-center gap-2 transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>New Service</span>
@@ -1521,25 +1576,25 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {services.map((svc) => (
-          <div key={svc.id} className="p-4 rounded-2xl bg-[#1a222d]/80 border border-slate-300/15 space-y-3">
+          <div key={svc.id} className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-sm font-bold text-white">{svc.name}</h3>
-                <span className="text-[11px] text-sky-400 font-semibold">{svc.category}</span>
+                <h3 className="text-sm font-bold text-[#0F3040]">{svc.name}</h3>
+                <span className="text-[11px] text-[#A56F63] font-semibold">{svc.category}</span>
               </div>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                  svc.status === 'active' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-red-500/20 text-red-300 border-red-500/30'
+                  svc.status === 'active' ? 'bg-[#DCEDE4] text-[#286448] border-[#286448]/30' : 'bg-[#F5DEDA] text-[#A33D35] border-[#A33D35]/30'
                 }`}
               >
                 {svc.status}
               </span>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed min-h-[32px]">{svc.description || 'Institutional operational service.'}</p>
+            <p className="text-xs text-[#464858] leading-relaxed min-h-[32px]">{svc.description || 'Institutional operational service.'}</p>
 
-            <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-300/10">
-              <span className="text-slate-400">Target SLA: <strong>{svc.sla_hours} Hours</strong></span>
+            <div className="flex items-center justify-between text-xs pt-2 border-t border-[#E7E4DF]">
+              <span className="text-[#464858]">Target SLA: <strong className="text-[#0F3040]">{svc.sla_hours} Hours</strong></span>
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
@@ -1548,14 +1603,14 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                     setServiceFormData({ name: svc.name, category: svc.category, sla_hours: svc.sla_hours, description: svc.description || '', status: svc.status });
                     setShowServiceModal(true);
                   }}
-                  className="p-1.5 rounded-lg bg-[#202733] text-slate-300 hover:text-white"
+                  className="p-1.5 rounded-lg bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040] hover:bg-slate-200"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDeleteService(svc.id)}
-                  className="p-1.5 rounded-lg bg-red-500/10 text-red-300 hover:bg-red-500/20"
+                  className="p-1.5 rounded-lg bg-[#F5DEDA] text-[#A33D35] hover:bg-[#edd1cc]"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -1572,12 +1627,12 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
-            <Layers className="w-5 h-5 text-[#D99B7F]" />
+          <h2 className="text-lg font-bold text-[#0F3040] font-heading flex items-center gap-2">
+            <Layers className="w-5 h-5 text-[#A56F63]" />
             <span>Incident Category Classifications</span>
-            <span className="text-xs text-slate-400 font-mono">({categories.length})</span>
+            <span className="text-xs text-[#464858] font-mono">({categories.length})</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#464858] mt-0.5">
             Manage infrastructure categories and triage routing rules.
           </p>
         </div>
@@ -1589,8 +1644,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
             setCategoryFormData({ name: '', code: '', sla_hours: 4, description: '', status: 'active' });
             setShowCategoryModal(true);
           }}
-          className="px-4 py-2 rounded-xl text-xs font-bold text-[#0F3040] shadow flex items-center gap-2"
-          style={{ background: `linear-gradient(135deg, ${COLORS.terracotta}, ${COLORS.roseGold})` }}
+          className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#A56F63] hover:bg-[#8e5c51] shadow-xs flex items-center gap-2 transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>New Category</span>
@@ -1599,22 +1653,22 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {categories.map((cat) => (
-          <div key={cat.id} className="p-4 rounded-2xl bg-[#1a222d]/80 border border-slate-300/15 space-y-3">
+          <div key={cat.id} className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-sm font-bold text-white">{cat.name}</h3>
-                <span className="text-[10px] text-slate-400 font-mono">/{cat.code}</span>
+                <h3 className="text-sm font-bold text-[#0F3040]">{cat.name}</h3>
+                <span className="text-[10px] text-[#464858] font-mono">/{cat.code}</span>
               </div>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30">
                 {cat.sla_hours || 4}h SLA
               </span>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed">{cat.description || 'Infrastructure domain classification.'}</p>
+            <p className="text-xs text-[#464858] leading-relaxed">{cat.description || 'Infrastructure domain classification.'}</p>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-300/10 text-xs">
-              <span className="text-slate-400">
-                Incidents: <strong>{tickets.filter((t) => (t.category || '').toLowerCase() === cat.name.toLowerCase()).length}</strong>
+            <div className="flex items-center justify-between pt-2 border-t border-[#E7E4DF] text-xs">
+              <span className="text-[#464858]">
+                Incidents: <strong className="text-[#0F3040]">{tickets.filter((t) => (t.category || '').toLowerCase() === cat.name.toLowerCase()).length}</strong>
               </span>
               <div className="flex items-center gap-1.5">
                 <button
@@ -1624,14 +1678,14 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                     setCategoryFormData({ name: cat.name, code: cat.code, sla_hours: cat.sla_hours || 4, description: cat.description || '', status: cat.status || 'active' });
                     setShowCategoryModal(true);
                   }}
-                  className="p-1.5 rounded-lg bg-[#202733] text-slate-300 hover:text-white"
+                  className="p-1.5 rounded-lg bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040] hover:bg-slate-200"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDeleteCategory(cat.id)}
-                  className="p-1.5 rounded-lg bg-red-500/10 text-red-300 hover:bg-red-500/20"
+                  className="p-1.5 rounded-lg bg-[#F5DEDA] text-[#A33D35] hover:bg-[#edd1cc]"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -1648,12 +1702,12 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-lg font-bold text-[#0F3040] font-heading flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-[#286448]" />
             <span>Campus Buildings, Floors & Coordinates</span>
-            <span className="text-xs text-slate-400 font-mono">({locations.length})</span>
+            <span className="text-xs text-[#464858] font-mono">({locations.length})</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#464858] mt-0.5">
             Standardized campus facility directory for report location selectors.
           </p>
         </div>
@@ -1665,8 +1719,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
             setLocationFormData({ building: '', floor: 'Ground Floor', room: '', status: 'active' });
             setShowLocationModal(true);
           }}
-          className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow flex items-center gap-2"
-          style={{ background: 'linear-gradient(135deg, #10b981, #34d399)' }}
+          className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#0F3040] hover:bg-[#183E4C] shadow-xs flex items-center gap-2 transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>New Location</span>
@@ -1675,20 +1728,20 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         {locations.map((loc) => (
-          <div key={loc.id} className="p-3.5 rounded-2xl bg-[#1a222d]/80 border border-slate-300/15 flex flex-col justify-between">
+          <div key={loc.id} className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-emerald-400 font-bold uppercase">{loc.floor}</span>
+                <span className="text-[10px] text-[#A56F63] font-bold uppercase">{loc.floor}</span>
                 <button
                   type="button"
                   onClick={() => handleDeleteLocation(loc.id)}
-                  className="text-slate-500 hover:text-red-400"
+                  className="text-[#464858] hover:text-[#A33D35]"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <h4 className="text-sm font-bold text-white mt-1">{loc.building}</h4>
-              <p className="text-xs text-slate-300 font-mono mt-0.5">{loc.room}</p>
+              <h4 className="text-sm font-bold text-[#0F3040] mt-1">{loc.building}</h4>
+              <p className="text-xs text-[#464858] font-mono mt-0.5">{loc.room}</p>
             </div>
           </div>
         ))}
@@ -1701,12 +1754,12 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
-            <History className="w-5 h-5 text-purple-400" />
+          <h2 className="text-lg font-bold text-[#0F3040] font-heading flex items-center gap-2">
+            <History className="w-5 h-5 text-[#0F3040]" />
             <span>Administrative Security & Operations Audit Trail</span>
-            <span className="text-xs text-slate-400 font-mono">({filteredLogs.length} Records)</span>
+            <span className="text-xs text-[#464858] font-mono">({filteredLogs.length} Records)</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#464858] mt-0.5">
             Immutable log of authentication attempts, privilege assignments, ticket lifecycle transitions, and overrides.
           </p>
         </div>
@@ -1714,7 +1767,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
         <select
           value={auditActionFilter}
           onChange={(e) => setAuditActionFilter(e.target.value)}
-          className="px-3 py-2 rounded-xl glass-input text-white text-xs bg-[#0F3040]"
+          className="px-3 py-2 rounded-xl saas-input text-xs"
         >
           <option value="all">All Action Types</option>
           <option value="USER_LOGIN">USER_LOGIN</option>
@@ -1728,33 +1781,33 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
         </select>
       </div>
 
-      <div className="rounded-2xl border border-slate-300/15 overflow-hidden bg-[#1a222d]/70 shadow-lg">
+      <div className="rounded-2xl border border-[#E7E4DF] overflow-hidden bg-white shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="bg-[#0F3040]/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-300/10">
-                <th className="px-4 py-3 font-semibold">Timestamp</th>
-                <th className="px-4 py-3 font-semibold">Action</th>
-                <th className="px-4 py-3 font-semibold">Actor</th>
-                <th className="px-4 py-3 font-semibold">Event Details</th>
+              <tr className="bg-[#F5F3EF]/90 text-[#464858] uppercase text-[10px] font-bold tracking-wider border-b border-[#E7E4DF]">
+                <th className="px-4 py-3.5">Timestamp</th>
+                <th className="px-4 py-3.5">Action</th>
+                <th className="px-4 py-3.5">Actor</th>
+                <th className="px-4 py-3.5">Event Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-300/10">
+            <tbody className="divide-y divide-[#E7E4DF]/70">
               {filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-[#202733]/80 transition-colors">
-                  <td className="px-4 py-3 font-mono text-[11px] text-slate-400 whitespace-nowrap">
+                <tr key={log.id} className="hover:bg-[#F5F3EF]/50 transition-colors">
+                  <td className="px-4 py-3 font-mono text-[11px] text-[#464858] whitespace-nowrap">
                     {formatFullDate(log.created_at)}
                   </td>
                   <td className="px-4 py-3">
-                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/20">
                       {log.action}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-white">
+                  <td className="px-4 py-3 text-[#0F3040]">
                     <div className="font-bold">{log.user_name || 'System / Guest'}</div>
-                    <div className="text-[10px] text-slate-400">{log.user_role || 'Auth Gateway'}</div>
+                    <div className="text-[10px] text-[#464858]">{log.user_role || 'Auth Gateway'}</div>
                   </td>
-                  <td className="px-4 py-3 text-slate-200 font-mono text-[11px] max-w-md break-words">
+                  <td className="px-4 py-3 text-[#183E4C] font-mono text-[11px] max-w-md break-words">
                     {log.details}
                   </td>
                 </tr>
@@ -1771,59 +1824,59 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
     if (!selectedTicket) return null;
     const t = selectedTicket;
     return (
-      <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 rounded-2xl bg-[#1a222d] border border-purple-500/40 shadow-2xl space-y-4">
-          <div className="flex items-start justify-between pb-3 border-b border-slate-300/10">
+      <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-2xl space-y-4 text-[#0F3040]">
+          <div className="flex items-start justify-between pb-3 border-b border-[#E7E4DF]">
             <div>
-              <span className="font-mono font-bold text-xs text-[#D99B7F]">{t.ticket_number}</span>
-              <h2 className="text-lg font-bold text-white font-heading mt-0.5">{t.title}</h2>
+              <span className="font-mono font-bold text-xs text-[#A56F63]">{t.ticket_number}</span>
+              <h2 className="text-lg font-bold text-[#0F3040] font-heading mt-0.5">{t.title}</h2>
               <div className="flex items-center gap-2 mt-1.5">
                 <StatusBadge status={t.status} />
                 <PriorityBadge priority={t.priority} />
-                <span className="text-xs text-slate-400">{t.category}</span>
+                <span className="text-xs text-[#464858]">{t.category}</span>
               </div>
             </div>
-            <button type="button" onClick={() => setSelectedTicketId(null)} className="text-slate-400 hover:text-white">
+            <button type="button" onClick={() => setSelectedTicketId(null)} className="text-[#464858] hover:text-[#0F3040] p-1 rounded-lg">
               <X className="w-5 h-5" />
             </button>
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10">
-              <span className="text-[10px] text-slate-500 uppercase font-bold">Reporter</span>
-              <p className="font-bold text-white mt-0.5">{t.reporter_name}</p>
-              <p className="text-slate-400 text-[11px]">{t.reporter_email} · {t.reporter_college_id}</p>
+            <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+              <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">Reporter</span>
+              <p className="font-bold text-[#0F3040] mt-0.5">{t.reporter_name}</p>
+              <p className="text-[#464858] text-[11px]">{t.reporter_email} · {t.reporter_college_id}</p>
             </div>
-            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10">
-              <span className="text-[10px] text-slate-500 uppercase font-bold">Assigned Specialist</span>
-              <p className="font-bold text-amber-300 mt-0.5">{t.technician_name || 'Unassigned'}</p>
-              <p className="text-slate-400 text-[11px]">{t.technician_email || 'Awaiting dispatch'}</p>
+            <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+              <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">Assigned Specialist</span>
+              <p className="font-bold text-[#0F3040] mt-0.5">{t.technician_name || 'Unassigned'}</p>
+              <p className="text-[#464858] text-[11px]">{t.technician_email || 'Awaiting dispatch'}</p>
             </div>
-            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10">
-              <span className="text-[10px] text-slate-500 uppercase font-bold">Campus Coordinates</span>
-              <p className="font-bold text-white mt-0.5">{t.building}</p>
-              <p className="text-slate-300 text-[11px]">{t.floor} · {t.room}</p>
+            <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+              <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">Campus Coordinates</span>
+              <p className="font-bold text-[#0F3040] mt-0.5">{t.building}</p>
+              <p className="text-[#464858] text-[11px]">{t.floor} · {t.room}</p>
             </div>
-            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10">
-              <span className="text-[10px] text-slate-500 uppercase font-bold">Affected Service</span>
-              <p className="font-bold text-[#D99B7F] mt-0.5">{t.affected_service || 'General'}</p>
+            <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+              <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">Affected Service</span>
+              <p className="font-bold text-[#A56F63] mt-0.5">{t.affected_service || 'General'}</p>
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-[#202733]/80 border border-slate-300/10 text-xs">
-            <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Description</span>
-            <p className="text-slate-200 leading-relaxed whitespace-pre-wrap">{t.description}</p>
+          <div className="p-4 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-xs">
+            <span className="text-[10px] text-[#464858] uppercase font-bold block mb-1">Description</span>
+            <p className="text-[#0F3040] leading-relaxed whitespace-pre-wrap">{t.description}</p>
           </div>
 
           {t.resolution_details && (
-            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs">
-              <span className="text-[10px] text-emerald-400 uppercase font-bold block mb-1">Resolution Summary</span>
-              <p className="text-slate-200 font-mono">{t.resolution_details}</p>
+            <div className="p-4 rounded-xl bg-[#DCEDE4] border border-[#286448]/30 text-xs">
+              <span className="text-[10px] text-[#286448] uppercase font-bold block mb-1">Resolution Summary</span>
+              <p className="text-[#286448] font-mono">{t.resolution_details}</p>
             </div>
           )}
 
           {/* Action Row */}
-          <div className="flex items-center justify-between pt-3 border-t border-slate-300/10 flex-wrap gap-2">
+          <div className="flex items-center justify-between pt-3 border-t border-[#E7E4DF] flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -1832,7 +1885,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                   setSelectedTechId(t.technician_id || '');
                   setShowAssignModal(true);
                 }}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-500 text-white"
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#0F3040] text-white hover:bg-[#183E4C] transition-colors"
               >
                 Dispatch / Assign
               </button>
@@ -1843,7 +1896,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                   setNewPriority(t.priority);
                   setShowPriorityModal(true);
                 }}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#202733] border border-slate-300/20 text-slate-200"
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#F5F3EF] border border-[#E7E4DF] text-[#0F3040] hover:bg-slate-200 transition-colors"
               >
                 Override Priority
               </button>
@@ -1852,7 +1905,7 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
             <button
               type="button"
               onClick={() => handleDeleteTicket(t)}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-red-500/10 text-red-300 border border-red-500/30 hover:bg-red-500/20"
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#F5DEDA] text-[#A33D35] border border-[#A33D35]/30 hover:bg-[#edd1cc] transition-colors"
             >
               Delete Record
             </button>
@@ -1870,101 +1923,99 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
     const userAssigned = tickets.filter((t) => t.technician_id === u.id);
 
     return (
-      <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 rounded-2xl bg-[#1a222d] border border-purple-500/40 shadow-2xl space-y-4">
-          <div className="flex items-start justify-between pb-3 border-b border-slate-300/10">
+      <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-2xl space-y-4 text-[#0F3040]">
+          <div className="flex items-start justify-between pb-3 border-b border-[#E7E4DF]">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center font-extrabold text-purple-200 text-lg">
+              <div className="w-12 h-12 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] flex items-center justify-center font-bold text-[#0F3040] text-lg">
                 {u.name?.[0]?.toUpperCase() || '?'}
               </div>
               <div>
-                <h2 className="text-base font-bold text-white font-heading">{u.name}</h2>
-                <p className="text-xs text-slate-400">{u.email}</p>
+                <h2 className="text-base font-bold text-[#0F3040] font-heading">{u.name}</h2>
+                <p className="text-xs text-[#464858]">{u.email}</p>
               </div>
             </div>
-            <button type="button" onClick={() => setSelectedUser(null)} className="text-slate-400 hover:text-white">
+            <button type="button" onClick={() => setSelectedUser(null)} className="text-[#464858] hover:text-[#0F3040] p-1 rounded-lg">
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Key Identifiers */}
           <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10">
-              <span className="text-[10px] text-slate-500 uppercase font-bold">Campus ID</span>
-              <p className="font-mono font-bold text-[#D99B7F] mt-0.5">{u.college_id || '—'}</p>
+            <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+              <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">Campus ID</span>
+              <p className="font-mono font-bold text-[#A56F63] mt-0.5">{u.college_id || '—'}</p>
             </div>
-            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10">
-              <span className="text-[10px] text-slate-500 uppercase font-bold">Role</span>
-              <p className="font-bold text-purple-300 mt-0.5">{u.role}</p>
+            <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+              <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">Role</span>
+              <p className="font-bold text-[#0F3040] mt-0.5">{u.role}</p>
             </div>
-            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10">
-              <span className="text-[10px] text-slate-500 uppercase font-bold">Account Status</span>
+            <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+              <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">Account Status</span>
               <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                 u.status === 'active'
-                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                  : 'bg-red-500/20 text-red-300 border-red-500/30'
+                  ? 'bg-[#DCEDE4] text-[#286448] border-[#286448]/30'
+                  : 'bg-[#F5DEDA] text-[#A33D35] border-[#A33D35]/30'
               }`}>
                 {u.status === 'active' ? 'Active' : 'Suspended'}
               </span>
             </div>
-            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10">
-              <span className="text-[10px] text-slate-500 uppercase font-bold">User Type</span>
-              <p className="font-bold text-white mt-0.5">{u.user_type || 'Student'}</p>
+            <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+              <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">User Type</span>
+              <p className="font-bold text-[#0F3040] mt-0.5">{u.user_type || 'Student'}</p>
             </div>
-            <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10 col-span-2">
-              <span className="text-[10px] text-slate-500 uppercase font-bold">Department</span>
-              <p className="font-bold text-white mt-0.5">{u.department || 'General Campus'}</p>
+            <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] col-span-2">
+              <span className="text-[10px] text-[#464858] uppercase font-bold tracking-wider">Department</span>
+              <p className="font-bold text-[#0F3040] mt-0.5">{u.department || 'General Campus'}</p>
             </div>
           </div>
 
           {/* Activity Stats */}
           <div className="grid grid-cols-3 gap-2 text-xs">
-            <div className="p-3 rounded-xl bg-[#0F3040]/60 border border-slate-300/10 text-center">
-              <p className="text-xl font-extrabold text-white font-heading">{userTickets.length}</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Incidents<br />Submitted</p>
+            <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-center">
+              <p className="text-xl font-bold text-[#0F3040] font-heading">{userTickets.length}</p>
+              <p className="text-[10px] text-[#464858] mt-0.5">Incidents<br />Submitted</p>
             </div>
-            <div className="p-3 rounded-xl bg-[#0F3040]/60 border border-slate-300/10 text-center">
-              <p className="text-xl font-extrabold text-amber-300 font-heading">
+            <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-center">
+              <p className="text-xl font-bold text-[#93651C] font-heading">
                 {userTickets.filter((t) => t.status === 'Open' || t.status === 'Assigned' || t.status === 'In Progress').length}
               </p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Currently<br />Open</p>
+              <p className="text-[10px] text-[#464858] mt-0.5">Currently<br />Open</p>
             </div>
-            <div className="p-3 rounded-xl bg-[#0F3040]/60 border border-slate-300/10 text-center">
-              <p className="text-xl font-extrabold text-purple-300 font-heading">{userAssigned.length}</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Assigned<br />to Them</p>
+            <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-center">
+              <p className="text-xl font-bold text-[#286448] font-heading">{userAssigned.length}</p>
+              <p className="text-[10px] text-[#464858] mt-0.5">Assigned<br />to Them</p>
             </div>
           </div>
 
           {/* Registration Date */}
-          <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10 text-xs flex items-center justify-between">
-            <span className="text-slate-400">Member Since</span>
-            <span className="font-mono text-white font-bold">{formatTimeAgo(u.created_at)}</span>
+          <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-xs flex items-center justify-between">
+            <span className="text-[#464858]">Member Since</span>
+            <span className="font-mono text-[#0F3040] font-bold">{formatTimeAgo(u.created_at)}</span>
           </div>
 
           {/* Governance Quick Actions */}
-          <div className="flex items-center gap-2 pt-2 border-t border-slate-300/10 flex-wrap">
+          <div className="flex items-center gap-2 pt-2 border-t border-[#E7E4DF] flex-wrap">
             {u.id !== user?.id && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleToggleUserStatus(u);
-                    setSelectedUser({ ...u, status: u.status === 'active' ? 'suspended' : 'active' });
-                  }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border ${
-                    u.status === 'active'
-                      ? 'bg-red-500/10 text-red-300 border-red-500/30 hover:bg-red-500/20'
-                      : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
-                  }`}
-                >
-                  {u.status === 'active' ? 'Deactivate Account' : 'Activate Account'}
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={() => {
+                  handleToggleUserStatus(u);
+                  setSelectedUser({ ...u, status: u.status === 'active' ? 'suspended' : 'active' });
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border ${
+                  u.status === 'active'
+                    ? 'bg-[#F5DEDA] text-[#A33D35] border-[#A33D35]/30 hover:bg-[#edd1cc]'
+                    : 'bg-[#DCEDE4] text-[#286448] border-[#286448]/30 hover:bg-[#cbe5d7]'
+                }`}
+              >
+                {u.status === 'active' ? 'Deactivate Account' : 'Activate Account'}
+              </button>
             )}
             <button
               type="button"
               onClick={() => setSelectedUser(null)}
-              className="px-3 py-1.5 rounded-xl text-xs text-slate-400 hover:text-white ml-auto"
+              className="px-3 py-1.5 rounded-xl text-xs font-medium text-[#464858] hover:text-[#0F3040] ml-auto"
             >
               Close
             </button>
@@ -1990,37 +2041,42 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0a131a] text-slate-100">
-      {/* Desktop Persistent Sidebar */}
-      <div className="hidden lg:flex">
-        {renderSidebar()}
-      </div>
-
-      {/* Mobile Drawer Sidebar */}
-      {isMobileSidebarOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden" onClick={() => setIsMobileSidebarOpen(false)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="absolute left-0 top-0 bottom-0 w-64" onClick={(e) => e.stopPropagation()}>
-            {renderSidebar()}
-          </div>
-        </div>
-      )}
+    <div className="flex h-screen overflow-hidden bg-[#F5F3EF] text-[#0F3040]">
+      {/* Reusable Enterprise Sidebar */}
+      <UnifiedSidebar
+        brandRole="ADMIN"
+        brandSub="Campus Governance"
+        navItems={NAV_ITEMS}
+        activeTab={activeTab}
+        onTabChange={(tabId) => {
+          setActiveTab(tabId);
+          setSelectedTicketId(null);
+          setSelectedUser(null);
+          setCurrentPage(1);
+        }}
+        user={user}
+        onLogout={logout}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        onOpenRoleTester={onOpenRoleTester}
+      />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="shrink-0 flex items-center justify-between gap-4 px-4 sm:px-6 py-3.5 border-b border-slate-300/10 bg-[#0F3040]/80 backdrop-blur-md">
-          <div className="flex items-center gap-3">
+        <header className="shrink-0 flex items-center justify-between gap-3 sm:gap-4 px-3 sm:px-6 py-3 sm:py-3.5 border-b border-[#E7E4DF] bg-white">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <button
               type="button"
-              className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#464858]/50"
+              className="lg:hidden p-2 min-w-[42px] min-h-[42px] flex items-center justify-center rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] active:scale-95 transition-all"
               onClick={() => setIsMobileSidebarOpen(true)}
+              aria-label="Open navigation menu"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div>
-              <p className="text-[11px] text-slate-400 font-mono hidden sm:block">CampusFix · Executive Administration</p>
-              <h2 className="text-sm font-bold text-white">{tabTitles[activeTab]}</h2>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-[11px] text-[#464858] font-mono hidden sm:block truncate">CampusFix · Executive Administration</p>
+              <h2 className="text-xs sm:text-base font-bold text-[#0F3040] truncate max-w-[170px] xs:max-w-[220px] sm:max-w-none">{tabTitles[activeTab]}</h2>
             </div>
           </div>
 
@@ -2028,26 +2084,26 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
             <button
               type="button"
               onClick={fetchAllData}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#464858]/50 transition-colors"
+              className="p-2 rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] border border-[#E7E4DF] transition-colors"
               title="Refresh dataset"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-purple-400' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-[#A56F63]' : ''}`} />
             </button>
 
             {/* Top Navigation Notification Bell */}
             <NotificationBell onNavigateToIncident={(id) => setSelectedTicketId(id)} />
 
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#202733]/70 border border-slate-300/20">
-              <div className="w-6 h-6 rounded-full bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-[10px] font-bold text-purple-200">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+              <div className="w-6 h-6 rounded-full bg-[#0F3040] flex items-center justify-center text-[10px] font-bold text-white">
                 {(user?.name || 'A')[0].toUpperCase()}
               </div>
-              <span className="text-xs font-semibold text-white hidden sm:block">{user?.name?.split(' ')[0]}</span>
+              <span className="text-xs font-semibold text-[#0F3040] hidden sm:block">{user?.name?.split(' ')[0]}</span>
             </div>
           </div>
         </header>
 
         {/* Dynamic View Body */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F5F3EF]">
           {activeTab === 'overview' && renderOverviewTab()}
           {activeTab === 'all-incidents' && renderAllIncidentsTab()}
           {activeTab === 'users' && renderUsersTab()}
@@ -2059,20 +2115,20 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
           {activeTab === 'reports' && renderReportsTab()}
           {activeTab === 'audit-logs' && renderAuditLogsTab()}
           {activeTab === 'settings' && (
-            <div className="p-6 rounded-2xl bg-[#1a222d]/80 border border-slate-300/15 max-w-xl space-y-4">
-              <h3 className="text-base font-bold text-white font-heading">Enterprise System Settings</h3>
+            <div className="p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs max-w-xl space-y-4">
+              <h3 className="text-base font-bold text-[#0F3040] font-heading">Enterprise System Settings</h3>
               <div className="space-y-2 text-xs">
-                <div className="p-3 rounded-xl bg-[#202733]/60 flex justify-between">
-                  <span className="text-slate-400">Database Engine:</span>
-                  <span className="text-white font-mono font-bold">SQLite 3 (WAL Mode Enabled)</span>
+                <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] flex justify-between">
+                  <span className="text-[#464858]">Database Engine:</span>
+                  <span className="text-[#0F3040] font-mono font-bold">SQLite 3 (WAL Mode Enabled)</span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#202733]/60 flex justify-between">
-                  <span className="text-slate-400">Security Cipher:</span>
-                  <span className="text-emerald-400 font-mono font-bold">bcrypt-js 10-Round Hash</span>
+                <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] flex justify-between">
+                  <span className="text-[#464858]">Security Cipher:</span>
+                  <span className="text-[#286448] font-mono font-bold">bcrypt-js 10-Round Hash</span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#202733]/60 flex justify-between">
-                  <span className="text-slate-400">JWT Token Expiry:</span>
-                  <span className="text-white font-mono font-bold">24 Hours (Rolling Session)</span>
+                <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] flex justify-between">
+                  <span className="text-[#464858]">JWT Token Expiry:</span>
+                  <span className="text-[#0F3040] font-mono font-bold">24 Hours (Rolling Session)</span>
                 </div>
               </div>
             </div>
@@ -2088,21 +2144,21 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       {/* Dispatch / Assign Modal */}
       {showAssignModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="w-full max-w-md p-6 rounded-2xl bg-[#1a222d] border border-purple-500/40 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-300/10">
-              <h3 className="text-sm font-bold text-white">Dispatch Incident {ticketToAssign?.ticket_number}</h3>
-              <button type="button" onClick={() => setShowAssignModal(false)} className="text-slate-400 hover:text-white">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-md p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-2xl space-y-4 text-[#0F3040]">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E7E4DF]">
+              <h3 className="text-sm font-bold text-[#0F3040]">Dispatch Incident {ticketToAssign?.ticket_number}</h3>
+              <button type="button" onClick={() => setShowAssignModal(false)} className="text-[#464858] hover:text-[#0F3040]">
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-[#464858]">
               Select an available specialist technician based on workload and expertise:
             </p>
             <select
               value={selectedTechId}
               onChange={(e) => setSelectedTechId(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl glass-input text-white text-xs bg-[#0F3040]"
+              className="w-full px-3.5 py-2.5 rounded-xl saas-input text-xs"
             >
               <option value="">Select Technician...</option>
               {technicians.map((t) => (
@@ -2112,12 +2168,12 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
               ))}
             </select>
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setShowAssignModal(false)} className="px-3 py-1.5 text-xs text-slate-400">Cancel</button>
+              <button type="button" onClick={() => setShowAssignModal(false)} className="px-3 py-1.5 text-xs text-[#464858] hover:text-[#0F3040]">Cancel</button>
               <button
                 type="button"
                 disabled={!selectedTechId}
                 onClick={handleAssignIncident}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-purple-500 disabled:opacity-50"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#0F3040] hover:bg-[#183E4C] disabled:opacity-50 transition-colors"
               >
                 Confirm Dispatch
               </button>
@@ -2128,21 +2184,21 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       {/* Priority Override Modal */}
       {showPriorityModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm p-6 rounded-2xl bg-[#1a222d] border border-amber-500/40 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-300/10">
-              <h3 className="text-sm font-bold text-white">Override SLA Priority</h3>
-              <button type="button" onClick={() => setShowPriorityModal(false)} className="text-slate-400 hover:text-white">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-sm p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-2xl space-y-4 text-[#0F3040]">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E7E4DF]">
+              <h3 className="text-sm font-bold text-[#0F3040]">Override SLA Priority</h3>
+              <button type="button" onClick={() => setShowPriorityModal(false)} className="text-[#464858] hover:text-[#0F3040]">
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-[#464858]">
               Changing SLA priority for <strong>{ticketToReprioritize?.ticket_number}</strong> will be logged in the audit trail:
             </p>
             <select
               value={newPriority}
               onChange={(e) => setNewPriority(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl glass-input text-white text-xs bg-[#0F3040]"
+              className="w-full px-3.5 py-2.5 rounded-xl saas-input text-xs"
             >
               <option value="Low">Low (24h SLA)</option>
               <option value="Medium">Medium (8h SLA)</option>
@@ -2150,8 +2206,8 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
               <option value="Critical">Critical (2h SLA)</option>
             </select>
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setShowPriorityModal(false)} className="px-3 py-1.5 text-xs text-slate-400">Cancel</button>
-              <button type="button" onClick={handleOverridePriority} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-500">
+              <button type="button" onClick={() => setShowPriorityModal(false)} className="px-3 py-1.5 text-xs text-[#464858] hover:text-[#0F3040]">Cancel</button>
+              <button type="button" onClick={handleOverridePriority} className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#A56F63] hover:bg-[#8e5c51] transition-colors">
                 Save Priority
               </button>
             </div>
@@ -2161,61 +2217,61 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       {/* Create User Modal */}
       {showCreateUserModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <form onSubmit={handleCreateUser} className="w-full max-w-md p-6 rounded-2xl bg-[#1a222d] border border-purple-500/40 shadow-2xl space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-300/10">
-              <h3 className="text-sm font-bold text-white">Provision Campus Account</h3>
-              <button type="button" onClick={() => setShowCreateUserModal(false)} className="text-slate-400 hover:text-white">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <form onSubmit={handleCreateUser} className="w-full max-w-md p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-2xl space-y-3 text-[#0F3040]">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E7E4DF]">
+              <h3 className="text-sm font-bold text-[#0F3040]">Provision Campus Account</h3>
+              <button type="button" onClick={() => setShowCreateUserModal(false)} className="text-[#464858] hover:text-[#0F3040]">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Full Name</label>
+              <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Full Name</label>
               <input
                 type="text"
                 required
                 value={newUserData.name}
                 onChange={(e) => setNewUserData({ ...newUserData, name: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs"
+                className="w-full px-3 py-2 rounded-xl saas-input text-xs"
               />
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Campus Email</label>
+              <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Campus Email</label>
               <input
                 type="email"
                 required
                 value={newUserData.email}
                 onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs"
+                className="w-full px-3 py-2 rounded-xl saas-input text-xs"
               />
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Campus ID</label>
+              <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Campus ID</label>
               <input
                 type="text"
                 required
                 value={newUserData.college_id}
                 onChange={(e) => setNewUserData({ ...newUserData, college_id: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs"
+                className="w-full px-3 py-2 rounded-xl saas-input text-xs"
               />
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Initial Password</label>
+              <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Initial Password</label>
               <input
                 type="password"
                 required
                 value={newUserData.password}
                 onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs"
+                className="w-full px-3 py-2 rounded-xl saas-input text-xs"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Role</label>
+                <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Role</label>
                 <select
                   value={newUserData.role}
                   onChange={(e) => setNewUserData({ ...newUserData, role: e.target.value })}
-                  className="w-full px-2.5 py-2 rounded-xl glass-input text-white text-xs bg-[#0F3040]"
+                  className="w-full px-2.5 py-2 rounded-xl saas-input text-xs"
                 >
                   <option value="Reporter">Reporter</option>
                   <option value="Technician">Technician</option>
@@ -2223,18 +2279,18 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
                 </select>
               </div>
               <div>
-                <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Department</label>
+                <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Department</label>
                 <input
                   type="text"
                   value={newUserData.department}
                   onChange={(e) => setNewUserData({ ...newUserData, department: e.target.value })}
-                  className="w-full px-2.5 py-2 rounded-xl glass-input text-white text-xs"
+                  className="w-full px-2.5 py-2 rounded-xl saas-input text-xs"
                 />
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setShowCreateUserModal(false)} className="px-3 py-1.5 text-xs text-slate-400">Cancel</button>
-              <button type="submit" className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-purple-500">Create Account</button>
+              <button type="button" onClick={() => setShowCreateUserModal(false)} className="px-3 py-1.5 text-xs text-[#464858] hover:text-[#0F3040]">Cancel</button>
+              <button type="submit" className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#0F3040] hover:bg-[#183E4C] transition-colors">Create Account</button>
             </div>
           </form>
         </div>
@@ -2242,40 +2298,40 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       {/* Service Modal */}
       {showServiceModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <form onSubmit={handleSaveService} className="w-full max-w-md p-6 rounded-2xl bg-[#1a222d] border border-sky-500/40 shadow-2xl space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-300/10">
-              <h3 className="text-sm font-bold text-white">{editingService ? 'Edit Service' : 'Add Campus Service'}</h3>
-              <button type="button" onClick={() => setShowServiceModal(false)} className="text-slate-400 hover:text-white"><X className="w-4 h-4" /></button>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <form onSubmit={handleSaveService} className="w-full max-w-md p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-2xl space-y-3 text-[#0F3040]">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E7E4DF]">
+              <h3 className="text-sm font-bold text-[#0F3040]">{editingService ? 'Edit Service' : 'Add Campus Service'}</h3>
+              <button type="button" onClick={() => setShowServiceModal(false)} className="text-[#464858] hover:text-[#0F3040]"><X className="w-4 h-4" /></button>
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Service Name</label>
-              <input type="text" required value={serviceFormData.name} onChange={(e) => setServiceFormData({ ...serviceFormData, name: e.target.value })} className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs" />
+              <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Service Name</label>
+              <input type="text" required value={serviceFormData.name} onChange={(e) => setServiceFormData({ ...serviceFormData, name: e.target.value })} className="w-full px-3 py-2 rounded-xl saas-input text-xs" />
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Category</label>
-              <input type="text" required value={serviceFormData.category} onChange={(e) => setServiceFormData({ ...serviceFormData, category: e.target.value })} className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs" />
+              <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Category</label>
+              <input type="text" required value={serviceFormData.category} onChange={(e) => setServiceFormData({ ...serviceFormData, category: e.target.value })} className="w-full px-3 py-2 rounded-xl saas-input text-xs" />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Target SLA (Hours)</label>
-                <input type="number" required min="1" value={serviceFormData.sla_hours} onChange={(e) => setServiceFormData({ ...serviceFormData, sla_hours: e.target.value })} className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs" />
+                <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Target SLA (Hours)</label>
+                <input type="number" required min="1" value={serviceFormData.sla_hours} onChange={(e) => setServiceFormData({ ...serviceFormData, sla_hours: e.target.value })} className="w-full px-3 py-2 rounded-xl saas-input text-xs" />
               </div>
               <div>
-                <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Status</label>
-                <select value={serviceFormData.status} onChange={(e) => setServiceFormData({ ...serviceFormData, status: e.target.value })} className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs bg-[#0F3040]">
+                <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Status</label>
+                <select value={serviceFormData.status} onChange={(e) => setServiceFormData({ ...serviceFormData, status: e.target.value })} className="w-full px-3 py-2 rounded-xl saas-input text-xs">
                   <option value="active">Active</option>
                   <option value="deactivated">Deactivated</option>
                 </select>
               </div>
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Description</label>
-              <textarea rows={2} value={serviceFormData.description} onChange={(e) => setServiceFormData({ ...serviceFormData, description: e.target.value })} className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs resize-none" />
+              <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Description</label>
+              <textarea rows={2} value={serviceFormData.description} onChange={(e) => setServiceFormData({ ...serviceFormData, description: e.target.value })} className="w-full px-3 py-2 rounded-xl saas-input text-xs resize-none" />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setShowServiceModal(false)} className="px-3 py-1.5 text-xs text-slate-400">Cancel</button>
-              <button type="submit" className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-500">Save Service</button>
+              <button type="button" onClick={() => setShowServiceModal(false)} className="px-3 py-1.5 text-xs text-[#464858] hover:text-[#0F3040]">Cancel</button>
+              <button type="submit" className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#0F3040] hover:bg-[#183E4C] transition-colors">Save Service</button>
             </div>
           </form>
         </div>
@@ -2283,33 +2339,33 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       {/* Category Modal */}
       {showCategoryModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <form onSubmit={handleSaveCategory} className="w-full max-w-md p-6 rounded-2xl bg-[#1a222d] border border-[#D99B7F]/40 shadow-2xl space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-300/10">
-              <h3 className="text-sm font-bold text-white">{editingCategory ? 'Edit Category' : 'Create Category'}</h3>
-              <button type="button" onClick={() => setShowCategoryModal(false)} className="text-slate-400 hover:text-white"><X className="w-4 h-4" /></button>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <form onSubmit={handleSaveCategory} className="w-full max-w-md p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-2xl space-y-3 text-[#0F3040]">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E7E4DF]">
+              <h3 className="text-sm font-bold text-[#0F3040]">{editingCategory ? 'Edit Category' : 'Create Category'}</h3>
+              <button type="button" onClick={() => setShowCategoryModal(false)} className="text-[#464858] hover:text-[#0F3040]"><X className="w-4 h-4" /></button>
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Category Name</label>
-              <input type="text" required value={categoryFormData.name} onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })} className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs" />
+              <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Category Name</label>
+              <input type="text" required value={categoryFormData.name} onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })} className="w-full px-3 py-2 rounded-xl saas-input text-xs" />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Short Code</label>
-                <input type="text" required value={categoryFormData.code} onChange={(e) => setCategoryFormData({ ...categoryFormData, code: e.target.value })} className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs" />
+                <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Short Code</label>
+                <input type="text" required value={categoryFormData.code} onChange={(e) => setCategoryFormData({ ...categoryFormData, code: e.target.value })} className="w-full px-3 py-2 rounded-xl saas-input text-xs" />
               </div>
               <div>
-                <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">SLA (Hours)</label>
-                <input type="number" required min="1" value={categoryFormData.sla_hours} onChange={(e) => setCategoryFormData({ ...categoryFormData, sla_hours: e.target.value })} className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs" />
+                <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">SLA (Hours)</label>
+                <input type="number" required min="1" value={categoryFormData.sla_hours} onChange={(e) => setCategoryFormData({ ...categoryFormData, sla_hours: e.target.value })} className="w-full px-3 py-2 rounded-xl saas-input text-xs" />
               </div>
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Description</label>
-              <textarea rows={2} value={categoryFormData.description} onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })} className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs resize-none" />
+              <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Description</label>
+              <textarea rows={2} value={categoryFormData.description} onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })} className="w-full px-3 py-2 rounded-xl saas-input text-xs resize-none" />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setShowCategoryModal(false)} className="px-3 py-1.5 text-xs text-slate-400">Cancel</button>
-              <button type="submit" className="px-4 py-2 rounded-xl text-xs font-bold text-[#0F3040] bg-[#D99B7F]">Save Category</button>
+              <button type="button" onClick={() => setShowCategoryModal(false)} className="px-3 py-1.5 text-xs text-[#464858] hover:text-[#0F3040]">Cancel</button>
+              <button type="submit" className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#A56F63] hover:bg-[#8e5c51] transition-colors">Save Category</button>
             </div>
           </form>
         </div>
@@ -2317,27 +2373,27 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
 
       {/* Location Modal */}
       {showLocationModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <form onSubmit={handleSaveLocation} className="w-full max-w-md p-6 rounded-2xl bg-[#1a222d] border border-emerald-500/40 shadow-2xl space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-300/10">
-              <h3 className="text-sm font-bold text-white">{editingLocation ? 'Edit Location' : 'Add Location'}</h3>
-              <button type="button" onClick={() => setShowLocationModal(false)} className="text-slate-400 hover:text-white"><X className="w-4 h-4" /></button>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <form onSubmit={handleSaveLocation} className="w-full max-w-md p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-2xl space-y-3 text-[#0F3040]">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E7E4DF]">
+              <h3 className="text-sm font-bold text-[#0F3040]">{editingLocation ? 'Edit Location' : 'Add Location'}</h3>
+              <button type="button" onClick={() => setShowLocationModal(false)} className="text-[#464858] hover:text-[#0F3040]"><X className="w-4 h-4" /></button>
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Building</label>
-              <input type="text" required value={locationFormData.building} onChange={(e) => setLocationFormData({ ...locationFormData, building: e.target.value })} className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs" />
+              <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Building</label>
+              <input type="text" required value={locationFormData.building} onChange={(e) => setLocationFormData({ ...locationFormData, building: e.target.value })} className="w-full px-3 py-2 rounded-xl saas-input text-xs" />
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Floor</label>
-              <input type="text" required value={locationFormData.floor} onChange={(e) => setLocationFormData({ ...locationFormData, floor: e.target.value })} className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs" />
+              <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Floor</label>
+              <input type="text" required value={locationFormData.floor} onChange={(e) => setLocationFormData({ ...locationFormData, floor: e.target.value })} className="w-full px-3 py-2 rounded-xl saas-input text-xs" />
             </div>
             <div>
-              <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Room / Lab Area</label>
-              <input type="text" required value={locationFormData.room} onChange={(e) => setLocationFormData({ ...locationFormData, room: e.target.value })} className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs" />
+              <label className="text-[11px] text-[#464858] uppercase font-bold block mb-1">Room / Lab Area</label>
+              <input type="text" required value={locationFormData.room} onChange={(e) => setLocationFormData({ ...locationFormData, room: e.target.value })} className="w-full px-3 py-2 rounded-xl saas-input text-xs" />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setShowLocationModal(false)} className="px-3 py-1.5 text-xs text-slate-400">Cancel</button>
-              <button type="submit" className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-500">Save Coordinates</button>
+              <button type="button" onClick={() => setShowLocationModal(false)} className="px-3 py-1.5 text-xs text-[#464858] hover:text-[#0F3040]">Cancel</button>
+              <button type="submit" className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#0F3040] hover:bg-[#183E4C] transition-colors">Save Coordinates</button>
             </div>
           </form>
         </div>

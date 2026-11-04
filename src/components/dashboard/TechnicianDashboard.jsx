@@ -49,6 +49,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import NotificationBell from '../notifications/NotificationBell';
+import UnifiedSidebar from './UnifiedSidebar';
 
 // ─── Theme Colors ────────────────────────────────────────────────────────────
 const COLORS = {
@@ -111,18 +112,18 @@ function getCategoryIcon(cat = '') {
 }
 
 const PRIORITY_CONFIG = {
-  Critical: { color: 'text-red-300', bg: 'bg-red-500/20', border: 'border-red-500/40', dot: 'bg-red-400' },
-  High: { color: 'text-amber-300', bg: 'bg-amber-500/20', border: 'border-amber-500/40', dot: 'bg-amber-400' },
-  Medium: { color: 'text-sky-300', bg: 'bg-sky-500/20', border: 'border-sky-500/40', dot: 'bg-sky-400' },
-  Low: { color: 'text-slate-300', bg: 'bg-slate-500/20', border: 'border-slate-500/40', dot: 'bg-slate-400' },
+  Critical: { color: 'text-[#A33D35]', bg: 'bg-[#F5DEDA]', border: 'border-[#A33D35]/30', dot: 'bg-[#A33D35]' },
+  High: { color: 'text-[#93651C]', bg: 'bg-[#F8EBD2]', border: 'border-[#93651C]/30', dot: 'bg-[#93651C]' },
+  Medium: { color: 'text-[#405C78]', bg: 'bg-[#E5EAF0]', border: 'border-[#405C78]/30', dot: 'bg-[#405C78]' },
+  Low: { color: 'text-[#464858]', bg: 'bg-[#F5F3EF]', border: 'border-[#E7E4DF]', dot: 'bg-[#464858]' },
 };
 
 const STATUS_CONFIG = {
-  Open: { color: 'text-amber-300', bg: 'bg-amber-500/20', border: 'border-amber-500/40' },
-  Assigned: { color: 'text-blue-300', bg: 'bg-blue-500/20', border: 'border-blue-500/40' },
-  'In Progress': { color: 'text-sky-300', bg: 'bg-sky-500/20', border: 'border-sky-500/40' },
-  Resolved: { color: 'text-emerald-300', bg: 'bg-emerald-500/20', border: 'border-emerald-500/40' },
-  Closed: { color: 'text-purple-300', bg: 'bg-purple-500/20', border: 'border-purple-500/40' },
+  Open: { color: 'text-[#405C78]', bg: 'bg-[#E5EAF0]', border: 'border-[#405C78]/30' },
+  Assigned: { color: 'text-[#405C78]', bg: 'bg-[#E5EAF0]', border: 'border-[#405C78]/30' },
+  'In Progress': { color: 'text-[#93651C]', bg: 'bg-[#F8EBD2]', border: 'border-[#93651C]/30' },
+  Resolved: { color: 'text-[#286448]', bg: 'bg-[#DCEDE4]', border: 'border-[#286448]/30' },
+  Closed: { color: 'text-[#286448]', bg: 'bg-[#DCEDE4]', border: 'border-[#286448]/30' },
 };
 
 const PROGRESS_STEPS = ['Open', 'Assigned', 'In Progress', 'Resolved', 'Closed'];
@@ -151,7 +152,8 @@ function calculateSLA(ticket) {
 function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.Open;
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${cfg.bg} ${cfg.color} ${cfg.border}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono tracking-wider border ${cfg.bg} ${cfg.color} ${cfg.border}`}>
+      <span className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: 'currentColor' }} />
       {status}
     </span>
   );
@@ -160,31 +162,40 @@ function StatusBadge({ status }) {
 function PriorityBadge({ priority }) {
   const cfg = PRIORITY_CONFIG[priority] || PRIORITY_CONFIG.Low;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${cfg.bg} ${cfg.color} ${cfg.border}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase font-mono tracking-wider border ${cfg.bg} ${cfg.color} ${cfg.border}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
       {priority}
     </span>
   );
 }
 
-function StatCard({ label, value, icon: Icon, color, sub, onClick, active }) {
+function StatCard({ label, value, icon: Icon, color = 'text-[#0F3040]', sub, onClick, active }) {
+  const getIconBg = () => {
+    if (color.includes('286448')) return 'bg-[#DCEDE4] border-[#286448]/20 text-[#286448]';
+    if (color.includes('93651C')) return 'bg-[#F8EBD2] border-[#93651C]/20 text-[#93651C]';
+    if (color.includes('A33D35')) return 'bg-[#F5DEDA] border-[#A33D35]/20 text-[#A33D35]';
+    if (color.includes('A56F63')) return 'bg-[#F5F3EF] border-[#A56F63]/30 text-[#A56F63]';
+    if (color.includes('405C78')) return 'bg-[#E5EAF0] border-[#405C78]/20 text-[#405C78]';
+    return 'bg-[#F5F3EF] border-[#E7E4DF] text-[#0F3040]';
+  };
+
   return (
     <div
       onClick={onClick}
-      className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+      className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer ${
         active
-          ? 'bg-[#1a222d] border-[#D99B7F]/60 shadow-lg scale-[1.02]'
-          : 'bg-[#202733]/60 border-slate-300/15 hover:border-slate-300/35 hover:bg-[#202733]/90'
+          ? 'bg-white border-[#A56F63] shadow-md ring-1 ring-[#A56F63]/20 -translate-y-0.5'
+          : 'bg-white border-[#E7E4DF] shadow-xs hover:border-[#A56F63]/40 hover:shadow-md hover:-translate-y-0.5'
       }`}
     >
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{label}</span>
-        <div className={`p-2 rounded-xl bg-[#0F3040]/70 border border-slate-300/10 ${color}`}>
+        <span className="text-[11px] font-semibold text-[#464858] uppercase tracking-wider">{label}</span>
+        <div className={`p-2 rounded-xl border ${getIconBg()}`}>
           <Icon className="w-4 h-4" />
         </div>
       </div>
-      <div className={`mt-2 text-2xl sm:text-3xl font-extrabold font-heading ${color}`}>{value}</div>
-      {sub && <p className="mt-1 text-[11px] text-slate-400">{sub}</p>}
+      <div className="mt-2 text-2xl sm:text-3xl font-extrabold font-heading text-[#0F3040] tracking-tight">{value}</div>
+      {sub && <p className="mt-1 text-[11px] text-[#464858]">{sub}</p>}
     </div>
   );
 }
@@ -590,109 +601,16 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
   }, [filteredTickets, currentPage, pageSize]);
 
   // ─── Sidebar Component ───────────────────────────────────────────────────────
-  const renderSidebar = () => (
-    <aside className="flex flex-col h-full bg-[#0F3040]/95 border-r border-slate-300/10 w-64 shrink-0 select-none">
-      {/* Brand Header */}
-      <div className="px-5 py-5 border-b border-slate-300/10 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg"
-            style={{
-              background: `linear-gradient(135deg, ${COLORS.terracotta}, ${COLORS.roseGold})`,
-            }}
-          >
-            <Wrench className="w-4 h-4 text-[#0F3040]" />
-          </div>
-          <div>
-            <span className="text-base font-extrabold text-white font-heading tracking-tight">CampusFix</span>
-            <div className="text-[10px] text-[#D99B7F] font-bold uppercase tracking-wider">Field Technician</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Nav List */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
-          const isActive = activeTab === id && !selectedTicket;
-          let badge = null;
-          if (id === 'assigned' && overviewStats.newAssignments > 0) badge = overviewStats.newAssignments;
-          if (id === 'available' && availableTickets.length > 0) badge = availableTickets.length;
-          if (id === 'in-progress' && overviewStats.inProgress > 0) badge = overviewStats.inProgress;
-          if (id === 'notifications' && unreadCount > 0) badge = unreadCount;
-
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => {
-                setActiveTab(id);
-                setSelectedTicket(null);
-                setCurrentPage(1);
-                setIsMobileSidebarOpen(false);
-              }}
-              className={`w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                isActive
-                  ? 'text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-[#464858]/30'
-              }`}
-              style={
-                isActive
-                  ? {
-                      background: `linear-gradient(135deg, ${COLORS.terracotta}33, ${COLORS.roseGold}22)`,
-                      borderLeft: `3px solid ${COLORS.roseGold}`,
-                    }
-                  : {}
-              }
-            >
-              <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-[#D99B7F]' : 'text-slate-400'}`} />
-                <span>{label}</span>
-              </div>
-              {badge !== null && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#D99B7F]/20 text-[#D99B7F] border border-[#D99B7F]/40">
-                  {badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* User Card & Logout */}
-      <div className="p-3 border-t border-slate-300/10 space-y-2">
-        <div className="p-3 rounded-xl bg-[#202733]/60 border border-slate-300/10 flex items-center gap-3">
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white"
-            style={{ background: `linear-gradient(135deg, ${COLORS.terracotta}, ${COLORS.roseGold})` }}
-          >
-            {(user?.name || 'T')[0].toUpperCase()}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-white truncate">{user?.name || 'Technician'}</p>
-            <p className="text-[10px] text-slate-400 truncate">{user?.college_id || 'Campus IT'}</p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={logout}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-red-300 hover:bg-red-500/10 transition-all"
-        >
-          <LogOut className="w-3.5 h-3.5" />
-          <span>Sign Out</span>
-        </button>
-      </div>
-    </aside>
-  );
+  // renderSidebar replaced by UnifiedSidebar — kept for mobile compatibility
 
   // ─── Table Component ────────────────────────────────────────────────────────
   const renderIncidentTable = (items, isAvailableQueue = false) => {
     if (!items || items.length === 0) {
       return (
-        <div className="p-12 rounded-2xl bg-[#1a222d]/60 border border-slate-300/15 text-center">
-          <CheckCircle2 className="w-12 h-12 mx-auto text-slate-600 mb-3" />
-          <h3 className="text-sm font-bold text-slate-300">No Incidents in this Queue</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+        <div className="p-12 rounded-2xl bg-white border border-[#E7E4DF] text-center shadow-xs">
+          <CheckCircle2 className="w-12 h-12 mx-auto text-[#464858]/40 mb-3" />
+          <h3 className="text-sm font-bold text-[#0F3040]">No Incidents in this Queue</h3>
+          <p className="text-xs text-[#464858] mt-1 max-w-sm mx-auto">
             {searchQuery || priorityFilter !== 'all' || categoryFilter !== 'all'
               ? 'No matching incidents found for the applied search and filter criteria.'
               : isAvailableQueue
@@ -704,23 +622,23 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
     }
 
     return (
-      <div className="rounded-2xl border border-slate-300/15 overflow-hidden bg-[#1a222d]/70 shadow-lg">
+      <div className="rounded-2xl border border-[#E7E4DF] overflow-hidden bg-white shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="bg-[#0F3040]/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-300/10">
-                <th className="px-4 py-3 font-semibold">Incident ID</th>
-                <th className="px-4 py-3 font-semibold">Issue Title</th>
-                <th className="px-4 py-3 font-semibold hidden sm:table-cell">Category</th>
-                <th className="px-4 py-3 font-semibold hidden md:table-cell">Location</th>
-                <th className="px-4 py-3 font-semibold hidden lg:table-cell">Reporter</th>
-                <th className="px-4 py-3 font-semibold">Priority</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold hidden xl:table-cell">Reported Time</th>
-                <th className="px-4 py-3 font-semibold text-center">Action</th>
+              <tr className="bg-[#F5F3EF]/90 text-[#464858] uppercase text-[10px] font-bold tracking-wider border-b border-[#E7E4DF]">
+                <th className="px-4 py-3.5">Incident ID</th>
+                <th className="px-4 py-3.5">Issue Title</th>
+                <th className="px-4 py-3.5 hidden sm:table-cell">Category</th>
+                <th className="px-4 py-3.5 hidden md:table-cell">Location</th>
+                <th className="px-4 py-3.5 hidden lg:table-cell">Reporter</th>
+                <th className="px-4 py-3.5">Priority</th>
+                <th className="px-4 py-3.5">Status</th>
+                <th className="px-4 py-3.5 hidden xl:table-cell">Reported Time</th>
+                <th className="px-4 py-3.5 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-300/10">
+            <tbody className="divide-y divide-[#E7E4DF]/70">
               {items.map((tkt) => {
                 const CategoryIcon = getCategoryIcon(tkt.category);
                 const isOpen = tkt.status === 'Open' && !tkt.technician_id;
@@ -729,32 +647,32 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                   <tr
                     key={tkt.id}
                     onClick={() => setSelectedTicket(tkt)}
-                    className="hover:bg-[#202733]/80 transition-colors cursor-pointer group"
+                    className="hover:bg-[#F5F3EF]/50 transition-colors cursor-pointer group"
                   >
                     <td className="px-4 py-3.5">
-                      <span className="font-mono font-bold text-[#D99B7F] group-hover:underline">
+                      <span className="font-mono font-bold text-[#A56F63] group-hover:underline">
                         {tkt.ticket_number || `INC-${tkt.id}`}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 max-w-[200px]">
-                      <span className="text-white font-medium line-clamp-1 group-hover:text-[#D99B7F] transition-colors">
+                    <td className="px-4 py-3.5 max-w-[220px]">
+                      <span className="text-[#0F3040] font-medium line-clamp-1 group-hover:text-[#A56F63] transition-colors">
                         {tkt.title}
                       </span>
                     </td>
                     <td className="px-4 py-3.5 hidden sm:table-cell">
-                      <div className="flex items-center gap-1.5 text-slate-300">
-                        <CategoryIcon className="w-3.5 h-3.5 text-[#D99B7F] shrink-0" />
+                      <div className="flex items-center gap-1.5 text-[#464858]">
+                        <CategoryIcon className="w-3.5 h-3.5 text-[#A56F63] shrink-0" />
                         <span className="truncate">{tkt.category}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3.5 hidden md:table-cell">
-                      <div className="text-slate-300 font-medium">{tkt.building || '—'}</div>
-                      {tkt.room && <div className="text-[10px] text-slate-400">{tkt.room}</div>}
+                      <div className="text-[#0F3040] font-medium">{tkt.building || '—'}</div>
+                      {tkt.room && <div className="text-[10px] text-[#464858] font-mono">{tkt.room}</div>}
                     </td>
-                    <td className="px-4 py-3.5 hidden lg:table-cell text-slate-300">
-                      <div>{tkt.reporter_name || 'Campus Reporter'}</div>
+                    <td className="px-4 py-3.5 hidden lg:table-cell text-[#464858]">
+                      <div className="text-[#0F3040] font-medium">{tkt.reporter_name || 'Campus Reporter'}</div>
                       {tkt.reporter_college_id && (
-                        <div className="text-[10px] text-slate-500 font-mono">{tkt.reporter_college_id}</div>
+                        <div className="text-[10px] text-[#464858] font-mono">{tkt.reporter_college_id}</div>
                       )}
                     </td>
                     <td className="px-4 py-3.5">
@@ -763,7 +681,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                     <td className="px-4 py-3.5">
                       <StatusBadge status={tkt.status} />
                     </td>
-                    <td className="px-4 py-3.5 hidden xl:table-cell text-slate-400 whitespace-nowrap">
+                    <td className="px-4 py-3.5 hidden xl:table-cell text-[#464858] font-mono text-[11px] whitespace-nowrap">
                       {formatTimeAgo(tkt.created_at)}
                     </td>
                     <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
@@ -771,7 +689,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                         <button
                           type="button"
                           onClick={() => setSelectedTicket(tkt)}
-                          className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 bg-[#202733]/80 hover:text-white hover:bg-[#464858]/60 border border-slate-300/20 transition-all flex items-center gap-1"
+                          className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-[#0F3040] bg-[#F5F3EF] hover:bg-[#E7E4DF] border border-[#E7E4DF] transition-all flex items-center gap-1"
                         >
                           <Eye className="w-3 h-3" />
                           <span>Details</span>
@@ -780,10 +698,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                           <button
                             type="button"
                             onClick={() => handleAcceptAssignment(tkt.id)}
-                            className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#0F3040] transition-all hover:brightness-105 active:scale-95 shadow flex items-center gap-1"
-                            style={{
-                              background: `linear-gradient(135deg, ${COLORS.terracotta}, ${COLORS.roseGold})`,
-                            }}
+                            className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-white bg-[#0F3040] hover:bg-[#183E4C] transition-all active:scale-95 shadow-xs flex items-center gap-1"
                           >
                             <Play className="w-3 h-3" />
                             <span>Accept</span>
@@ -800,30 +715,32 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
 
         {/* Pagination Bar */}
         {filteredTickets.length > pageSize && (
-          <div className="px-4 py-3 bg-[#0F3040]/80 border-t border-slate-300/10 flex items-center justify-between text-xs text-slate-400 flex-wrap gap-2">
-            <span>
-              Showing {(currentPage - 1) * pageSize + 1} to{' '}
-              {Math.min(currentPage * pageSize, filteredTickets.length)} of {filteredTickets.length} incidents
+          <div className="px-5 py-3.5 bg-[#F5F3EF]/80 border-t border-[#E7E4DF] flex items-center justify-between text-xs text-[#464858] flex-wrap gap-2">
+            <span className="font-medium">
+              Showing <strong className="text-[#0F3040]">{(currentPage - 1) * pageSize + 1}</strong> to{' '}
+              <strong className="text-[#0F3040]">{Math.min(currentPage * pageSize, filteredTickets.length)}</strong> of <strong className="text-[#0F3040]">{filteredTickets.length}</strong> incidents
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="p-1.5 rounded-lg border border-slate-300/20 disabled:opacity-40 hover:text-white hover:bg-[#464858]/50"
+                className="px-2.5 py-1 rounded-lg border border-[#E7E4DF] bg-white text-[#0F3040] font-semibold disabled:opacity-40 hover:bg-[#F5F3EF] transition-all flex items-center gap-1 shadow-xs"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Prev</span>
               </button>
-              <span className="px-2 font-mono text-white">
+              <span className="px-3 py-1 rounded-lg font-mono text-xs font-bold bg-white border border-[#E7E4DF] text-[#0F3040] shadow-xs">
                 {currentPage} / {totalPages}
               </span>
               <button
                 type="button"
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="p-1.5 rounded-lg border border-slate-300/20 disabled:opacity-40 hover:text-white hover:bg-[#464858]/50"
+                className="px-2.5 py-1 rounded-lg border border-[#E7E4DF] bg-white text-[#0F3040] font-semibold disabled:opacity-40 hover:bg-[#F5F3EF] transition-all flex items-center gap-1 shadow-xs"
               >
-                <ChevronRight className="w-4 h-4" />
+                <span>Next</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -858,20 +775,20 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
             <button
               type="button"
               onClick={() => setSelectedTicket(null)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 bg-[#202733]/80 hover:text-white hover:bg-[#464858]/60 border border-slate-300/20 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#0F3040] bg-white hover:bg-[#F5F3EF] border border-[#E7E4DF] transition-all shadow-xs"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Queue</span>
             </button>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
-            <span className="font-mono font-bold text-xs text-[#D99B7F]">{ticket.ticket_number}</span>
+            <ChevronRight className="w-3.5 h-3.5 text-[#8D8B96]" />
+            <span className="font-mono font-bold text-xs text-[#A56F63]">{ticket.ticket_number}</span>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => handleCopyTicketId(ticket.ticket_number)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs text-slate-400 hover:text-white bg-[#202733]/60 border border-slate-300/20 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs text-[#464858] hover:text-[#0F3040] bg-white border border-[#E7E4DF] transition-all shadow-xs"
             >
               <Copy className="w-3.5 h-3.5" />
               <span>{copiedId ? 'Copied!' : 'Copy ID'}</span>
@@ -879,7 +796,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
             <button
               type="button"
               onClick={() => refreshSingleTicket(ticket.id)}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-[#464858]/50 transition-colors"
+              className="p-1.5 rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] border border-[#E7E4DF] bg-white transition-colors shadow-xs"
               title="Refresh incident data"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -889,10 +806,10 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
 
         {/* Security / Authorization Alert if ticket belongs to another technician */}
         {isAssignedToOther && (
-          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
-            <Lock className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <div className="text-xs text-slate-200">
-              <strong className="text-amber-300 font-bold block">Assigned to Another Specialist</strong>
+          <div className="p-4 rounded-2xl bg-[#F8EBD2] border border-[#93651C]/30 flex items-start gap-3">
+            <Lock className="w-5 h-5 text-[#93651C] shrink-0 mt-0.5" />
+            <div className="text-xs text-[#464858]">
+              <strong className="text-[#93651C] font-bold block">Assigned to Another Specialist</strong>
               This incident is currently assigned to <strong>{ticket.technician_name}</strong>. Per security policy,
               only the authorized technician or administrator can update the status or document technical work orders.
             </div>
@@ -904,25 +821,22 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
           {/* ── Left Column (Dossier, Status, Notes) ── */}
           <div className="lg:col-span-8 space-y-5">
             {/* Header Card */}
-            <div className="p-6 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 shadow-xl space-y-4">
+            <div className="p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-4">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-start gap-3.5 min-w-0">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md"
-                    style={{ background: `linear-gradient(135deg, ${COLORS.terracotta}50, ${COLORS.roseGold}30)` }}
-                  >
-                    <CategoryIcon className="w-5 h-5 text-[#D99B7F]" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[#F5F3EF] border border-[#E7E4DF] text-[#A56F63]">
+                    <CategoryIcon className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
-                    <span className="font-mono text-xs font-bold text-[#D99B7F]">{ticket.ticket_number}</span>
-                    <h1 className="text-lg sm:text-xl font-extrabold text-white font-heading mt-0.5 leading-snug">
+                    <span className="font-mono text-xs font-bold text-[#A56F63]">{ticket.ticket_number}</span>
+                    <h1 className="text-lg sm:text-xl font-extrabold text-[#0F3040] font-heading mt-0.5 leading-snug">
                       {ticket.title}
                     </h1>
                     <div className="flex items-center gap-2 flex-wrap mt-2">
                       <StatusBadge status={ticket.status} />
                       <PriorityBadge priority={ticket.priority} />
-                      <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                        <Tag className="w-3 h-3 text-slate-500" />
+                      <span className="text-[11px] text-[#464858] flex items-center gap-1">
+                        <Tag className="w-3 h-3 text-[#8D8B96]" />
                         {ticket.category}
                       </span>
                     </div>
@@ -934,8 +848,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                   <button
                     type="button"
                     onClick={() => handleAcceptAssignment(ticket.id)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-[#0F3040] shadow-lg transition-all hover:brightness-105 active:scale-95"
-                    style={{ background: `linear-gradient(135deg, ${COLORS.terracotta}, ${COLORS.roseGold})` }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#0F3040] hover:bg-[#183E4C] shadow-xs transition-all active:scale-95"
                   >
                     <Play className="w-4 h-4" />
                     <span>Accept Assignment</span>
@@ -944,7 +857,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
               </div>
 
               {/* Visual 5-Step Progress Tracker */}
-              <div className="pt-3 border-t border-slate-300/10">
+              <div className="pt-3 border-t border-[#E7E4DF]">
                 <div className="flex items-center w-full gap-0">
                   {PROGRESS_STEPS.map((step, idx) => {
                     const isDone = idx <= currentStepIdx;
@@ -955,17 +868,17 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                           <div
                             className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${
                               isCurrent
-                                ? 'border-[#D99B7F] bg-[#D99B7F]/20 text-[#D99B7F] scale-110 shadow-md'
+                                ? 'border-[#A56F63] bg-[#A56F63]/15 text-[#A56F63] scale-110 shadow-xs'
                                 : isDone
-                                ? 'border-emerald-400 bg-emerald-400/20 text-emerald-400'
-                                : 'border-slate-600 bg-[#1a222d] text-slate-600'
+                                ? 'border-[#286448] bg-[#DCEDE4] text-[#286448]'
+                                : 'border-[#E7E4DF] bg-[#F5F3EF] text-[#8D8B96]'
                             }`}
                           >
                             {isDone && !isCurrent ? <CheckCheck className="w-3.5 h-3.5" /> : idx + 1}
                           </div>
                           <span
                             className={`mt-1.5 text-[10px] font-semibold text-center truncate w-full px-1 ${
-                              isCurrent ? 'text-[#D99B7F]' : isDone ? 'text-emerald-400' : 'text-slate-600'
+                              isCurrent ? 'text-[#A56F63]' : isDone ? 'text-[#286448]' : 'text-[#8D8B96]'
                             }`}
                           >
                             {step}
@@ -974,7 +887,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                         {idx < PROGRESS_STEPS.length - 1 && (
                           <div
                             className={`h-0.5 flex-1 mx-1 rounded-full transition-all ${
-                              idx < currentStepIdx ? 'bg-emerald-400/70' : 'bg-slate-700'
+                              idx < currentStepIdx ? 'bg-[#286448]' : 'bg-[#E7E4DF]'
                             }`}
                           />
                         )}
@@ -987,13 +900,13 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
 
             {/* Status Transition Control (Only for assigned technician or unassigned self-assign) */}
             {(isAssignedToMe || isUnassignedOpen) && ticket.status !== 'Closed' && (
-              <div className="p-5 rounded-2xl bg-[#1a222d]/90 border border-[#A56F63]/30 shadow-lg space-y-3">
+              <div className="p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                    <Activity className="w-3.5 h-3.5 text-[#D99B7F]" />
+                  <h3 className="text-xs font-bold text-[#0F3040] uppercase tracking-wider flex items-center gap-2">
+                    <Activity className="w-3.5 h-3.5 text-[#A56F63]" />
                     <span>Advance Lifecycle Workflow</span>
                   </h3>
-                  <span className="text-[10px] text-slate-500">Authorized Technician Actions</span>
+                  <span className="text-[10px] text-[#464858]">Authorized Technician Actions</span>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
@@ -1002,7 +915,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                       type="button"
                       disabled={isSubmittingStatus}
                       onClick={() => handleUpdateStatus('Assigned')}
-                      className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#202733]/80 text-blue-300 border border-blue-500/30 hover:bg-blue-500/20 transition-all flex items-center gap-1.5 active:scale-95"
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30 hover:bg-[#E5EAF0]/80 transition-all flex items-center gap-1.5 active:scale-95"
                     >
                       <ClipboardList className="w-3.5 h-3.5" />
                       <span>Mark Assigned</span>
@@ -1014,7 +927,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                       type="button"
                       disabled={isSubmittingStatus}
                       onClick={() => handleUpdateStatus('In Progress')}
-                      className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#202733]/80 text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition-all flex items-center gap-1.5 active:scale-95"
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30 hover:bg-[#F8EBD2]/80 transition-all flex items-center gap-1.5 active:scale-95"
                     >
                       <Wrench className="w-3.5 h-3.5" />
                       <span>Start Investigation (In Progress)</span>
@@ -1026,7 +939,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                       type="button"
                       disabled={isSubmittingStatus}
                       onClick={() => setShowResolutionModal(true)}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-[#0F3040] shadow-md transition-all flex items-center gap-1.5 active:scale-95 ml-auto"
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-[#0F3040] hover:bg-[#183E4C] text-white shadow-xs transition-all flex items-center gap-1.5 active:scale-95 ml-auto"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Set Resolution & Resolve</span>
@@ -1037,20 +950,20 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
             )}
 
             {/* Full Issue Description */}
-            <div className="p-5 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 space-y-2">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Problem Description</h3>
-              <p className="text-sm text-slate-200 leading-relaxed whitespace-pre-wrap">
+            <div className="p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-2">
+              <h3 className="text-xs font-bold text-[#464858] uppercase tracking-wider">Problem Description</h3>
+              <p className="text-sm text-[#0F3040] leading-relaxed whitespace-pre-wrap">
                 {ticket.description || 'No description provided.'}
               </p>
             </div>
 
             {/* Resolution Details Box (if resolved or closed) */}
             {(ticket.resolution_details || ticket.status === 'Resolved' || ticket.status === 'Closed') && (
-              <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-2">
+              <div className="p-5 rounded-2xl bg-[#DCEDE4]/50 border border-[#286448]/30 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <h3 className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                    <CheckCircle2 className="w-4 h-4 text-[#286448]" />
+                    <h3 className="text-xs font-bold text-[#286448] uppercase tracking-wider">
                       Official Resolution Details
                     </h3>
                   </div>
@@ -1061,13 +974,13 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                         setResolutionDetailsText(ticket.resolution_details || '');
                         setShowResolutionModal(true);
                       }}
-                      className="text-[11px] text-emerald-400 hover:underline font-semibold"
+                      className="text-[11px] text-[#286448] hover:underline font-semibold"
                     >
                       Edit Resolution
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-slate-200 leading-relaxed font-mono bg-[#0F3040]/80 p-3 rounded-xl border border-emerald-500/20">
+                <p className="text-xs text-[#0F3040] leading-relaxed font-mono bg-white p-3 rounded-xl border border-[#286448]/20">
                   {ticket.resolution_details ||
                     'Technician verified service restoration and completed testing. Ready for campus confirmation.'}
                 </p>
@@ -1075,17 +988,17 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
             )}
 
             {/* Supporting Evidence Gallery */}
-            <div className="p-5 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 space-y-3">
+            <div className="p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                  <Paperclip className="w-3.5 h-3.5 text-[#D99B7F]" />
+                <h3 className="text-xs font-bold text-[#464858] uppercase tracking-wider flex items-center gap-2">
+                  <Paperclip className="w-3.5 h-3.5 text-[#A56F63]" />
                   <span>Supporting Evidence & Diagnostic Uploads</span>
                 </h3>
                 {isAssignedToMe && (
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-xs text-[#D99B7F] hover:underline font-semibold flex items-center gap-1"
+                    className="text-xs text-[#A56F63] hover:underline font-semibold flex items-center gap-1"
                   >
                     <span>+ Upload Evidence</span>
                   </button>
@@ -1102,7 +1015,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
 
               {/* Gallery of Existing Attachments */}
               {(!ticket.attachments || ticket.attachments.length === 0) && pendingAttachments.length === 0 ? (
-                <div className="text-center py-6 text-slate-500">
+                <div className="text-center py-6 text-[#8D8B96]">
                   <FileText className="w-8 h-8 mx-auto mb-1 opacity-40" />
                   <p className="text-xs">No evidence documents or photos attached yet.</p>
                 </div>
@@ -1116,7 +1029,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                         key={`att-${idx}`}
                         type="button"
                         onClick={() => setFullscreenImage(att.data)}
-                        className="group relative aspect-video rounded-xl overflow-hidden border border-slate-300/20 hover:border-[#D99B7F]/60 transition-all bg-[#202733]"
+                        className="group relative aspect-video rounded-xl overflow-hidden border border-[#E7E4DF] hover:border-[#A56F63] transition-all bg-[#F5F3EF]"
                       >
                         <img
                           src={att.data}
@@ -1130,10 +1043,10 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                     ) : (
                       <div
                         key={`att-${idx}`}
-                        className="p-3 rounded-xl border border-slate-300/20 bg-[#202733]/60 flex flex-col justify-between"
+                        className="p-3 rounded-xl border border-[#E7E4DF] bg-[#F5F3EF] flex flex-col justify-between"
                       >
-                        <FileText className="w-6 h-6 text-[#D99B7F] mb-1" />
-                        <span className="text-[10px] text-slate-300 font-mono truncate">{att.name}</span>
+                        <FileText className="w-6 h-6 text-[#A56F63] mb-1" />
+                        <span className="text-[10px] text-[#0F3040] font-mono truncate">{att.name}</span>
                       </div>
                     );
                   })}
@@ -1142,10 +1055,10 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                   {pendingAttachments.map((att, idx) => (
                     <div
                       key={`pending-${idx}`}
-                      className="relative p-2 rounded-xl border border-dashed border-[#D99B7F]/60 bg-[#D99B7F]/10 flex flex-col justify-between"
+                      className="relative p-2 rounded-xl border border-dashed border-[#A56F63] bg-[#A56F63]/10 flex flex-col justify-between"
                     >
-                      <span className="text-[9px] uppercase font-bold text-[#D99B7F]">Pending Upload</span>
-                      <p className="text-[10px] text-slate-300 font-mono truncate">{att.name}</p>
+                      <span className="text-[9px] uppercase font-bold text-[#A56F63]">Pending Upload</span>
+                      <p className="text-[10px] text-[#0F3040] font-mono truncate">{att.name}</p>
                       <button
                         type="button"
                         onClick={() => setPendingAttachments((prev) => prev.filter((_, i) => i !== idx))}
@@ -1165,8 +1078,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                     type="button"
                     disabled={isUploadingAttachments}
                     onClick={handleUploadPendingEvidence}
-                    className="px-4 py-2 rounded-xl text-xs font-bold text-[#0F3040] shadow transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
-                    style={{ background: `linear-gradient(135deg, ${COLORS.terracotta}, ${COLORS.roseGold})` }}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#0F3040] hover:bg-[#183E4C] shadow-xs transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
                   >
                     {isUploadingAttachments ? (
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -1180,22 +1092,22 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
             </div>
 
             {/* Investigation Notes & Reporter-Visible Comments */}
-            <div className="p-5 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-300/10 pb-3 flex-wrap gap-2">
+            <div className="p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E7E4DF] pb-3 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-[#D99B7F]" />
-                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  <MessageSquare className="w-4 h-4 text-[#A56F63]" />
+                  <h3 className="text-xs font-bold text-[#0F3040] uppercase tracking-wider">
                     Investigation Log & Dialogue
                   </h3>
                 </div>
 
                 {/* Sub-tab filter: All / Internal Notes / Reporter Comments */}
-                <div className="flex items-center gap-1 bg-[#202733]/80 p-1 rounded-xl border border-slate-300/10 text-xs">
+                <div className="flex items-center gap-1 bg-[#F5F3EF] p-1 rounded-xl border border-[#E7E4DF] text-xs">
                   <button
                     type="button"
                     onClick={() => setActiveNoteTab('all')}
                     className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
-                      activeNoteTab === 'all' ? 'bg-[#0F3040] text-white shadow' : 'text-slate-400 hover:text-white'
+                      activeNoteTab === 'all' ? 'bg-white text-[#0F3040] shadow-xs' : 'text-[#464858] hover:text-[#0F3040]'
                     }`}
                   >
                     All ({ticket.notes?.length || 0})
@@ -1205,8 +1117,8 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                     onClick={() => setActiveNoteTab('internal')}
                     className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
                       activeNoteTab === 'internal'
-                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                        : 'text-slate-400 hover:text-white'
+                        ? 'bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30'
+                        : 'text-[#464858] hover:text-[#0F3040]'
                     }`}
                   >
                     Internal Only
@@ -1216,8 +1128,8 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                     onClick={() => setActiveNoteTab('comments')}
                     className={`px-2.5 py-1 rounded-lg font-semibold transition-all ${
                       activeNoteTab === 'comments'
-                        ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                        : 'text-slate-400 hover:text-white'
+                        ? 'bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30'
+                        : 'text-[#464858] hover:text-[#0F3040]'
                     }`}
                   >
                     Reporter Facing
@@ -1228,7 +1140,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
               {/* Feed of Notes */}
               <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
                 {filteredNotes.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
+                  <div className="text-center py-8 text-[#8D8B96]">
                     <History className="w-8 h-8 mx-auto mb-2 opacity-40" />
                     <p className="text-xs">No records matching the selected view filter.</p>
                   </div>
@@ -1243,41 +1155,41 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                         key={note.id || idx}
                         className={`p-3.5 rounded-xl border text-xs leading-relaxed transition-all ${
                           isInternal
-                            ? 'bg-amber-500/10 border-amber-500/30 text-slate-200'
+                            ? 'bg-[#F8EBD2]/50 border-[#93651C]/30 text-[#0F3040]'
                             : isTech
-                            ? 'bg-[#0F3040]/80 border-[#A56F63]/25 text-slate-200'
-                            : 'bg-[#202733]/60 border-slate-300/15 text-slate-300'
+                            ? 'bg-[#F5F3EF] border-[#E7E4DF] text-[#0F3040]'
+                            : 'bg-white border-[#E7E4DF] text-[#0F3040]'
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
                           <div className="flex items-center gap-2">
                             <span
                               className={`w-2 h-2 rounded-full ${
-                                isInternal ? 'bg-amber-400' : isTech ? 'bg-[#D99B7F]' : 'bg-slate-400'
+                                isInternal ? 'bg-[#93651C]' : isTech ? 'bg-[#A56F63]' : 'bg-[#405C78]'
                               }`}
                             />
-                            <span className="font-bold text-white text-[11px]">{note.author_name || 'System'}</span>
+                            <span className="font-bold text-[#0F3040] text-[11px]">{note.author_name || 'System'}</span>
                             {isMe && (
-                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#D99B7F]/20 text-[#D99B7F] font-bold">
+                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#A56F63]/20 text-[#A56F63] font-bold">
                                 You
                               </span>
                             )}
                             <span
                               className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${
                                 isTech
-                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                  : 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+                                  ? 'bg-[#F8EBD2] text-[#93651C] border border-[#93651C]/30'
+                                  : 'bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30'
                               }`}
                             >
                               {note.author_role}
                             </span>
                             {isInternal && (
-                              <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-amber-400 text-[#0F3040]">
+                              <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-[#93651C] text-white">
                                 INTERNAL LOG
                               </span>
                             )}
                           </div>
-                          <span className="text-[10px] text-slate-500 font-mono">
+                          <span className="text-[10px] text-[#464858] font-mono">
                             {formatTimeAgo(note.created_at)}
                           </span>
                         </div>
@@ -1290,17 +1202,17 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
 
               {/* Add Note Form (Only allowed for assigned technician or unassigned ticket) */}
               {(isAssignedToMe || isUnassignedOpen) && (
-                <form onSubmit={handleAddNote} className="space-y-2 pt-2 border-t border-slate-300/10">
+                <form onSubmit={handleAddNote} className="space-y-2 pt-2 border-t border-[#E7E4DF]">
                   <div className="flex items-center justify-between text-xs">
-                    <label className="text-slate-400 font-semibold">Post Investigation Log or Note:</label>
+                    <label className="text-[#464858] font-semibold">Post Investigation Log or Note:</label>
                     <label className="flex items-center gap-2 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={isInternalNote}
                         onChange={(e) => setIsInternalNote(e.target.checked)}
-                        className="rounded border-slate-500 bg-[#202733] text-amber-500 focus:ring-0"
+                        className="rounded border-[#E7E4DF] bg-white text-[#93651C] focus:ring-0"
                       />
-                      <span className={`text-[11px] font-bold ${isInternalNote ? 'text-amber-300' : 'text-slate-400'}`}>
+                      <span className={`text-[11px] font-bold ${isInternalNote ? 'text-[#93651C]' : 'text-[#464858]'}`}>
                         {isInternalNote ? '🔒 Internal Note (Hidden from Reporter)' : '📢 Public Comment (Visible to Reporter)'}
                       </span>
                     </label>
@@ -1316,13 +1228,12 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                       }
                       value={noteText}
                       onChange={(e) => setNoteText(e.target.value)}
-                      className="flex-1 px-3.5 py-2.5 rounded-xl glass-input text-white text-xs placeholder-slate-400 resize-none"
+                      className="flex-1 px-3.5 py-2.5 rounded-xl saas-input text-[#0F3040] text-xs placeholder-[#8D8B96] resize-none"
                     />
                     <button
                       type="submit"
                       disabled={isSubmittingNote || !noteText.trim()}
-                      className="px-5 rounded-xl text-xs font-bold text-[#0F3040] transition-all hover:brightness-105 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5 shadow"
-                      style={{ background: `linear-gradient(135deg, ${COLORS.terracotta}, ${COLORS.roseGold})` }}
+                      className="px-5 rounded-xl text-xs font-bold text-white bg-[#0F3040] hover:bg-[#183E4C] transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-xs"
                     >
                       {isSubmittingNote ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                       <span>Post</span>
@@ -1336,62 +1247,62 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
           {/* ── Right Column (Reporter Info, Coordinates, SLA Tracker) ── */}
           <div className="lg:col-span-4 space-y-5">
             {/* Reporter Information Card */}
-            <div className="p-5 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 shadow space-y-3">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <User2 className="w-3.5 h-3.5 text-[#D99B7F]" />
+            <div className="p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
+              <h3 className="text-xs font-bold text-[#464858] uppercase tracking-wider flex items-center gap-1.5">
+                <User2 className="w-3.5 h-3.5 text-[#A56F63]" />
                 <span>Reporter Identity</span>
               </h3>
               <div className="flex items-center gap-3">
                 <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shadow"
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shadow-xs"
                   style={{ background: `linear-gradient(135deg, ${COLORS.terracotta}, ${COLORS.roseGold})` }}
                 >
                   {(ticket.reporter_name || 'R')[0].toUpperCase()}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-white truncate">{ticket.reporter_name || 'Campus Member'}</p>
-                  <p className="text-xs text-slate-400 truncate">{ticket.reporter_email || '—'}</p>
+                  <p className="text-sm font-bold text-[#0F3040] truncate">{ticket.reporter_name || 'Campus Member'}</p>
+                  <p className="text-xs text-[#464858] truncate">{ticket.reporter_email || '—'}</p>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-300/10 space-y-1.5 text-xs">
+              <div className="pt-2 border-t border-[#E7E4DF] space-y-1.5 text-xs">
                 {ticket.reporter_college_id && (
-                  <div className="flex items-center justify-between text-slate-400">
+                  <div className="flex items-center justify-between text-[#464858]">
                     <span>College ID:</span>
-                    <span className="font-mono text-white font-bold">{ticket.reporter_college_id}</span>
+                    <span className="font-mono text-[#0F3040] font-bold">{ticket.reporter_college_id}</span>
                   </div>
                 )}
                 {ticket.reporter_department && (
-                  <div className="flex items-center justify-between text-slate-400">
+                  <div className="flex items-center justify-between text-[#464858]">
                     <span>Department:</span>
-                    <span className="text-slate-200">{ticket.reporter_department}</span>
+                    <span className="text-[#0F3040]">{ticket.reporter_department}</span>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Campus Coordinates Card */}
-            <div className="p-5 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 shadow space-y-3">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-[#D99B7F]" />
+            <div className="p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
+              <h3 className="text-xs font-bold text-[#464858] uppercase tracking-wider flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-[#A56F63]" />
                 <span>Campus Location Coordinates</span>
               </h3>
               <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between text-slate-400">
+                <div className="flex items-center justify-between text-[#464858]">
                   <span>Building:</span>
-                  <span className="text-white font-bold">{ticket.building || '—'}</span>
+                  <span className="text-[#0F3040] font-bold">{ticket.building || '—'}</span>
                 </div>
-                <div className="flex items-center justify-between text-slate-400">
+                <div className="flex items-center justify-between text-[#464858]">
                   <span>Floor:</span>
-                  <span className="text-slate-200">{ticket.floor || 'Ground Floor'}</span>
+                  <span className="text-[#0F3040]">{ticket.floor || 'Ground Floor'}</span>
                 </div>
-                <div className="flex items-center justify-between text-slate-400">
+                <div className="flex items-center justify-between text-[#464858]">
                   <span>Room / Lab:</span>
-                  <span className="text-white font-bold">{ticket.room || '—'}</span>
+                  <span className="text-[#0F3040] font-bold">{ticket.room || '—'}</span>
                 </div>
-                <div className="flex items-center justify-between text-slate-400">
+                <div className="flex items-center justify-between text-[#464858]">
                   <span>Affected Service:</span>
-                  <span className="text-[#D99B7F] font-semibold">{ticket.affected_service || 'Campus Network'}</span>
+                  <span className="text-[#A56F63] font-semibold">{ticket.affected_service || 'Campus Network'}</span>
                 </div>
               </div>
             </div>
@@ -1399,40 +1310,40 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
             {/* SLA Severity Level & Target Card */}
             {sla && ticket.status !== 'Resolved' && ticket.status !== 'Closed' && (
               <div
-                className={`p-5 rounded-2xl border shadow space-y-3 ${
+                className={`p-5 rounded-2xl border shadow-xs space-y-3 ${
                   sla.isBreached
-                    ? 'bg-red-500/10 border-red-500/40'
-                    : 'bg-[#1a222d]/90 border-amber-500/30'
+                    ? 'bg-[#F5DEDA] border-[#A33D35]/30'
+                    : 'bg-white border-[#E7E4DF]'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Clock className={`w-4 h-4 ${sla.isBreached ? 'text-red-400' : 'text-amber-400'}`} />
-                    <span className={sla.isBreached ? 'text-red-400' : 'text-amber-300'}>
+                    <Clock className={`w-4 h-4 ${sla.isBreached ? 'text-[#A33D35]' : 'text-[#93651C]'}`} />
+                    <span className={sla.isBreached ? 'text-[#A33D35]' : 'text-[#93651C]'}>
                       {sla.isBreached ? 'SLA Target Exceeded' : 'SLA Target Window'}
                     </span>
                   </h3>
-                  <span className="text-[10px] font-mono font-bold text-slate-400">{sla.hours}h SLA</span>
+                  <span className="text-[10px] font-mono font-bold text-[#464858]">{sla.hours}h SLA</span>
                 </div>
 
-                <div className="w-full h-2 rounded-full bg-slate-700/60 overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-[#E7E4DF] overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
                       sla.isBreached
-                        ? 'bg-red-500'
+                        ? 'bg-[#A33D35]'
                         : sla.pct > 50
-                        ? 'bg-emerald-400'
+                        ? 'bg-[#286448]'
                         : sla.pct > 20
-                        ? 'bg-amber-400'
-                        : 'bg-red-400'
+                        ? 'bg-[#93651C]'
+                        : 'bg-[#A33D35]'
                     }`}
                     style={{ width: `${sla.isBreached ? 100 : sla.pct}%` }}
                   />
                 </div>
 
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-400">Target Deadline:</span>
-                  <span className={`font-bold ${sla.isBreached ? 'text-red-300' : 'text-amber-300'}`}>
+                  <span className="text-[#464858]">Target Deadline:</span>
+                  <span className={`font-bold ${sla.isBreached ? 'text-[#A33D35]' : 'text-[#93651C]'}`}>
                     {sla.isBreached
                       ? `Overdue by ${sla.hoursLeft} hours`
                       : `${sla.hoursLeft} hours remaining`}
@@ -1442,38 +1353,38 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
             )}
 
             {/* Assigned Specialist Card */}
-            <div className="p-5 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 shadow space-y-3">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Wrench className="w-3.5 h-3.5 text-[#D99B7F]" />
+            <div className="p-5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
+              <h3 className="text-xs font-bold text-[#464858] uppercase tracking-wider flex items-center gap-1.5">
+                <Wrench className="w-3.5 h-3.5 text-[#A56F63]" />
                 <span>Field Specialist</span>
               </h3>
               {ticket.technician_name ? (
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xs font-bold text-amber-300">
+                  <div className="w-8 h-8 rounded-full bg-[#F8EBD2] border border-[#93651C]/30 flex items-center justify-center text-xs font-bold text-[#93651C]">
                     {ticket.technician_name[0].toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-white">{ticket.technician_name}</p>
-                    <p className="text-[10px] text-slate-400">{ticket.technician_email || 'Field Specialist'}</p>
+                    <p className="text-xs font-bold text-[#0F3040]">{ticket.technician_name}</p>
+                    <p className="text-[10px] text-[#464858]">{ticket.technician_email || 'Field Specialist'}</p>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <AlertCircle className="w-4 h-4 text-amber-400" />
+                <div className="flex items-center gap-2 text-xs text-[#464858]">
+                  <AlertCircle className="w-4 h-4 text-[#93651C]" />
                   <span>Unassigned — Ready for pickup</span>
                 </div>
               )}
             </div>
 
             {/* Audit / Timestamp Summary */}
-            <div className="p-4 rounded-2xl bg-[#202733]/50 border border-slate-300/10 text-[11px] text-slate-400 space-y-1">
+            <div className="p-4 rounded-2xl bg-[#F5F3EF] border border-[#E7E4DF] text-[11px] text-[#464858] space-y-1">
               <div className="flex justify-between">
                 <span>Submitted:</span>
-                <span className="text-slate-300">{formatFullDate(ticket.created_at)}</span>
+                <span className="text-[#0F3040]">{formatFullDate(ticket.created_at)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Last Updated:</span>
-                <span className="text-slate-300">{formatTimeAgo(ticket.updated_at)}</span>
+                <span className="text-[#0F3040]">{formatTimeAgo(ticket.updated_at)}</span>
               </div>
             </div>
           </div>
@@ -1481,31 +1392,31 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
 
         {/* Resolution Details Modal */}
         {showResolutionModal && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-lg p-6 rounded-2xl bg-[#1a222d] border border-emerald-500/40 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-300/10">
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="w-full max-w-lg p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#E7E4DF]">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                  <h3 className="text-base font-bold text-white font-heading">
+                  <CheckCircle2 className="w-5 h-5 text-[#286448]" />
+                  <h3 className="text-base font-bold text-[#0F3040] font-heading">
                     Document Incident Resolution
                   </h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowResolutionModal(false)}
-                  className="text-slate-400 hover:text-white"
+                  className="text-[#464858] hover:text-[#0F3040]"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-[#464858]">
                 Detail the technical solution, hardware replaced, port changes, firmware updates, or testing performed.
                 This information will be presented to the student/faculty reporter for confirmation.
               </p>
 
               <div>
-                <label className="text-[11px] uppercase font-bold text-slate-400 block mb-1">
+                <label className="text-[11px] uppercase font-bold text-[#464858] block mb-1">
                   Resolution Summary & Technical Solution *
                 </label>
                 <textarea
@@ -1513,15 +1424,15 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                   placeholder="e.g. Swapped damaged RJ45 patch cable in rack 2. Re-flashed access point firmware v4.2. Tested 100Mbps throughput continuously with 0% packet loss."
                   value={resolutionDetailsText}
                   onChange={(e) => setResolutionDetailsText(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl glass-input text-white text-xs placeholder-slate-400 resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl saas-input text-[#0F3040] text-xs placeholder-[#8D8B96] resize-none"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-300/10">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E7E4DF]">
                 <button
                   type="button"
                   onClick={() => setShowResolutionModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#464858] hover:text-[#0F3040] transition-colors"
                 >
                   Cancel
                 </button>
@@ -1529,8 +1440,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                   type="button"
                   disabled={isSubmittingStatus || !resolutionDetailsText.trim()}
                   onClick={() => handleUpdateStatus('Resolved', resolutionDetailsText)}
-                  className="px-5 py-2 rounded-xl text-xs font-bold text-[#0F3040] transition-all hover:brightness-105 active:scale-95 disabled:opacity-50 flex items-center gap-2 shadow-lg"
-                  style={{ background: `linear-gradient(135deg, #10b981, #34d399)` }}
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#0F3040] hover:bg-[#183E4C] transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 shadow-xs"
                 >
                   {isSubmittingStatus ? (
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -1574,23 +1484,20 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
     <div className="space-y-6">
       {/* Top Banner */}
       <div
-        className="relative rounded-2xl p-6 sm:p-8 border border-amber-500/25 overflow-hidden shadow-2xl"
-        style={{
-          background: 'linear-gradient(135deg, rgba(15, 48, 64, 0.98) 0%, rgba(165, 111, 99, 0.25) 100%)',
-        }}
+        className="relative rounded-2xl p-6 sm:p-8 bg-[#0F3040] text-white overflow-hidden shadow-xs"
       >
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase tracking-widest">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#D99B7F]/20 text-[#D99B7F] border border-[#D99B7F]/40 uppercase tracking-widest">
                 Field Operations Console
               </span>
-              <span className="text-xs text-slate-400 font-mono">Specialist: {user?.name}</span>
+              <span className="text-xs text-white/70 font-mono">Specialist: {user?.name}</span>
             </div>
             <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-white font-heading tracking-tight">
               Technician Incident Workspace
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-slate-300 max-w-2xl font-light">
+            <p className="mt-1 text-xs sm:text-sm text-white/80 max-w-2xl font-light">
               Manage work orders across campus facilities, document diagnostic telemetry, and resolve infrastructure issues.
             </p>
           </div>
@@ -1599,7 +1506,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
             <button
               type="button"
               onClick={() => fetchTickets()}
-              className="px-3.5 py-2 rounded-xl bg-[#202733]/80 hover:bg-[#202733] border border-slate-300/20 text-slate-300 text-xs font-semibold transition-all flex items-center gap-2"
+              className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold transition-all flex items-center gap-2"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#D99B7F]' : ''}`} />
               <span>Refresh</span>
@@ -1608,9 +1515,9 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
               <button
                 type="button"
                 onClick={onOpenRoleTester}
-                className="px-3.5 py-2 rounded-xl bg-[#464858]/50 hover:bg-[#464858] border border-amber-500/30 text-slate-200 text-xs font-semibold transition-all flex items-center gap-2"
+                className="px-3.5 py-2 rounded-xl bg-[#A56F63] hover:bg-[#8e5e54] text-white text-xs font-semibold transition-all flex items-center gap-2"
               >
-                <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                <ShieldAlert className="w-3.5 h-3.5 text-white" />
                 <span>Verify Roles</span>
               </button>
             )}
@@ -1618,13 +1525,13 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
         </div>
       </div>
 
-      {/* Five Overview Cards required by prompt */}
+      {/* Five Overview Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         <StatCard
           label="Assigned to Me"
           value={overviewStats.assignedToMe}
           icon={ClipboardList}
-          color="text-[#D99B7F]"
+          color="text-[#A56F63]"
           sub="Total assigned orders"
           onClick={() => setActiveTab('assigned')}
         />
@@ -1632,7 +1539,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
           label="New Assignments"
           value={overviewStats.newAssignments}
           icon={Inbox}
-          color="text-blue-300"
+          color="text-[#405C78]"
           sub="Awaiting triage pickup"
           onClick={() => setActiveTab('assigned')}
         />
@@ -1640,7 +1547,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
           label="In Progress"
           value={overviewStats.inProgress}
           icon={Wrench}
-          color="text-sky-300"
+          color="text-[#93651C]"
           sub="Active troubleshooting"
           onClick={() => setActiveTab('in-progress')}
         />
@@ -1648,7 +1555,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
           label="Resolved"
           value={overviewStats.resolved}
           icon={CheckCircle2}
-          color="text-emerald-400"
+          color="text-[#286448]"
           sub="Completed repairs"
           onClick={() => setActiveTab('resolved')}
         />
@@ -1656,7 +1563,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
           label="High / Critical"
           value={overviewStats.highCritical}
           icon={AlertTriangle}
-          color="text-red-400"
+          color="text-[#A33D35]"
           sub="Urgent SLA incidents"
           onClick={() => {
             setActiveTab('assigned');
@@ -1669,14 +1576,14 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ClipboardList className="w-4 h-4 text-[#D99B7F]" />
-            <h2 className="text-sm font-bold text-white font-heading">My Active Incidents</h2>
-            <span className="text-xs text-slate-400 font-mono">({myAssignedTickets.length})</span>
+            <ClipboardList className="w-4 h-4 text-[#A56F63]" />
+            <h2 className="text-sm font-bold text-[#0F3040] font-heading">My Active Incidents</h2>
+            <span className="text-xs text-[#464858] font-mono">({myAssignedTickets.length})</span>
           </div>
           <button
             type="button"
             onClick={() => setActiveTab('assigned')}
-            className="text-xs text-slate-400 hover:text-[#D99B7F] transition-colors flex items-center gap-1"
+            className="text-xs text-[#464858] hover:text-[#A56F63] transition-colors flex items-center gap-1 font-semibold"
           >
             <span>View Full Queue</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -1690,16 +1597,16 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Inbox className="w-4 h-4 text-blue-300" />
-              <h2 className="text-sm font-bold text-white font-heading">Unassigned Incidents Available</h2>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">
+              <Inbox className="w-4 h-4 text-[#405C78]" />
+              <h2 className="text-sm font-bold text-[#0F3040] font-heading">Unassigned Incidents Available</h2>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#E5EAF0] text-[#405C78] font-bold border border-[#405C78]/30">
                 {availableTickets.length} Open
               </span>
             </div>
             <button
               type="button"
               onClick={() => setActiveTab('available')}
-              className="text-xs text-slate-400 hover:text-[#D99B7F] transition-colors flex items-center gap-1"
+              className="text-xs text-[#464858] hover:text-[#A56F63] transition-colors flex items-center gap-1 font-semibold"
             >
               <span>View All Available</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -1716,9 +1623,9 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
+          <h2 className="text-lg font-extrabold text-[#0F3040] font-heading flex items-center gap-2">
             <span>{title}</span>
-            <span className="text-xs font-normal text-slate-400 font-mono">({filteredTickets.length})</span>
+            <span className="text-xs font-normal text-[#464858] font-mono">({filteredTickets.length})</span>
           </h2>
         </div>
 
@@ -1726,18 +1633,18 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
           <button
             type="button"
             onClick={() => fetchTickets()}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#464858]/50 transition-colors"
+            className="p-2 rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-white border border-[#E7E4DF] bg-white transition-colors shadow-xs"
             title="Refresh queue"
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-[#D99B7F]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-[#A56F63]' : ''}`} />
           </button>
           <button
             type="button"
             onClick={() => setShowFilters((prev) => !prev)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all shadow-xs ${
               showFilters
-                ? 'bg-[#D99B7F]/20 text-[#D99B7F] border-[#D99B7F]/40'
-                : 'bg-[#202733]/60 text-slate-400 border-slate-300/20 hover:text-white'
+                ? 'bg-[#A56F63]/15 text-[#A56F63] border-[#A56F63]/40'
+                : 'bg-white text-[#464858] border-[#E7E4DF] hover:text-[#0F3040]'
             }`}
           >
             <Filter className="w-3.5 h-3.5" />
@@ -1749,7 +1656,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
 
       {/* Search Input */}
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8D8B96]" />
         <input
           type="text"
           placeholder="Search by incident ID, title, building, room, or reporter name..."
@@ -1758,13 +1665,13 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
             setSearchQuery(e.target.value);
             setCurrentPage(1);
           }}
-          className="w-full pl-10 pr-9 py-2.5 rounded-xl glass-input text-white text-xs placeholder-slate-400"
+          className="w-full pl-10 pr-9 py-2.5 rounded-xl saas-input text-[#0F3040] text-xs placeholder-[#8D8B96]"
         />
         {searchQuery && (
           <button
             type="button"
             onClick={() => setSearchQuery('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8D8B96] hover:text-[#0F3040]"
           >
             <X className="w-4 h-4" />
           </button>
@@ -1773,16 +1680,16 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
 
       {/* Expanded Filter Drawer */}
       {showFilters && (
-        <div className="p-4 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs grid grid-cols-1 sm:grid-cols-4 gap-3">
           <div>
-            <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Status</label>
+            <label className="text-[10px] text-[#464858] uppercase font-bold block mb-1">Status</label>
             <select
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs"
+              className="w-full px-3 py-2 rounded-xl saas-input text-[#0F3040] text-xs"
             >
               <option value="all">All Lifecycle Statuses</option>
               <option value="Open">Open</option>
@@ -1794,14 +1701,14 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
           </div>
 
           <div>
-            <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Priority</label>
+            <label className="text-[10px] text-[#464858] uppercase font-bold block mb-1">Priority</label>
             <select
               value={priorityFilter}
               onChange={(e) => {
                 setPriorityFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs"
+              className="w-full px-3 py-2 rounded-xl saas-input text-[#0F3040] text-xs"
             >
               <option value="all">All Priorities</option>
               <option value="Critical">Critical</option>
@@ -1812,14 +1719,14 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
           </div>
 
           <div>
-            <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Category</label>
+            <label className="text-[10px] text-[#464858] uppercase font-bold block mb-1">Category</label>
             <select
               value={categoryFilter}
               onChange={(e) => {
                 setCategoryFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs"
+              className="w-full px-3 py-2 rounded-xl saas-input text-[#0F3040] text-xs"
             >
               <option value="all">All Categories</option>
               <option value="Network / Wi-Fi">Network / Wi-Fi</option>
@@ -1834,11 +1741,11 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
           </div>
 
           <div>
-            <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Sorting</label>
+            <label className="text-[10px] text-[#464858] uppercase font-bold block mb-1">Sorting</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl glass-input text-white text-xs"
+              className="w-full px-3 py-2 rounded-xl saas-input text-[#0F3040] text-xs"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -1856,11 +1763,11 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
       <div className="space-y-4 max-w-3xl">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h2 className="text-lg font-extrabold text-white font-heading flex items-center gap-2">
-              <Bell className="w-5 h-5 text-[#D99B7F]" />
+            <h2 className="text-lg font-extrabold text-[#0F3040] font-heading flex items-center gap-2">
+              <Bell className="w-5 h-5 text-[#A56F63]" />
               <span>Technician Work Orders & Dispatch Feed</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[#464858] mt-0.5">
               Live notifications for assignments, priority updates, reporter notes, and critical alerts.
             </p>
           </div>
@@ -1870,7 +1777,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
               <button
                 type="button"
                 onClick={markAllAsRead}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#202733] border border-[#D99B7F]/40 text-[#D99B7F] hover:text-white flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-[#E7E4DF] text-[#464858] hover:text-[#0F3040] shadow-xs flex items-center gap-1.5"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 <span>Mark All Read</span>
@@ -1879,8 +1786,7 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
             <button
               type="button"
               onClick={openCenterModal}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#0F3040] shadow flex items-center gap-1.5"
-              style={{ background: 'linear-gradient(135deg, #A56F63, #D99B7F)' }}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-[#0F3040] hover:bg-[#183E4C] shadow-xs flex items-center gap-1.5"
             >
               <span>Notification Center</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -1889,9 +1795,9 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
         </div>
 
         {notifications.length === 0 ? (
-          <div className="p-12 rounded-2xl bg-[#1a222d]/60 border border-slate-300/15 text-center">
-            <Bell className="w-10 h-10 mx-auto text-slate-600 mb-3" />
-            <p className="text-sm font-semibold text-slate-400">No notifications in your feed</p>
+          <div className="p-12 rounded-2xl bg-white border border-[#E7E4DF] text-center shadow-xs">
+            <Bell className="w-10 h-10 mx-auto text-[#8D8B96] mb-3" />
+            <p className="text-sm font-semibold text-[#464858]">No notifications in your feed</p>
           </div>
         ) : (
           <div className="space-y-2.5">
@@ -1904,41 +1810,41 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                     setSelectedTicketId(notif.ticket_id);
                   }
                 }}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3.5 group ${
+                className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3.5 group shadow-xs ${
                   !notif.is_read
-                    ? 'bg-[#1a222d] border-[#D99B7F]/40 shadow-lg'
-                    : 'bg-[#151c26]/70 border-slate-300/15 hover:border-slate-300/35'
+                    ? 'bg-white border-l-4 border-l-[#A56F63] border-[#E7E4DF]'
+                    : 'bg-white border-[#E7E4DF] hover:bg-[#F5F3EF]/60'
                 }`}
               >
                 <div
                   className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${
                     notif.priority === 'critical'
-                      ? 'bg-red-400'
+                      ? 'bg-[#A33D35]'
                       : notif.priority === 'high'
-                      ? 'bg-amber-400'
-                      : 'bg-[#D99B7F]'
+                      ? 'bg-[#93651C]'
+                      : 'bg-[#A56F63]'
                   }`}
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2 flex-wrap">
                       {notif.ticket_number && (
-                        <span className="font-mono text-xs font-bold text-[#D99B7F] group-hover:underline">
+                        <span className="font-mono text-xs font-bold text-[#A56F63] group-hover:underline">
                           {notif.ticket_number}
                         </span>
                       )}
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#0F3040] text-purple-300 border border-purple-500/30">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30">
                         {notif.event_type}
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span className="text-[10px] text-[#464858] font-mono">
                       {formatTimeAgo(notif.created_at)}
                     </span>
                   </div>
-                  <p className="text-sm font-bold text-white mt-1">{notif.title}</p>
-                  <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">{notif.message}</p>
+                  <p className="text-sm font-bold text-[#0F3040] mt-1">{notif.title}</p>
+                  <p className="text-xs text-[#464858] mt-0.5 leading-relaxed">{notif.message}</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-white transition-colors self-center" />
+                <ChevronRight className="w-4 h-4 text-[#8D8B96] group-hover:text-[#0F3040] transition-colors self-center" />
               </div>
             ))}
           </div>
@@ -1950,47 +1856,46 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
   // ─── Profile Tab ────────────────────────────────────────────────────────────
   const renderProfileTab = () => (
     <div className="space-y-4 max-w-xl">
-      <h2 className="text-lg font-extrabold text-white font-heading">Specialist Profile</h2>
-      <div className="p-6 rounded-2xl bg-[#1a222d]/90 border border-slate-300/20 shadow-xl space-y-5">
+      <h2 className="text-lg font-extrabold text-[#0F3040] font-heading">Specialist Profile</h2>
+      <div className="p-6 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-5">
         <div className="flex items-center gap-4">
           <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-extrabold text-white shadow-lg"
-            style={{ background: `linear-gradient(135deg, ${COLORS.terracotta}, ${COLORS.roseGold})` }}
+            className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-extrabold text-white shadow-xs bg-[#0F3040]"
           >
             {(user?.name || 'T')[0].toUpperCase()}
           </div>
           <div>
-            <h3 className="text-xl font-extrabold text-white font-heading">{user?.name || 'Technician Specialist'}</h3>
-            <p className="text-xs text-slate-400">{user?.email}</p>
-            <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+            <h3 className="text-xl font-extrabold text-[#0F3040] font-heading">{user?.name || 'Technician Specialist'}</h3>
+            <p className="text-xs text-[#464858]">{user?.email}</p>
+            <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-0.5 rounded-full text-[10px] font-bold bg-[#E5EAF0] text-[#405C78] border border-[#405C78]/30">
               <Wrench className="w-3 h-3" /> Field Technician Specialist
             </span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-xs">
-          <div className="p-3.5 rounded-xl bg-[#202733]/60 border border-slate-300/15">
-            <span className="text-[10px] text-slate-500 uppercase font-bold">Staff ID</span>
-            <p className="font-mono text-sm font-bold text-white mt-0.5">{user?.college_id || 'CAMPUS-TECH'}</p>
+          <div className="p-3.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+            <span className="text-[10px] text-[#464858] uppercase font-bold">Staff ID</span>
+            <p className="font-mono text-sm font-bold text-[#0F3040] mt-0.5">{user?.college_id || 'CAMPUS-TECH'}</p>
           </div>
-          <div className="p-3.5 rounded-xl bg-[#202733]/60 border border-slate-300/15">
-            <span className="text-[10px] text-slate-500 uppercase font-bold">Department</span>
-            <p className="text-sm font-bold text-white mt-0.5">{user?.department || 'Campus IT Operations'}</p>
+          <div className="p-3.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+            <span className="text-[10px] text-[#464858] uppercase font-bold">Department</span>
+            <p className="text-sm font-bold text-[#0F3040] mt-0.5">{user?.department || 'Campus IT Operations'}</p>
           </div>
-          <div className="p-3.5 rounded-xl bg-[#202733]/60 border border-slate-300/15">
-            <span className="text-[10px] text-slate-500 uppercase font-bold">Active Assigned</span>
-            <p className="text-sm font-bold text-[#D99B7F] mt-0.5">{overviewStats.assignedToMe}</p>
+          <div className="p-3.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+            <span className="text-[10px] text-[#464858] uppercase font-bold">Active Assigned</span>
+            <p className="text-sm font-bold text-[#A56F63] mt-0.5">{overviewStats.assignedToMe}</p>
           </div>
-          <div className="p-3.5 rounded-xl bg-[#202733]/60 border border-slate-300/15">
-            <span className="text-[10px] text-slate-500 uppercase font-bold">Resolved Repairs</span>
-            <p className="text-sm font-bold text-emerald-400 mt-0.5">{overviewStats.resolved}</p>
+          <div className="p-3.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF]">
+            <span className="text-[10px] text-[#464858] uppercase font-bold">Resolved Repairs</span>
+            <p className="text-sm font-bold text-[#286448] mt-0.5">{overviewStats.resolved}</p>
           </div>
         </div>
 
         <button
           type="button"
           onClick={logout}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 transition-all"
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-[#A33D35] bg-[#F5DEDA] hover:bg-[#F5DEDA]/80 border border-[#A33D35]/30 transition-all"
         >
           <LogOut className="w-4 h-4" />
           <span>Sign Out of Technician Console</span>
@@ -2011,37 +1916,40 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0a131a] text-slate-100">
-      {/* Desktop Persistent Sidebar */}
-      <div className="hidden lg:flex">
-        {renderSidebar()}
-      </div>
-
-      {/* Mobile Drawer Sidebar */}
-      {isMobileSidebarOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden" onClick={() => setIsMobileSidebarOpen(false)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div className="absolute left-0 top-0 bottom-0 w-64" onClick={(e) => e.stopPropagation()}>
-            {renderSidebar()}
-          </div>
-        </div>
-      )}
+    <div className="flex h-screen overflow-hidden bg-[#F5F3EF] text-[#0F3040]">
+      <UnifiedSidebar
+        brandRole="TECHNICIAN"
+        brandSub="Field Operations"
+        navItems={NAV_ITEMS}
+        activeTab={activeTab}
+        onTabChange={(tabId) => {
+          setActiveTab(tabId);
+          setSelectedTicket(null);
+          setCurrentPage(1);
+        }}
+        user={user}
+        onLogout={logout}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        onOpenRoleTester={onOpenRoleTester}
+      />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header className="shrink-0 flex items-center justify-between gap-4 px-4 sm:px-6 py-3.5 border-b border-slate-300/10 bg-[#0F3040]/80 backdrop-blur-md">
-          <div className="flex items-center gap-3">
+        <header className="shrink-0 flex items-center justify-between gap-3 sm:gap-4 px-3 sm:px-6 py-3 sm:py-3.5 border-b border-[#E7E4DF] bg-white">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <button
               type="button"
-              className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#464858]/50"
+              className="lg:hidden p-2 min-w-[42px] min-h-[42px] flex items-center justify-center rounded-xl text-[#464858] hover:text-[#0F3040] hover:bg-[#F5F3EF] active:scale-95 transition-all"
               onClick={() => setIsMobileSidebarOpen(true)}
+              aria-label="Open navigation menu"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div>
-              <p className="text-[11px] text-slate-400 font-mono hidden sm:block">CampusFix · Field Operations</p>
-              <h2 className="text-sm font-bold text-white">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-[11px] text-[#464858] font-mono hidden sm:block truncate">CampusFix · Field Operations</p>
+              <h2 className="text-xs sm:text-sm font-bold text-[#0F3040] truncate max-w-[170px] xs:max-w-[220px] sm:max-w-none">
                 {selectedTicket ? `Incident Workspace: ${selectedTicket.ticket_number}` : tabTitles[activeTab]}
               </h2>
             </div>
@@ -2057,21 +1965,20 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
                 setActiveTab('profile');
                 setSelectedTicket(null);
               }}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#202733]/70 border border-slate-300/20 hover:border-slate-300/40 transition-all"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] hover:border-[#A56F63]/50 transition-all shadow-xs"
             >
               <div
-                className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                style={{ background: `linear-gradient(135deg, ${COLORS.terracotta}, ${COLORS.roseGold})` }}
+                className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white bg-[#0F3040]"
               >
                 {(user?.name || 'T')[0].toUpperCase()}
               </div>
-              <span className="text-xs font-semibold text-white hidden sm:block">{user?.name?.split(' ')[0]}</span>
+              <span className="text-xs font-semibold text-[#0F3040] hidden sm:block">{user?.name?.split(' ')[0]}</span>
             </button>
           </div>
         </header>
 
         {/* Dynamic View Body */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F5F3EF]">
           {selectedTicket ? (
             renderIncidentWorkspace()
           ) : activeTab === 'overview' ? (
@@ -2084,8 +1991,8 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
             <div className="space-y-4">
               {renderFilterBar(tabTitles[activeTab])}
               {isLoading ? (
-                <div className="flex items-center justify-center py-16 text-slate-400">
-                  <RefreshCw className="w-6 h-6 animate-spin mr-3 text-[#D99B7F]" />
+                <div className="flex items-center justify-center py-16 text-[#464858]">
+                  <RefreshCw className="w-6 h-6 animate-spin mr-3 text-[#A56F63]" />
                   <span>Loading incident data...</span>
                 </div>
               ) : (

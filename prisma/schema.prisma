@@ -1,0 +1,228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int       @id @default(autoincrement())
+  name             String
+  email            String    @unique
+  collegeId        String    @unique @map("college_id")
+  passwordHash     String    @map("password_hash")
+  role             String    @default("Reporter") // Reporter, Technician, Administrator
+  userType         String    @default("Student") @map("user_type") // Student, Faculty, Staff, IT Staff
+  department       String    @default("General Campus")
+  status           String    @default("active") // active, suspended
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  lastLogin        DateTime? @map("last_login")
+  resetToken       String?   @map("reset_token")
+  resetTokenExpiry DateTime? @map("reset_token_expiry")
+
+  // Relations
+  reportedIncidents   Incident[]             @relation("ReportedIncidents")
+  assignedIncidents   Incident[]             @relation("AssignedIncidents")
+  assignments         TechnicianAssignment[] @relation("TechnicianAssignments")
+  assignedByList      TechnicianAssignment[] @relation("AssignmentAssigner")
+  comments            IncidentComment[]
+  activities          IncidentActivity[]
+  notifications       Notification[]
+  auditLogs           AuditLog[]
+
+  @@map("users")
+}
+
+model IncidentCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  code        String   @unique
+  description String?
+  slaHours    Int      @default(4) @map("sla_hours")
+  status      String   @default("active") // active, deactivated
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  incidents Incident[]
+  services  CampusService[]
+
+  @@map("categories")
+}
+
+model CampusLocation {
+  id        Int      @id @default(autoincrement())
+  building  String
+  floor     String   @default("Ground Floor")
+  room      String
+  status    String   @default("active") // active, inactive
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  incidents Incident[]
+
+  @@unique([building, floor, room])
+  @@map("locations")
+}
+
+model CampusService {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  categoryId  Int?     @map("category_id")
+  category    IncidentCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  status      String   @default("active") // active, deactivated
+  slaHours    Int      @default(4) @map("sla_hours")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  incidents Incident[]
+
+  @@map("services")
+}
+
+model Incident {
+  id                 Int       @id @default(autoincrement())
+  ticketNumber       String    @unique @map("ticket_number")
+  title              String
+  description        String
+  categoryId         Int?      @map("category_id")
+  category           IncidentCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryName       String    @map("category_name")
+  locationId         Int?      @map("location_id")
+  location           CampusLocation? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  serviceId          Int?      @map("service_id")
+  service            CampusService?  @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  building           String
+  floor              String?
+  room               String?
+  affectedService    String?   @map("affected_service")
+  priority           String    @default("Medium") // Low, Medium, High, Critical
+  status             String    @default("Open") // Open, In Progress, Resolved, Closed
+  reporterId         Int       @map("reporter_id")
+  reporter           User      @relation("ReportedIncidents", fields: [reporterId], references: [id], onDelete: Cascade)
+  technicianId       Int?      @map("technician_id")
+  technician         User?     @relation("AssignedIncidents", fields: [technicianId], references: [id], onDelete: SetNull)
+  slaDeadline        DateTime? @map("sla_deadline")
+  firstResponseAt    DateTime? @map("first_response_at")
+  resolvedAt         DateTime? @map("resolved_at")
+  closedAt           DateTime? @map("closed_at")
+  resolutionNotes    String?   @map("resolution_notes")
+  isRecurring        Boolean   @default(false) @map("is_recurring")
+  recurringClusterId String?   @map("recurring_cluster_id")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  comments    IncidentComment[]
+  attachments IncidentAttachment[]
+  activities  IncidentActivity[]
+  assignments TechnicianAssignment[]
+  notifications Notification[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([building])
+  @@index([createdAt])
+  @@map("tickets")
+}
+
+model TechnicianAssignment {
+  id           Int       @id @default(autoincrement())
+  incidentId   Int       @map("incident_id")
+  incident     Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  technicianId Int       @map("technician_id")
+  technician   User      @relation("TechnicianAssignments", fields: [technicianId], references: [id], onDelete: Cascade)
+  assignedById Int?      @map("assigned_by_id")
+  assignedBy   User?     @relation("AssignmentAssigner", fields: [assignedById], references: [id], onDelete: SetNull)
+  assignedAt   DateTime  @default(now()) @map("assigned_at")
+  notes        String?
+  status       String    @default("active") // active, reassigned, completed
+  completedAt  DateTime? @map("completed_at")
+
+  @@index([technicianId])
+  @@index([incidentId])
+  @@map("technician_assignments")
+}
+
+model IncidentComment {
+  id         Int      @id @default(autoincrement())
+  incidentId Int      @map("incident_id")
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  userId     Int      @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message    String
+  isInternal Boolean  @default(false) @map("is_internal")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([incidentId])
+  @@map("ticket_notes")
+}
+
+model IncidentAttachment {
+  id         Int      @id @default(autoincrement())
+  incidentId Int      @map("incident_id")
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  fileName   String   @map("file_name")
+  fileType   String   @map("file_type")
+  fileSize   Int      @map("file_size")
+  fileData   String   @map("file_data")
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+
+  @@index([incidentId])
+  @@map("ticket_attachments")
+}
+
+model Notification {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("user_id")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticketId     Int?      @map("ticket_id")
+  ticket       Incident? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  ticketNumber String?   @map("ticket_number")
+  eventType    String    @map("event_type")
+  title        String
+  message      String
+  priority     String    @default("normal") // normal, high, critical
+  building     String?
+  isRead       Boolean   @default(false) @map("is_read")
+  emailSent    Boolean   @default(false) @map("email_sent")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model IncidentActivity {
+  id         Int       @id @default(autoincrement())
+  incidentId Int       @map("incident_id")
+  incident   Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  userId     Int?      @map("user_id")
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String    // CREATED, STATUS_CHANGED, ASSIGNED, PRIORITY_CHANGED, COMMENT_ADDED, RESOLVED, CLOSED, REOPENED
+  fromState  String?   @map("from_state")
+  toState    String?   @map("to_state")
+  details    String?
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([incidentId])
+  @@map("incident_activities")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  details   String?
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([action])
+  @@map("audit_logs")
+}
+

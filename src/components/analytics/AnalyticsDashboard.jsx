@@ -34,6 +34,7 @@ import {
   FrequentlyAffectedServices,
 } from './AnalyticsCharts';
 import ReportPrintModal from './ReportPrintModal';
+import StatusBadge from '../ui/StatusBadge';
 
 export default function AnalyticsDashboard({ onNavigateToIncident }) {
   const { token, user } = useAuth();
@@ -178,19 +179,19 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
   return (
     <div className="space-y-6">
       {/* ── Top Header & Report Actions ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-slate-800">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-[#E7E4DF]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[10px] font-black tracking-wider uppercase bg-[#D99B7F]/20 text-[#D99B7F] border border-[#D99B7F]/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase bg-[#183E4C] text-[#D99B7F]">
               Campus Operations Intelligence
             </span>
-            <span className="text-xs text-slate-400 font-mono">Real-time DB-Driven</span>
+            <span className="text-xs text-[#464858] font-mono">Live Database Aggregation</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-white font-heading mt-1 flex items-center gap-2.5">
-            <BarChart3 className="w-6 h-6 text-[#D99B7F]" />
+          <h1 className="text-2xl sm:text-3xl font-black text-[#0F3040] font-heading mt-1 flex items-center gap-2.5">
+            <BarChart3 className="w-6 h-6 text-[#A56F63]" />
             <span>Infrastructure Analytics & SLA Performance</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#464858] mt-0.5">
             Institutional operational metrics, velocity tracking, incident patterns, and field technician dispatch efficiency.
           </p>
         </div>
@@ -201,19 +202,19 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
             type="button"
             onClick={fetchAnalytics}
             disabled={isLoading}
-            className="p-2.5 rounded-xl text-xs font-semibold bg-[#202733] border border-slate-700/80 text-slate-300 hover:text-white transition-all disabled:opacity-50"
+            className="p-2.5 rounded-xl text-xs font-semibold bg-white border border-[#E7E4DF] text-[#464858] hover:text-[#0F3040] hover:bg-slate-50 transition-all shadow-xs disabled:opacity-50"
             title="Refresh database records"
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-[#D99B7F]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-[#A56F63]' : ''}`} />
           </button>
 
           <button
             type="button"
             onClick={handleExportCsv}
             disabled={isExportingCsv || !data}
-            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#1a2330] border border-[#D99B7F]/30 text-slate-200 hover:text-white hover:border-[#D99B7F] transition-all flex items-center gap-1.5 shadow"
+            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-[#E7E4DF] text-[#183E4C] hover:text-[#0F3040] hover:border-[#0F3040]/30 transition-all flex items-center gap-1.5 shadow-xs"
           >
-            <Download className="w-3.5 h-3.5 text-[#D99B7F]" />
+            <Download className="w-3.5 h-3.5 text-[#A56F63]" />
             <span>{isExportingCsv ? 'Exporting...' : 'Export CSV'}</span>
           </button>
 
@@ -221,22 +222,21 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
             type="button"
             onClick={() => setIsPrintModalOpen(true)}
             disabled={!data}
-            className="px-4 py-2 rounded-xl text-xs font-black text-[#0F3040] flex items-center gap-2 shadow-lg transition-all hover:brightness-110 active:scale-95"
-            style={{ background: 'linear-gradient(135deg, #A56F63, #D99B7F)' }}
+            className="px-4 py-2 rounded-xl text-xs font-black text-white bg-[#0F3040] hover:bg-[#183E4C] flex items-center gap-2 shadow-sm transition-all active:scale-95"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-4 h-4 text-[#D99B7F]" />
             <span>Generate PDF / Print Report</span>
           </button>
         </div>
       </div>
 
       {/* ── Filter Bar ── */}
-      <div className="p-4 rounded-2xl bg-[#17202b]/90 border border-slate-700/60 shadow-xl space-y-3">
+      <div className="p-4 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Quick Date Range Pills */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-[#D99B7F]" /> Range:
+            <span className="text-[11px] font-bold text-[#464858] uppercase tracking-wider mr-1 flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-[#A56F63]" /> Range:
             </span>
             {[
               { id: 'today', label: 'Today' },
@@ -254,8 +254,8 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
                   onClick={() => setTimeRange(p.id)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                     isActive
-                      ? 'bg-[#D99B7F] text-[#0F3040] font-bold shadow'
-                      : 'bg-[#202733] text-slate-300 hover:text-white border border-slate-700/60'
+                      ? 'bg-[#0F3040] text-white font-bold shadow-xs'
+                      : 'bg-[#F5F3EF] text-[#464858] hover:text-[#0F3040] border border-[#E7E4DF]'
                   }`}
                 >
                   {p.label}
@@ -269,7 +269,7 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
             <button
               type="button"
               onClick={handleResetFilters}
-              className="text-xs text-slate-400 hover:text-rose-400 flex items-center gap-1 transition-colors self-start lg:self-auto"
+              className="text-xs text-[#A33D35] hover:underline flex items-center gap-1 transition-colors self-start lg:self-auto font-medium"
             >
               <X className="w-3.5 h-3.5" />
               <span>Reset Filters</span>
@@ -279,40 +279,40 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
 
         {/* Custom Date Pickers */}
         {timeRange === 'custom' && (
-          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-700 flex flex-wrap items-center gap-3 text-xs">
-            <span className="text-slate-400 font-medium">Custom Range:</span>
+          <div className="p-3 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] flex flex-wrap items-center gap-3 text-xs">
+            <span className="text-[#183E4C] font-semibold">Custom Range:</span>
             <div className="flex items-center gap-2">
-              <label className="text-[11px] text-slate-400">From:</label>
+              <label className="text-[11px] text-[#464858]">From:</label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-2.5 py-1 rounded-lg bg-[#1a222d] border border-slate-700 text-white font-mono"
+                className="px-2.5 py-1 rounded-lg bg-white border border-[#E7E4DF] text-[#0F3040] font-mono text-xs outline-none focus:border-[#0F3040]"
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-[11px] text-slate-400">To:</label>
+              <label className="text-[11px] text-[#464858]">To:</label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-2.5 py-1 rounded-lg bg-[#1a222d] border border-slate-700 text-white font-mono"
+                className="px-2.5 py-1 rounded-lg bg-white border border-[#E7E4DF] text-[#0F3040] font-mono text-xs outline-none focus:border-[#0F3040]"
               />
             </div>
           </div>
         )}
 
         {/* Multi-Select Filters: Building, Category, Priority */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-800">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-[#E7E4DF]">
           {/* Building */}
           <div>
-            <label className="text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
-              <Building2 className="w-3 h-3 text-[#D99B7F]" /> Building
+            <label className="text-[10px] uppercase font-bold text-[#464858] mb-1 flex items-center gap-1">
+              <Building2 className="w-3 h-3 text-[#A56F63]" /> Building
             </label>
             <select
               value={building}
               onChange={(e) => setBuilding(e.target.value)}
-              className="w-full px-3 py-1.5 rounded-xl bg-[#141b24] border border-slate-700 text-xs text-white focus:outline-none focus:border-[#D99B7F]"
+              className="w-full px-3 py-2 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-xs text-[#0F3040] font-medium focus:outline-none focus:border-[#0F3040] transition-colors"
             >
               <option value="all">All Campus Buildings</option>
               {filterOptions.buildings.map((b) => (
@@ -325,13 +325,13 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
 
           {/* Category */}
           <div>
-            <label className="text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
-              <Tag className="w-3 h-3 text-[#D99B7F]" /> Category
+            <label className="text-[10px] uppercase font-bold text-[#464858] mb-1 flex items-center gap-1">
+              <Tag className="w-3 h-3 text-[#A56F63]" /> Category
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-1.5 rounded-xl bg-[#141b24] border border-slate-700 text-xs text-white focus:outline-none focus:border-[#D99B7F]"
+              className="w-full px-3 py-2 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-xs text-[#0F3040] font-medium focus:outline-none focus:border-[#0F3040] transition-colors"
             >
               <option value="all">All Infrastructure Categories</option>
               {filterOptions.categories.map((c) => (
@@ -344,13 +344,13 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
 
           {/* Priority */}
           <div>
-            <label className="text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3 text-[#D99B7F]" /> Severity Priority
+            <label className="text-[10px] uppercase font-bold text-[#464858] mb-1 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3 text-[#A56F63]" /> Severity Priority
             </label>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
-              className="w-full px-3 py-1.5 rounded-xl bg-[#141b24] border border-slate-700 text-xs text-white focus:outline-none focus:border-[#D99B7F]"
+              className="w-full px-3 py-2 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-xs text-[#0F3040] font-medium focus:outline-none focus:border-[#0F3040] transition-colors"
             >
               <option value="all">All Priorities</option>
               <option value="Critical">Critical</option>
@@ -364,113 +364,136 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
 
       {/* ── Error Banner ── */}
       {error && (
-        <div className="p-4 rounded-2xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-[#F5DEDA] border border-[#A33D35]/30 text-[#A33D35] text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-red-400" />
+            <ShieldAlert className="w-4 h-4 text-[#A33D35]" />
             <span>{error}</span>
           </div>
           <button
             type="button"
             onClick={fetchAnalytics}
-            className="px-3 py-1 rounded-lg bg-red-500/30 text-white font-bold text-[11px]"
+            className="px-3 py-1 rounded-lg bg-white text-[#A33D35] font-bold text-[11px] border border-[#A33D35]/30"
           >
             Retry
           </button>
         </div>
       )}
 
-      {/* ── 8 KEY PERFORMANCE INDICATOR CARDS ── */}
+      {/* ── 8 KEY PERFORMANCE INDICATOR CARDS (Clean White Cards) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
         {/* 1. Total Incidents */}
-        <div className="p-3.5 rounded-2xl bg-[#17202b]/80 border border-slate-800 shadow space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400">Total Logged</span>
-          <div className="text-2xl font-black text-white font-heading">{kpis.totalIncidents}</div>
-          <p className="text-[9px] text-slate-400 truncate">Filtered window</p>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#0F3040]/30 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#464858]">Total Logged</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0F3040]" />
+          </div>
+          <div className="text-2xl font-black text-[#0F3040] font-heading tracking-tight">{kpis.totalIncidents}</div>
+          <p className="text-[10px] text-[#464858] truncate">Filtered window</p>
         </div>
 
         {/* 2. Open Incidents */}
-        <div className="p-3.5 rounded-2xl bg-[#17202b]/80 border border-amber-500/20 shadow space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-amber-400">Open Triage</span>
-          <div className="text-2xl font-black text-amber-300 font-heading">{kpis.openIncidents}</div>
-          <p className="text-[9px] text-amber-400/80 truncate">Pending dispatch</p>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#405C78]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#405C78]">Open Triage</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#405C78]" />
+          </div>
+          <div className="text-2xl font-black text-[#405C78] font-heading tracking-tight">{kpis.openIncidents}</div>
+          <p className="text-[10px] text-[#405C78] truncate">Pending dispatch</p>
         </div>
 
         {/* 3. Resolved Incidents */}
-        <div className="p-3.5 rounded-2xl bg-[#17202b]/80 border border-emerald-500/20 shadow space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-emerald-400">Resolved Total</span>
-          <div className="text-2xl font-black text-emerald-300 font-heading">{kpis.resolvedIncidents}</div>
-          <p className="text-[9px] text-emerald-400/80 truncate">Complete / Closed</p>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#286448]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#286448]">Resolved</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#286448]" />
+          </div>
+          <div className="text-2xl font-black text-[#286448] font-heading tracking-tight">{kpis.resolvedIncidents}</div>
+          <p className="text-[10px] text-[#286448] truncate">Complete / Closed</p>
         </div>
 
         {/* 4. Critical Incidents */}
-        <div className="p-3.5 rounded-2xl bg-[#17202b]/80 border border-red-500/20 shadow space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-red-400">Critical Priority</span>
-          <div className="text-2xl font-black text-red-300 font-heading">{kpis.criticalIncidents}</div>
-          <p className="text-[9px] text-red-400/80 truncate">Immediate hazard</p>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#A33D35]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#A33D35]">Critical</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#A33D35]" />
+          </div>
+          <div className="text-2xl font-black text-[#A33D35] font-heading tracking-tight">{kpis.criticalIncidents}</div>
+          <p className="text-[10px] text-[#A33D35] truncate">Immediate hazard</p>
         </div>
 
         {/* 5. Avg Response Time */}
-        <div className="p-3.5 rounded-2xl bg-[#17202b]/80 border border-purple-500/20 shadow space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-purple-400">Avg Response</span>
-          <div className="text-2xl font-black text-purple-300 font-heading">{kpis.avgResponseTime}</div>
-          <p className="text-[9px] text-purple-400/80 truncate">Log to first note</p>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#183E4C]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#183E4C]">Avg Response</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#183E4C]" />
+          </div>
+          <div className="text-2xl font-black text-[#183E4C] font-heading tracking-tight">{kpis.avgResponseTime}</div>
+          <p className="text-[10px] text-[#464858] truncate">Log to first note</p>
         </div>
 
         {/* 6. Avg Resolution Time */}
-        <div className="p-3.5 rounded-2xl bg-[#17202b]/80 border border-[#D99B7F]/30 shadow space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#D99B7F]">Avg Resolution</span>
-          <div className="text-2xl font-black text-[#D99B7F] font-heading">{kpis.avgResolutionTime}</div>
-          <p className="text-[9px] text-[#D99B7F]/80 truncate">Log to resolved</p>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#A56F63]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#A56F63]">Avg Resolution</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#A56F63]" />
+          </div>
+          <div className="text-2xl font-black text-[#A56F63] font-heading tracking-tight">{kpis.avgResolutionTime}</div>
+          <p className="text-[10px] text-[#464858] truncate">Log to resolved</p>
         </div>
 
         {/* 7. Resolution Rate */}
-        <div className="p-3.5 rounded-2xl bg-[#17202b]/80 border border-sky-500/20 shadow space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-sky-400">Clearance Rate</span>
-          <div className="text-2xl font-black text-sky-300 font-heading">{kpis.resolutionRate}</div>
-          <p className="text-[9px] text-sky-400/80 truncate">Ratio completed</p>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#286448]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#286448]">Clearance</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#286448]" />
+          </div>
+          <div className="text-2xl font-black text-[#286448] font-heading tracking-tight">{kpis.resolutionRate}</div>
+          <p className="text-[10px] text-[#464858] truncate">Ratio completed</p>
         </div>
 
         {/* 8. Recurring Incidents */}
-        <div className="p-3.5 rounded-2xl bg-[#17202b]/80 border border-rose-500/20 shadow space-y-1">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-rose-400">Recurring Clusters</span>
-          <div className="text-2xl font-black text-rose-300 font-heading">{kpis.recurringIncidents}</div>
-          <p className="text-[9px] text-rose-400/80 truncate">Pattern repeats</p>
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E7E4DF] shadow-xs hover:shadow-md hover:border-[#93651C]/40 transition-all duration-200 hover:-translate-y-0.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#93651C]">Recurring</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#93651C]" />
+          </div>
+          <div className="text-2xl font-black text-[#93651C] font-heading tracking-tight">{kpis.recurringIncidents}</div>
+          <p className="text-[10px] text-[#464858] truncate">Cluster repeats</p>
         </div>
       </div>
 
       {/* ── EMPTY STATE (If zero records match filters) ── */}
       {kpis.totalIncidents === 0 && !isLoading && (
-        <div className="p-12 rounded-3xl bg-[#141b24] border border-slate-800 text-center space-y-3">
-          <Layers className="w-12 h-12 mx-auto text-slate-600" />
-          <h3 className="text-base font-bold text-white">No incidents match the applied filter criteria</h3>
-          <p className="text-xs text-slate-400 max-w-md mx-auto">
+        <div className="p-12 rounded-3xl bg-white border border-[#E7E4DF] text-center space-y-3 shadow-xs">
+          <Layers className="w-12 h-12 mx-auto text-[#464858]" />
+          <h3 className="text-base font-bold text-[#0F3040]">No incidents match the applied filter criteria</h3>
+          <p className="text-xs text-[#464858] max-w-md mx-auto">
             Try expanding the date range (e.g. "Last 3 Months" or "All History") or clearing building/category filters.
           </p>
           <button
             type="button"
             onClick={handleResetFilters}
-            className="px-4 py-2 rounded-xl text-xs font-bold text-[#0F3040]"
-            style={{ background: 'linear-gradient(135deg, #A56F63, #D99B7F)' }}
+            className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#0F3040] hover:bg-[#183E4C]"
           >
             Reset All Filters
           </button>
         </div>
       )}
 
-      {/* ── CHARTS SECTION ── */}
+      {/* ── CHARTS SECTION (White Cards on Warm Ivory) ── */}
       {kpis.totalIncidents > 0 && (
         <div className="space-y-6">
           {/* Row 1: Line Chart (Over Time) + Category Donut Chart */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* Chart 1: Incidents Reported Over Time */}
-            <div className="lg:col-span-2 p-5 rounded-3xl bg-[#17202b]/90 border border-slate-700/60 shadow-xl space-y-3">
+            <div className="lg:col-span-2 p-5 rounded-3xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-extrabold text-white font-heading flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-[#D99B7F]" />
+                  <h3 className="text-sm font-extrabold text-[#0F3040] font-heading flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-[#A56F63]" />
                     <span>Incidents Reported Over Time</span>
                   </h3>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-[#464858]">
                     Velocity timeline showing reported volume vs resolved completions
                   </p>
                 </div>
@@ -479,13 +502,13 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
             </div>
 
             {/* Chart 2: Incidents by Category */}
-            <div className="p-5 rounded-3xl bg-[#17202b]/90 border border-slate-700/60 shadow-xl space-y-3">
+            <div className="p-5 rounded-3xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
               <div>
-                <h3 className="text-sm font-extrabold text-white font-heading flex items-center gap-2">
-                  <Tag className="w-4 h-4 text-purple-400" />
+                <h3 className="text-sm font-extrabold text-[#0F3040] font-heading flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-[#A56F63]" />
                   <span>Incidents by Category</span>
                 </h3>
-                <p className="text-[11px] text-slate-400">Proportional share by infrastructure domain</p>
+                <p className="text-[11px] text-[#464858]">Proportional share by infrastructure domain</p>
               </div>
               <DonutChart data={charts.categoryDistribution} title="Category Share" centerLabel="Total" />
             </div>
@@ -494,13 +517,13 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
           {/* Row 2: Priority Bar Chart + Status Donut Chart */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Chart 3: Priority Severity Breakdown */}
-            <div className="p-5 rounded-3xl bg-[#17202b]/90 border border-slate-700/60 shadow-xl space-y-3">
+            <div className="p-5 rounded-3xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
               <div>
-                <h3 className="text-sm font-extrabold text-white font-heading flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-400" />
+                <h3 className="text-sm font-extrabold text-[#0F3040] font-heading flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-[#93651C]" />
                   <span>Incidents by Priority & Severity</span>
                 </h3>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#464858]">
                   Critical, High, Medium, and Low clearance rates
                 </p>
               </div>
@@ -508,13 +531,13 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
             </div>
 
             {/* Chart 4: Lifecycle Status Distribution */}
-            <div className="p-5 rounded-3xl bg-[#17202b]/90 border border-slate-700/60 shadow-xl space-y-3">
+            <div className="p-5 rounded-3xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
               <div>
-                <h3 className="text-sm font-extrabold text-white font-heading flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-sky-400" />
+                <h3 className="text-sm font-extrabold text-[#0F3040] font-heading flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#405C78]" />
                   <span>Incidents by Lifecycle Status</span>
                 </h3>
-                <p className="text-[11px] text-slate-400">Active operational progression queue</p>
+                <p className="text-[11px] text-[#464858]">Active operational progression queue</p>
               </div>
               <DonutChart data={charts.statusDistribution} title="Status Flow" centerLabel="Active" />
             </div>
@@ -523,25 +546,25 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
           {/* Row 3: Building Distribution + Monthly Trends */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Chart 5: Building-Wise Incident Distribution */}
-            <div className="p-5 rounded-3xl bg-[#17202b]/90 border border-slate-700/60 shadow-xl space-y-3">
+            <div className="p-5 rounded-3xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
               <div>
-                <h3 className="text-sm font-extrabold text-white font-heading flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-[#D99B7F]" />
+                <h3 className="text-sm font-extrabold text-[#0F3040] font-heading flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-[#0F3040]" />
                   <span>Building-Wise Incident Distribution</span>
                 </h3>
-                <p className="text-[11px] text-slate-400">Campus locations ranked by maintenance volume</p>
+                <p className="text-[11px] text-[#464858]">Campus locations ranked by maintenance volume</p>
               </div>
               <BuildingDistributionChart data={charts.buildingDistribution} />
             </div>
 
             {/* Chart 7: Monthly Incident Trends */}
-            <div className="p-5 rounded-3xl bg-[#17202b]/90 border border-slate-700/60 shadow-xl space-y-3">
+            <div className="p-5 rounded-3xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
               <div>
-                <h3 className="text-sm font-extrabold text-white font-heading flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-sm font-extrabold text-[#0F3040] font-heading flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#286448]" />
                   <span>Monthly Incident & Resolution Trends</span>
                 </h3>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#464858]">
                   Comparative 6-month historical volume and throughput
                 </p>
               </div>
@@ -552,13 +575,13 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
           {/* Row 4: Technician Workload + Frequently Affected Services */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* Chart 6: Technician Performance & Workload */}
-            <div className="lg:col-span-2 p-5 rounded-3xl bg-[#17202b]/90 border border-slate-700/60 shadow-xl space-y-3">
+            <div className="lg:col-span-2 p-5 rounded-3xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
               <div>
-                <h3 className="text-sm font-extrabold text-white font-heading flex items-center gap-2">
-                  <Wrench className="w-4 h-4 text-sky-400" />
+                <h3 className="text-sm font-extrabold text-[#0F3040] font-heading flex items-center gap-2">
+                  <Wrench className="w-4 h-4 text-[#0F3040]" />
                   <span>Technician Performance & Field Workload</span>
                 </h3>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#464858]">
                   Task allocation, resolution velocity, and specialist clearance ratings
                 </p>
               </div>
@@ -566,48 +589,48 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
             </div>
 
             {/* Chart 8: Frequently Affected Campus Services */}
-            <div className="p-5 rounded-3xl bg-[#17202b]/90 border border-slate-700/60 shadow-xl space-y-3">
+            <div className="p-5 rounded-3xl bg-white border border-[#E7E4DF] shadow-xs space-y-3">
               <div>
-                <h3 className="text-sm font-extrabold text-white font-heading flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-amber-400" />
+                <h3 className="text-sm font-extrabold text-[#0F3040] font-heading flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-[#93651C]" />
                   <span>Frequently Affected Services</span>
                 </h3>
-                <p className="text-[11px] text-slate-400">Institutional campus services ranked by tickets</p>
+                <p className="text-[11px] text-[#464858]">Institutional campus services ranked by tickets</p>
               </div>
               <FrequentlyAffectedServices data={charts.affectedServices} />
             </div>
           </div>
 
           {/* ── Row 5: Detailed Incident Records Ledger (Searchable Table) ── */}
-          <div className="p-5 rounded-3xl bg-[#17202b]/90 border border-slate-700/60 shadow-xl space-y-4">
+          <div className="p-5 rounded-3xl bg-white border border-[#E7E4DF] shadow-xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm font-extrabold text-white font-heading flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[#D99B7F]" />
+                <h3 className="text-sm font-extrabold text-[#0F3040] font-heading flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#A56F63]" />
                   <span>Filtered Incident Records Ledger</span>
-                  <span className="text-xs text-slate-400 font-mono">({filteredLedger.length})</span>
+                  <span className="text-xs text-[#464858] font-mono">({filteredLedger.length})</span>
                 </h3>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#464858]">
                   Individual database records matching applied filter criteria with calculated resolution times
                 </p>
               </div>
 
               {/* Search Bar */}
               <div className="relative w-full sm:w-72">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#464858]" />
                 <input
                   type="text"
                   placeholder="Search ledger by ticket, title, building..."
                   value={searchLedger}
                   onChange={(e) => setSearchLedger(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-[#141b24] border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#D99B7F]"
+                  className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-[#F5F3EF] border border-[#E7E4DF] text-xs text-[#0F3040] placeholder-slate-400 focus:outline-none focus:border-[#0F3040]"
                 />
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl border border-slate-800">
+            <div className="overflow-x-auto rounded-2xl border border-[#E7E4DF]">
               <table className="w-full text-xs text-left">
-                <thead className="bg-[#121820] text-slate-400 text-[10px] uppercase font-bold tracking-wider border-b border-slate-800">
+                <thead className="bg-[#F5F3EF] text-[#464858] text-[10px] uppercase font-bold tracking-wider border-b border-[#E7E4DF]">
                   <tr>
                     <th className="p-3">Ticket ID</th>
                     <th className="p-3">Issue Title</th>
@@ -620,53 +643,31 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
                     <th className="p-3 text-right">Resolution Time</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/80">
+                <tbody className="divide-y divide-[#E7E4DF]">
                   {filteredLedger.slice(0, 25).map((t) => (
                     <tr
                       key={t.id}
                       onClick={() => onNavigateToIncident && onNavigateToIncident(t.id)}
-                      className="hover:bg-[#1f2937]/50 transition-colors cursor-pointer group"
+                      className="hover:bg-[#F5F3EF]/60 transition-colors cursor-pointer group"
                     >
-                      <td className="p-3 font-mono font-bold text-[#D99B7F] group-hover:underline flex items-center gap-1.5">
+                      <td className="p-3 font-mono font-bold text-[#0F3040] group-hover:underline flex items-center gap-1.5">
                         <span>{t.ticketNumber}</span>
                         <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </td>
-                      <td className="p-3 font-semibold text-white max-w-xs truncate">{t.title}</td>
-                      <td className="p-3 text-slate-300">{t.category}</td>
-                      <td className="p-3 font-bold">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] ${
-                            t.priority === 'Critical'
-                              ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                              : t.priority === 'High'
-                              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                              : t.priority === 'Medium'
-                              ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
-                              : 'bg-slate-700/50 text-slate-300'
-                          }`}
-                        >
-                          {t.priority}
-                        </span>
+                      <td className="p-3 font-semibold text-[#183E4C] max-w-xs truncate">{t.title}</td>
+                      <td className="p-3 text-[#464858]">{t.category}</td>
+                      <td className="p-3">
+                        <StatusBadge status={t.priority} size="sm" />
                       </td>
-                      <td className="p-3 text-slate-300">
-                        {t.building} <span className="text-slate-500">• {t.room}</span>
+                      <td className="p-3 text-[#464858]">
+                        {t.building} <span className="text-slate-400">• {t.room}</span>
                       </td>
-                      <td className="p-3 text-slate-300">{t.technicianName}</td>
-                      <td className="p-3 font-semibold">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] ${
-                            t.status === 'Resolved' || t.status === 'Closed'
-                              ? 'bg-emerald-500/20 text-emerald-400'
-                              : t.status === 'Open'
-                              ? 'bg-amber-500/20 text-amber-400'
-                              : 'bg-sky-500/20 text-sky-400'
-                          }`}
-                        >
-                          {t.status}
-                        </span>
+                      <td className="p-3 text-[#464858]">{t.technicianName}</td>
+                      <td className="p-3">
+                        <StatusBadge status={t.status} size="sm" />
                       </td>
-                      <td className="p-3 text-right font-mono text-slate-400">{t.createdAt?.slice(0, 10)}</td>
-                      <td className="p-3 text-right font-mono font-bold text-[#D99B7F]">
+                      <td className="p-3 text-right font-mono text-[#464858]">{t.createdAt?.slice(0, 10)}</td>
+                      <td className="p-3 text-right font-mono font-bold text-[#A56F63]">
                         {t.durationHours ? `${t.durationHours}h` : '—'}
                       </td>
                     </tr>
@@ -676,7 +677,7 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
             </div>
 
             {filteredLedger.length > 25 && (
-              <div className="p-2 text-center text-xs text-slate-400 font-mono">
+              <div className="p-2 text-center text-xs text-[#464858] font-mono">
                 Showing top 25 of {filteredLedger.length} incidents. Export CSV to analyze complete database records.
               </div>
             )}
@@ -703,4 +704,3 @@ export default function AnalyticsDashboard({ onNavigateToIncident }) {
     </div>
   );
 }
-

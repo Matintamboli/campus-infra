@@ -67,3 +67,4 @@ export default function StatusBadge({ status, size = 'default', className = '' }
     </span>
   );
 }
+
