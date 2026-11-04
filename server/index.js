@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { startPostgres } from './initPostgres.js';
 import authRoutes from './routes/auth.js';
 import incidentRoutes from './routes/incidents.js';
+import ticketsRoutes from './routes/tickets.js';
 import notificationRoutes from './routes/notifications.js';
 import analyticsRoutes from './routes/analytics.js';
 
@@ -26,10 +27,17 @@ app.use(cors({
 app.use(express.json());
 
 // API Routes
+console.log('[Server] Mounting API routes...');
 app.use('/api/auth', authRoutes);
+console.log('[Server] ✓ /api/auth mounted');
 app.use('/api/incidents', incidentRoutes);
+console.log('[Server] ✓ /api/incidents mounted');
+app.use('/api/tickets', ticketsRoutes);
+console.log('[Server] ✓ /api/tickets mounted');
 app.use('/api/notifications', notificationRoutes);
+console.log('[Server] ✓ /api/notifications mounted');
 app.use('/api/analytics', analyticsRoutes);
+console.log('[Server] ✓ /api/analytics mounted');
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

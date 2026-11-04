@@ -223,6 +223,12 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
     clearActiveIncident,
   } = useNotifications();
 
+  // Store onNotify in a ref to avoid refetch loops
+  const onNotifyRef = useRef(onNotify);
+  useEffect(() => {
+    onNotifyRef.current = onNotify;
+  }, [onNotify]);
+
   // Navigation State
   const [activeTab, setActiveTab] = useState('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -306,11 +312,14 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
       setIsLoading(false);
       console.log('[TechnicianDashboard] Loading complete');
     }
-  }, [token, onNotify]);
+  }, [token]); // Removed onNotify to prevent unnecessary refetches
 
   useEffect(() => {
-    fetchTickets();
-  }, [fetchTickets]);
+    if (token) {
+      fetchTickets();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]); // Fetch when token becomes available or changes
 
   // Refresh Single Ticket Details
   const refreshSingleTicket = useCallback(async (ticketId) => {
