@@ -21,16 +21,35 @@ export async function startPostgres() {
       user: 'postgres',
       password: 'password',
       database: 'campusfix',
+      persistent: true, // Use existing data directory if present
     });
 
-    await embeddedPostgres.initialise();
+    // Only initialize if directory doesn't exist or is empty
+    const fs = await import('fs');
+    const dirExists = fs.existsSync(dataDir);
+    const isEmpty = !dirExists || fs.readdirSync(dataDir).length === 0;
+
+    if (isEmpty) {
+      console.log('[PostgreSQL] Initializing new database cluster...');
+      await embeddedPostgres.initialise();
+    } else {
+      console.log('[PostgreSQL] Using existing database cluster...');
+    }
+
     await embeddedPostgres.start();
 
     console.log('[PostgreSQL] ✓ PostgreSQL server started successfully on port 5432');
     console.log('[PostgreSQL] Database: campusfix');
     return embeddedPostgres;
   } catch (error) {
-    console.error('[PostgreSQL] Failed to start:', error.message);
+    // PostgreSQL might already be running
+    const errorMsg = error?.message || String(error);
+    if (errorMsg.includes('lock file') || errorMsg.includes('postmaster.pid')) {
+      console.log('[PostgreSQL] PostgreSQL appears to be already running');
+      console.log('[PostgreSQL] Continuing with existing instance...');
+      return null;
+    }
+    console.error('[PostgreSQL] Failed to start:', errorMsg);
     throw error;
   }
 }

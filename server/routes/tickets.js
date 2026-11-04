@@ -54,6 +54,9 @@ router.get('/', (req, res) => {
     const { status, category, priority, search, view } = req.query;
     const user = req.user;
 
+    console.log('[GET /api/tickets] User:', { id: user.id, name: user.name, role: user.role });
+    console.log('[GET /api/tickets] Query params:', { status, category, priority, search, view });
+
     let query = `
       SELECT 
         t.*,
@@ -109,9 +112,12 @@ router.get('/', (req, res) => {
 
     query += ' ORDER BY t.created_at DESC';
 
+    console.log('[GET /api/tickets] Final query params:', params);
     const rawTickets = db.prepare(query).all(...params);
+    console.log('[GET /api/tickets] Raw tickets count:', rawTickets.length);
     const tickets = rawTickets.map((t) => enrichTicket(t, user));
 
+    console.log('[GET /api/tickets] Enriched tickets count:', tickets.length);
     return res.json({
       success: true,
       count: tickets.length,

@@ -22,6 +22,7 @@ import {
   Sparkles,
   ArrowUpRight,
   ExternalLink,
+  Wrench,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {

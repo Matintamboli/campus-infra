@@ -282,22 +282,29 @@ export default function TechnicianDashboard({ onNotify, onOpenRoleTester }) {
   // Fetch Tickets from API
   const fetchTickets = useCallback(async () => {
     setIsLoading(true);
+    console.log('[TechnicianDashboard] Fetching tickets with view=all...');
     try {
       // Technicians query with view=all to see both their assigned queue and unassigned campus tickets
       const res = await fetch('/api/tickets?view=all', {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log('[TechnicianDashboard] Response status:', res.status);
       if (res.ok) {
         const data = await res.json();
+        console.log('[TechnicianDashboard] Received data:', { success: data.success, count: data.count, ticketsLength: data.tickets?.length });
+        console.log('[TechnicianDashboard] Tickets:', data.tickets);
         setTickets(data.tickets || []);
       } else {
+        const errorData = await res.json().catch(() => ({}));
+        console.error('[TechnicianDashboard] API Error:', res.status, errorData);
         if (onNotify) onNotify('Unable to retrieve incidents from campus operations server', 'error');
       }
     } catch (err) {
-      console.error('Fetch tickets error:', err);
+      console.error('[TechnicianDashboard] Fetch tickets error:', err);
       if (onNotify) onNotify('Network error connecting to CampusFix backend', 'error');
     } finally {
       setIsLoading(false);
+      console.log('[TechnicianDashboard] Loading complete');
     }
   }, [token, onNotify]);
 

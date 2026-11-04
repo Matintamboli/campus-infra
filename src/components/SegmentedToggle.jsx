@@ -1,13 +1,13 @@
 import React from 'react';
 
 /**
- * Segmented Control for switching between Login and Sign Up
- * Features smooth sliding indicator, soft peach/terracotta styling, and accessible keyboard focus.
+ * Segmented Control - Premium Royal Edition
+ * Elegant toggle with champagne and deep teal styling
  */
 export default function SegmentedToggle({ activeTab, onTabChange }) {
   return (
     <div 
-      className="relative p-1 rounded-xl bg-[#202733]/65 border border-slate-300/35 backdrop-blur-md flex items-center shadow-inner"
+      className="relative p-1 rounded-xl bg-white/60 border border-[#E5DED2] backdrop-blur-sm flex items-center shadow-sm"
       role="tablist"
       aria-label="Authentication Options"
     >
@@ -17,8 +17,8 @@ export default function SegmentedToggle({ activeTab, onTabChange }) {
         style={{
           left: activeTab === 'login' ? '4px' : 'calc(50% + 2px)',
           width: 'calc(50% - 6px)',
-          background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)',
-          boxShadow: '0 4px 14px rgba(217, 155, 127, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
+          background: 'linear-gradient(135deg, #173B46 0%, #0F3040 100%)',
+          boxShadow: '0 2px 8px rgba(23, 59, 70, 0.25)',
         }}
       />
 
@@ -30,10 +30,10 @@ export default function SegmentedToggle({ activeTab, onTabChange }) {
         id="tab-login"
         aria-controls="panel-login"
         onClick={() => onTabChange('login')}
-        className={`relative z-10 w-1/2 py-2 text-sm font-semibold tracking-wide transition-colors duration-200 text-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D99B7F] ${
+        className={`relative z-10 w-1/2 py-2 text-sm font-semibold tracking-wide transition-colors duration-200 text-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B69A62] ${
           activeTab === 'login'
-            ? 'text-[#0F3040] font-bold drop-shadow-sm'
-            : 'text-slate-300 hover:text-white'
+            ? 'text-white font-bold'
+            : 'text-[#68777A] hover:text-[#173B46]'
         }`}
       >
         Login
@@ -47,10 +47,10 @@ export default function SegmentedToggle({ activeTab, onTabChange }) {
         id="tab-signup"
         aria-controls="panel-signup"
         onClick={() => onTabChange('signup')}
-        className={`relative z-10 w-1/2 py-2 text-sm font-semibold tracking-wide transition-colors duration-200 text-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D99B7F] ${
+        className={`relative z-10 w-1/2 py-2 text-sm font-semibold tracking-wide transition-colors duration-200 text-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B69A62] ${
           activeTab === 'signup'
-            ? 'text-[#0F3040] font-bold drop-shadow-sm'
-            : 'text-slate-300 hover:text-white'
+            ? 'text-white font-bold'
+            : 'text-[#68777A] hover:text-[#173B46]'
         }`}
       >
         Sign Up

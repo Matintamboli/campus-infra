@@ -130,35 +130,35 @@ export default function SignUpForm({
   return (
     <div className="w-full">
       {/* Form Header */}
-      <div className="text-center mb-5">
-        <h2 className="text-2xl sm:text-[26px] font-bold text-white tracking-tight font-heading">
+      <div className="text-center mb-3">
+        <h2 className="text-xl sm:text-[22px] font-bold text-[#173B46] tracking-tight font-heading">
           Create Your Account
         </h2>
-        <p className="mt-1 text-xs sm:text-[13px] text-slate-300/80 font-light">
+        <p className="mt-1 text-xs text-[#68777A] font-light">
           Join your university campus infrastructure operations.
         </p>
       </div>
 
       {/* Server Error Alert Banner */}
       {serverError && (
-        <div className="mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-200 text-xs flex items-center gap-2 animate-fadeIn">
-          <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+        <div className="mb-3 p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2 animate-fadeIn">
+          <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
           <span>{serverError}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-3.5">
+      <form onSubmit={handleSubmit} className="space-y-2.5">
         {/* Full Name */}
         <div>
           <label 
             htmlFor="signup-fullname" 
-            className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90 mb-1"
+            className="block text-[11px] font-semibold uppercase tracking-wider text-[#173B46] mb-1"
           >
             Full Name
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <User className="w-4 h-4 text-slate-400" />
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#68777A]">
+              <User className="w-4 h-4" />
             </div>
             <input
               id="signup-fullname"
@@ -170,29 +170,29 @@ export default function SignUpForm({
                 setFullName(e.target.value);
                 if (errors.fullName) setErrors({ ...errors, fullName: null });
               }}
-              className={`w-full pl-10 pr-4 py-2.5 text-sm rounded-xl glass-input text-white placeholder-slate-400/80 focus:outline-none ${
-                errors.fullName ? 'border-red-400/80' : ''
+              className={`w-full pl-10 pr-4 py-2.5 text-sm rounded-xl bg-white/80 border text-[#173B46] placeholder-[#68777A]/60 focus:outline-none focus:bg-white transition-all ${
+                errors.fullName ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-[#E5DED2] focus:border-[#173B46] focus:ring-2 focus:ring-[#173B46]/10'
               }`}
             />
           </div>
           {errors.fullName && (
-            <p className="mt-1 text-[11px] text-red-300 font-medium pl-1">{errors.fullName}</p>
+            <p className="mt-1 text-[10px] text-red-600 font-medium pl-1">{errors.fullName}</p>
           )}
         </div>
 
         {/* 2-Column Row: College Email & College ID */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {/* College Email */}
           <div>
             <label 
               htmlFor="signup-email" 
-              className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90 mb-1"
+              className="block text-[11px] font-semibold uppercase tracking-wider text-[#173B46] mb-1"
             >
               College Email
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Mail className="w-4 h-4 text-slate-400" />
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#68777A]">
+                <Mail className="w-4 h-4" />
               </div>
               <input
                 id="signup-email"
@@ -204,13 +204,13 @@ export default function SignUpForm({
                   setEmail(e.target.value);
                   if (errors.email) setErrors({ ...errors, email: null });
                 }}
-                className={`w-full pl-10 pr-3 py-2.5 text-xs sm:text-sm rounded-xl glass-input text-white placeholder-slate-400/80 focus:outline-none ${
-                  errors.email ? 'border-red-400/80' : ''
+                className={`w-full pl-10 pr-3 py-2.5 text-xs sm:text-sm rounded-xl bg-white/80 border text-[#173B46] placeholder-[#68777A]/60 focus:outline-none focus:bg-white transition-all ${
+                  errors.email ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-[#E5DED2] focus:border-[#173B46] focus:ring-2 focus:ring-[#173B46]/10'
                 }`}
               />
             </div>
             {errors.email && (
-              <p className="mt-1 text-[11px] text-red-300 font-medium pl-1">{errors.email}</p>
+              <p className="mt-1 text-[10px] text-red-600 font-medium pl-1">{errors.email}</p>
             )}
           </div>
 
@@ -218,13 +218,13 @@ export default function SignUpForm({
           <div>
             <label 
               htmlFor="signup-id" 
-              className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90 mb-1"
+              className="block text-[11px] font-semibold uppercase tracking-wider text-[#173B46] mb-1"
             >
               College ID
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <CreditCard className="w-4 h-4 text-slate-400" />
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#68777A]">
+                <CreditCard className="w-4 h-4" />
               </div>
               <input
                 id="signup-id"
@@ -235,44 +235,44 @@ export default function SignUpForm({
                   setCollegeId(e.target.value);
                   if (errors.collegeId) setErrors({ ...errors, collegeId: null });
                 }}
-                className={`w-full pl-10 pr-3 py-2.5 text-xs sm:text-sm rounded-xl glass-input text-white placeholder-slate-400/80 focus:outline-none ${
-                  errors.collegeId ? 'border-red-400/80' : ''
+                className={`w-full pl-10 pr-3 py-2.5 text-xs sm:text-sm rounded-xl bg-white/80 border text-[#173B46] placeholder-[#68777A]/60 focus:outline-none focus:bg-white transition-all ${
+                  errors.collegeId ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-[#E5DED2] focus:border-[#173B46] focus:ring-2 focus:ring-[#173B46]/10'
                 }`}
               />
             </div>
             {errors.collegeId && (
-              <p className="mt-1 text-[11px] text-red-300 font-medium pl-1">{errors.collegeId}</p>
+              <p className="mt-1 text-[10px] text-red-600 font-medium pl-1">{errors.collegeId}</p>
             )}
           </div>
         </div>
 
-        {/* Role Selection Dropdown: Strictly Student or Faculty/Staff */}
+        {/* Role Selection Dropdown */}
         <div className="relative">
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90">
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#173B46]">
               Campus Role
             </label>
-            <span className="text-[10px] text-slate-400">Public Registration</span>
+            <span className="text-[9px] text-[#68777A]">Public Registration</span>
           </div>
           <button
             type="button"
             id="role-dropdown-trigger"
             onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl glass-input text-left text-slate-200 focus:outline-none focus:border-[#D99B7F]"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white/80 border border-[#E5DED2] text-left text-[#173B46] focus:outline-none focus:border-[#173B46] focus:ring-2 focus:ring-[#173B46]/10 transition-all hover:bg-white"
           >
             <div className="flex items-center gap-2.5">
-              <div className="p-1 rounded-md bg-[#D99B7F]/20 text-[#D99B7F]">
+              <div className="p-1 rounded-md bg-[#C98772]/10 text-[#C98772]">
                 <SelectedIcon className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-sm font-semibold text-white">{selectedRoleObj.label}</span>
-                <span className="hidden sm:inline-block text-[11px] text-slate-400 ml-2">
+                <span className="text-sm font-semibold text-[#173B46]">{selectedRoleObj.label}</span>
+                <span className="hidden sm:inline-block text-[10px] text-[#68777A] ml-2">
                   — {selectedRoleObj.desc}
                 </span>
               </div>
             </div>
             <ChevronDown 
-              className={`w-4 h-4 text-[#D99B7F] transition-transform duration-200 ${
+              className={`w-4 h-4 text-[#C98772] transition-transform duration-200 ${
                 isRoleDropdownOpen ? 'rotate-180' : ''
               }`} 
             />
@@ -280,7 +280,7 @@ export default function SignUpForm({
 
           {/* Role Dropdown Menu */}
           {isRoleDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1.5 z-30 rounded-xl bg-[#0F3040]/95 border border-[#A56F63]/40 backdrop-blur-xl shadow-2xl p-1.5 space-y-1 animate-fadeIn">
+            <div className="absolute top-full left-0 right-0 mt-1.5 z-30 rounded-xl bg-white border border-[#E5DED2] shadow-xl p-1.5 space-y-1 animate-fadeIn">
               {roleOptions.map((item) => {
                 const ItemIcon = item.icon;
                 const isSelected = item.id === role;
@@ -294,18 +294,18 @@ export default function SignUpForm({
                     }}
                     className={`w-full flex items-center justify-between p-2.5 rounded-lg text-left transition-all ${
                       isSelected 
-                        ? 'bg-[#464858]/80 text-[#D99B7F] border border-[#A56F63]/40' 
-                        : 'hover:bg-[#464858]/40 text-slate-200'
+                        ? 'bg-[#173B46]/5 text-[#173B46] border border-[#E5DED2]' 
+                        : 'hover:bg-[#F7F4EE] text-[#173B46]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <ItemIcon className="w-4 h-4 text-[#D99B7F]" />
+                      <ItemIcon className="w-4 h-4 text-[#C98772]" />
                       <div>
-                        <div className="text-xs font-bold text-white">{item.label}</div>
-                        <div className="text-[10px] text-slate-300 font-light">{item.desc}</div>
+                        <div className="text-xs font-bold text-[#173B46]">{item.label}</div>
+                        <div className="text-[10px] text-[#68777A] font-light">{item.desc}</div>
                       </div>
                     </div>
-                    {isSelected && <Check className="w-4 h-4 text-[#D99B7F]" />}
+                    {isSelected && <Check className="w-4 h-4 text-[#C98772]" />}
                   </button>
                 );
               })}
@@ -313,8 +313,8 @@ export default function SignUpForm({
           )}
 
           {/* Privilege Security Notice */}
-          <div className="mt-1 flex items-start gap-1.5 text-[10.5px] text-slate-400 px-1 leading-tight">
-            <ShieldAlert className="w-3.5 h-3.5 text-[#D99B7F] flex-shrink-0 mt-0.5" />
+          <div className="mt-1 flex items-start gap-1.5 text-[10px] text-[#68777A] px-1 leading-tight">
+            <ShieldAlert className="w-3.5 h-3.5 text-[#B69A62] flex-shrink-0 mt-0.5" />
             <span>Technician and Administrator roles require authorized elevation by campus IT directors.</span>
           </div>
         </div>
@@ -323,13 +323,13 @@ export default function SignUpForm({
         <div>
           <label 
             htmlFor="signup-password" 
-            className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90 mb-1"
+            className="block text-[11px] font-semibold uppercase tracking-wider text-[#173B46] mb-1"
           >
             Password
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <Lock className="w-4 h-4 text-slate-400" />
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#68777A]">
+              <Lock className="w-4 h-4" />
             </div>
             <input
               id="signup-password"
@@ -346,37 +346,37 @@ export default function SignUpForm({
                   setErrors((prev) => ({ ...prev, confirmPassword: null }));
                 }
               }}
-              className={`w-full pl-10 pr-11 py-2.5 text-sm rounded-xl glass-input text-white placeholder-slate-400/80 focus:outline-none ${
-                errors.password ? 'border-red-400/80' : ''
+              className={`w-full pl-10 pr-11 py-2.5 text-sm rounded-xl bg-white/80 border text-[#173B46] placeholder-[#68777A]/60 focus:outline-none focus:bg-white transition-all ${
+                errors.password ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-[#E5DED2] focus:border-[#173B46] focus:ring-2 focus:ring-[#173B46]/10'
               }`}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-[#D99B7F] transition-colors focus:outline-none"
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#68777A] hover:text-[#C98772] transition-colors focus:outline-none"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
           {errors.password && (
-            <p className="mt-1 text-[11px] text-red-300 font-medium pl-1">{errors.password}</p>
+            <p className="mt-1 text-[10px] text-red-600 font-medium pl-1">{errors.password}</p>
           )}
 
           {/* Password Strength Indicator */}
           {password && (
-            <div className="mt-2 space-y-1 animate-fadeIn">
+            <div className="mt-1.5 space-y-0.5 animate-fadeIn">
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-slate-400">Strength:</span>
+                <span className="text-[#68777A]">Strength:</span>
                 <span className={`font-bold ${
-                  passwordScore <= 2 ? 'text-red-400' :
-                  passwordScore <= 3 ? 'text-amber-400' :
-                  'text-emerald-400'
+                  passwordScore <= 2 ? 'text-red-500' :
+                  passwordScore <= 3 ? 'text-amber-500' :
+                  'text-emerald-500'
                 }`}>
                   {passwordScore <= 2 ? 'Weak' : passwordScore <= 3 ? 'Medium' : 'Strong & Resilient'}
                 </span>
               </div>
-              <div className="h-1 w-full bg-[#464858]/60 rounded-full overflow-hidden flex gap-1">
+              <div className="h-1 w-full bg-[#E5DED2] rounded-full overflow-hidden flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((lvl) => (
                   <div
                     key={lvl}
@@ -400,13 +400,13 @@ export default function SignUpForm({
         <div>
           <label 
             htmlFor="signup-confirm-password" 
-            className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90 mb-1"
+            className="block text-[11px] font-semibold uppercase tracking-wider text-[#173B46] mb-1"
           >
             Confirm Password
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <Lock className="w-4 h-4 text-slate-400" />
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#68777A]">
+              <Lock className="w-4 h-4" />
             </div>
             <input
               id="signup-confirm-password"
@@ -422,24 +422,24 @@ export default function SignUpForm({
                   setErrors((prev) => ({ ...prev, confirmPassword: null }));
                 }
               }}
-              className={`w-full pl-10 pr-11 py-2.5 text-sm rounded-xl glass-input text-white placeholder-slate-400/80 focus:outline-none ${
-                errors.confirmPassword ? 'border-red-400/80' : ''
+              className={`w-full pl-10 pr-11 py-2.5 text-sm rounded-xl bg-white/80 border text-[#173B46] placeholder-[#68777A]/60 focus:outline-none focus:bg-white transition-all ${
+                errors.confirmPassword ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-[#E5DED2] focus:border-[#173B46] focus:ring-2 focus:ring-[#173B46]/10'
               }`}
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-[#D99B7F] transition-colors focus:outline-none"
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#68777A] hover:text-[#C98772] transition-colors focus:outline-none"
               aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
             >
               {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
           {errors.confirmPassword && (
-            <p className="mt-1 text-[11px] text-red-300 font-medium pl-1">{errors.confirmPassword}</p>
+            <p className="mt-1 text-[10px] text-red-600 font-medium pl-1">{errors.confirmPassword}</p>
           )}
           {confirmPassword && confirmPassword === password && (
-            <p className="mt-1 text-[11px] text-emerald-400 font-medium pl-1 flex items-center gap-1">
+            <p className="mt-1 text-[10px] text-emerald-600 font-medium pl-1 flex items-center gap-1">
               <Check className="w-3.5 h-3.5" /> Passwords match
             </p>
           )}
@@ -450,16 +450,16 @@ export default function SignUpForm({
           type="submit"
           id="btn-signup-submit"
           disabled={isLoading}
-          className="group relative w-full py-3 px-5 rounded-xl font-bold text-sm tracking-wide text-[#0F3040] shadow-lg shadow-[#0F3040]/40 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:opacity-75 overflow-hidden animate-shimmer"
+          className="group relative w-full py-2.5 px-5 rounded-xl font-bold text-sm tracking-wide text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:opacity-75"
           style={{
-            background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)',
-            boxShadow: '0 8px 24px -4px rgba(217, 155, 127, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35)',
+            background: 'linear-gradient(135deg, #173B46 0%, #0F3040 100%)',
+            boxShadow: '0 4px 16px rgba(23, 59, 70, 0.25)',
           }}
         >
           <div className="relative z-10 flex items-center justify-center gap-2">
             {isLoading ? (
               <>
-                <span className="inline-block w-4 h-4 border-2 border-[#0F3040] border-t-transparent rounded-full animate-spin" />
+                <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 <span>CREATING ACCOUNT...</span>
               </>
             ) : (
@@ -474,9 +474,9 @@ export default function SignUpForm({
         {/* Delicate Divider */}
         <div className="relative flex items-center justify-center pt-2 pb-1">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-400/30" />
+            <div className="w-full border-t border-[#E5DED2]" />
           </div>
-          <div className="relative px-3 bg-[#18202d] text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-300 rounded border border-slate-500/20">
+          <div className="relative px-3 bg-[#F7F4EE] text-[9px] font-semibold uppercase tracking-[0.2em] text-[#68777A]">
             OR REGISTER WITH
           </div>
         </div>
@@ -485,12 +485,12 @@ export default function SignUpForm({
         <GoogleAuthButton onGoogleSuccess={onSignUpSuccess} mode="signup" />
 
         {/* Switch to Login Link */}
-        <div className="pt-2 text-center text-xs text-slate-400">
+        <div className="pt-1 text-center text-xs text-[#68777A]">
           Already registered?{' '}
           <button
             type="button"
             onClick={onSwitchToLogin}
-            className="text-[#D99B7F] font-semibold hover:underline hover:text-white transition-colors ml-1 focus:outline-none"
+            className="text-[#C98772] font-semibold hover:underline hover:text-[#173B46] transition-colors ml-1 focus:outline-none"
           >
             Sign in here
           </button>

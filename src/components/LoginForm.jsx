@@ -85,22 +85,22 @@ export default function LoginForm({
   return (
     <div className="w-full">
       {/* Form Header */}
-      <div className="text-center mb-6">
-        <h2 className="text-2xl sm:text-[26px] font-bold text-white tracking-tight font-heading">
+      <div className="text-center mb-3">
+        <h2 className="text-lg font-bold text-[#173B46] tracking-tight font-heading">
           Welcome Back
         </h2>
-        <p className="mt-1 text-xs sm:text-[13px] text-slate-300/80 font-light">
-          Sign in to continue to <span className="text-[#D99B7F] font-medium">CampusFix</span>.
+        <p className="mt-0.5 text-[11px] text-[#68777A] font-light">
+          Sign in to continue to <span className="text-[#C98772] font-medium">CampusFix</span>
         </p>
       </div>
 
-      {/* Quick Demo Pre-fill Chips for All 4 Roles */}
-      <div className="flex items-center justify-center gap-1.5 mb-5 flex-wrap">
-        <span className="text-[11px] text-slate-400 font-medium mr-0.5">Quick Demo:</span>
+      {/* Quick Demo Pre-fill Chips - Compact Single Row */}
+      <div className="flex items-center justify-center gap-1 mb-3 flex-wrap">
+        <span className="text-[9px] text-[#68777A] font-medium mr-0.5">Demo:</span>
         <button
           type="button"
           onClick={() => handleQuickFill('student')}
-          className="text-[11px] px-2.5 py-1 rounded-full bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 hover:border-[#D99B7F]/60 text-slate-200 transition-all active:scale-95"
+          className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/80 hover:bg-white border border-[#E5DED2] hover:border-[#C98772]/40 text-[#173B46] hover:text-[#C98772] transition-all active:scale-95 shadow-sm"
           title="Autofill Student account"
         >
           🎓 Student
@@ -108,7 +108,7 @@ export default function LoginForm({
         <button
           type="button"
           onClick={() => handleQuickFill('faculty')}
-          className="text-[11px] px-2.5 py-1 rounded-full bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 hover:border-[#D99B7F]/60 text-slate-200 transition-all active:scale-95"
+          className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/80 hover:bg-white border border-[#E5DED2] hover:border-[#C98772]/40 text-[#173B46] hover:text-[#C98772] transition-all active:scale-95 shadow-sm"
           title="Autofill Faculty account"
         >
           💼 Faculty
@@ -116,7 +116,7 @@ export default function LoginForm({
         <button
           type="button"
           onClick={() => handleQuickFill('tech')}
-          className="text-[11px] px-2.5 py-1 rounded-full bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 hover:border-[#D99B7F]/60 text-slate-200 transition-all active:scale-95"
+          className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/80 hover:bg-white border border-[#E5DED2] hover:border-[#C98772]/40 text-[#173B46] hover:text-[#C98772] transition-all active:scale-95 shadow-sm"
           title="Autofill Technician account"
         >
           🔧 Tech
@@ -124,7 +124,7 @@ export default function LoginForm({
         <button
           type="button"
           onClick={() => handleQuickFill('admin')}
-          className="text-[11px] px-2.5 py-1 rounded-full bg-[#464858]/40 hover:bg-[#464858]/70 border border-[#A56F63]/30 hover:border-[#D99B7F]/60 text-slate-200 transition-all active:scale-95"
+          className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/80 hover:bg-white border border-[#E5DED2] hover:border-[#C98772]/40 text-[#173B46] hover:text-[#C98772] transition-all active:scale-95 shadow-sm"
           title="Autofill Administrator account"
         >
           🛡️ Admin
@@ -133,24 +133,24 @@ export default function LoginForm({
 
       {/* Server Error Alert Banner */}
       {serverError && (
-        <div className="mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-200 text-xs flex items-center gap-2 animate-fadeIn">
-          <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+        <div className="mb-2.5 p-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-[10px] flex items-center gap-1.5 animate-fadeIn">
+          <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
           <span>{serverError}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-2.5">
         {/* Identifier Field */}
         <div>
           <label 
             htmlFor="login-identifier" 
-            className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90 mb-1.5"
+            className="block text-[10px] font-semibold uppercase tracking-wider text-[#173B46] mb-1"
           >
             College Email or College ID
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <Mail className="w-4 h-4 text-slate-400" />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#68777A]">
+              <Mail className="w-4 h-4" />
             </div>
             <input
               id="login-identifier"
@@ -161,14 +161,14 @@ export default function LoginForm({
                 setIdentifier(e.target.value);
                 if (errors.identifier) setErrors({ ...errors, identifier: null });
               }}
-              placeholder="e.g. s.patel@campus.edu or STU-8821"
-              className={`w-full pl-10 pr-4 py-2.5 text-sm rounded-xl glass-input text-white placeholder-slate-400/80 focus:outline-none ${
-                errors.identifier ? 'border-red-400/80' : ''
+              placeholder="e.g. s.patel@campus.edu"
+              className={`w-full pl-9 pr-3 py-2 text-sm rounded-lg bg-white/80 border text-[#173B46] placeholder-[#68777A]/60 focus:outline-none focus:bg-white transition-all ${
+                errors.identifier ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-[#E5DED2] focus:border-[#173B46] focus:ring-2 focus:ring-[#173B46]/10'
               }`}
             />
           </div>
           {errors.identifier && (
-            <p className="mt-1 text-[11px] text-red-300 font-medium pl-1">
+            <p className="mt-0.5 text-[10px] text-red-600 font-medium pl-1">
               {errors.identifier}
             </p>
           )}
@@ -178,13 +178,13 @@ export default function LoginForm({
         <div>
           <label 
             htmlFor="login-password" 
-            className="block text-xs font-semibold uppercase tracking-wider text-slate-200/90 mb-1.5"
+            className="block text-[10px] font-semibold uppercase tracking-wider text-[#173B46] mb-1"
           >
             Password
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <Lock className="w-4 h-4 text-slate-400" />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#68777A]">
+              <Lock className="w-4 h-4" />
             </div>
             <input
               id="login-password"
@@ -196,14 +196,14 @@ export default function LoginForm({
                 if (errors.password) setErrors({ ...errors, password: null });
               }}
               placeholder="••••••••••••"
-              className={`w-full pl-10 pr-11 py-2.5 text-sm rounded-xl glass-input text-white placeholder-slate-400/80 focus:outline-none ${
-                errors.password ? 'border-red-400/80' : ''
+              className={`w-full pl-9 pr-10 py-2 text-sm rounded-lg bg-white/80 border text-[#173B46] placeholder-[#68777A]/60 focus:outline-none focus:bg-white transition-all ${
+                errors.password ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-[#E5DED2] focus:border-[#173B46] focus:ring-2 focus:ring-[#173B46]/10'
               }`}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-[#D99B7F] transition-colors focus:outline-none"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#68777A] hover:text-[#C98772] transition-colors focus:outline-none"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? (
@@ -214,29 +214,29 @@ export default function LoginForm({
             </button>
           </div>
           {errors.password && (
-            <p className="mt-1 text-[11px] text-red-300 font-medium pl-1">
+            <p className="mt-0.5 text-[10px] text-red-600 font-medium pl-1">
               {errors.password}
             </p>
           )}
         </div>
 
         {/* Remember Me & Forgot Password */}
-        <div className="flex items-center justify-between pt-0.5 text-xs">
-          <label className="flex items-center gap-2 text-slate-300 hover:text-white cursor-pointer select-none">
+        <div className="flex items-center justify-between text-xs">
+          <label className="flex items-center gap-1.5 text-[#173B46] hover:text-[#0F3040] cursor-pointer select-none">
             <input
               type="checkbox"
               id="remember-me"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 rounded border-[#A56F63]/50 text-[#D99B7F] bg-[#464858]/40 focus:ring-1 focus:ring-[#D99B7F] focus:ring-offset-0 transition cursor-pointer accent-[#D99B7F]"
+              className="w-3.5 h-3.5 rounded border-[#E5DED2] text-[#173B46] bg-white focus:ring-1 focus:ring-[#173B46] focus:ring-offset-0 transition cursor-pointer accent-[#173B46]"
             />
-            <span className="text-[13px]">Remember me</span>
+            <span className="text-[11px]">Remember me</span>
           </label>
 
           <button
             type="button"
             onClick={onForgotPasswordClick}
-            className="text-[13px] font-medium text-[#D99B7F] hover:text-[#e4b5a0] transition-colors hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-[#D99B7F] rounded"
+            className="text-[11px] font-medium text-[#C98772] hover:text-[#173B46] transition-colors hover:underline focus:outline-none"
           >
             Forgot password?
           </button>
@@ -247,16 +247,16 @@ export default function LoginForm({
           type="submit"
           id="btn-login-submit"
           disabled={isLoading}
-          className="group relative w-full py-3 px-5 rounded-xl font-bold text-sm tracking-wide text-[#0F3040] shadow-lg shadow-[#0F3040]/40 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:opacity-75 overflow-hidden animate-shimmer"
+          className="group relative w-full py-2 px-4 rounded-lg font-bold text-sm tracking-wide text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:opacity-75"
           style={{
-            background: 'linear-gradient(135deg, #A56F63 0%, #D99B7F 100%)',
-            boxShadow: '0 8px 24px -4px rgba(217, 155, 127, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35)',
+            background: 'linear-gradient(135deg, #173B46 0%, #0F3040 100%)',
+            boxShadow: '0 4px 16px rgba(23, 59, 70, 0.25)',
           }}
         >
           <div className="relative z-10 flex items-center justify-center gap-2">
             {isLoading ? (
               <>
-                <span className="inline-block w-4 h-4 border-2 border-[#0F3040] border-t-transparent rounded-full animate-spin" />
+                <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 <span>AUTHENTICATING...</span>
               </>
             ) : (
@@ -269,11 +269,11 @@ export default function LoginForm({
         </button>
 
         {/* Delicate Divider */}
-        <div className="relative flex items-center justify-center pt-2 pb-1">
+        <div className="relative flex items-center justify-center pt-1.5 pb-1">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-400/30" />
+            <div className="w-full border-t border-[#E5DED2]" />
           </div>
-          <div className="relative px-3 bg-[#18202d] text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-300 rounded border border-slate-500/20">
+          <div className="relative px-2.5 bg-[#F7F4EE] text-[8px] font-semibold uppercase tracking-[0.2em] text-[#68777A]">
             OR CONTINUE WITH
           </div>
         </div>
@@ -282,12 +282,12 @@ export default function LoginForm({
         <GoogleAuthButton onGoogleSuccess={onLoginSuccess} mode="login" />
 
         {/* Direct Switch to Sign Up link */}
-        <div className="pt-2 text-center text-xs text-slate-400">
+        <div className="pt-1 text-center text-[11px] text-[#68777A]">
           New to CampusFix?{' '}
           <button
             type="button"
             onClick={onSwitchToSignUp}
-            className="text-[#D99B7F] font-semibold hover:underline hover:text-white transition-colors ml-1 focus:outline-none"
+            className="text-[#C98772] font-semibold hover:underline hover:text-[#173B46] transition-colors ml-0.5 focus:outline-none"
           >
             Create an account
           </button>
