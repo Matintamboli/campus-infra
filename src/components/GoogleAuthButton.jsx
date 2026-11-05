@@ -102,7 +102,7 @@ export default function GoogleAuthButton({ onGoogleSuccess, mode: _mode = 'login
         id="btn-google-auth"
         onClick={handleGoogleClick}
         disabled={isLoading}
-        className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-[#464858]/30 hover:bg-[#464858]/55 border border-[#A56F63]/30 hover:border-[#D99B7F]/60 text-slate-200 text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-[0_4px_16px_rgba(15,48,64,0.4)] active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D99B7F]"
+        className="w-full flex items-center justify-center gap-3 py-2 px-4 rounded-lg bg-white border-2 border-[#E5DED2] hover:border-[#173B46] text-[#173B46] text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#173B46] focus-visible:ring-offset-1 disabled:opacity-50"
       >
         {/* Official Google 'G' SVG Logo */}
         <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
@@ -131,31 +131,31 @@ export default function GoogleAuthButton({ onGoogleSuccess, mode: _mode = 'login
 
       {/* Google OAuth Setup / Status Modal */}
       {showConfigModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-md rounded-2xl bg-[#0F3040] border border-[#A56F63]/50 p-6 text-slate-100 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-md rounded-2xl bg-white border-2 border-[#E5DED2] p-6 shadow-2xl">
             {/* Close button */}
             <button
               onClick={() => setShowConfigModal(false)}
-              className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-[#464858]/40 transition-colors"
+              className="absolute top-4 right-4 p-1 rounded-lg text-[#68777A] hover:text-[#173B46] hover:bg-[#F7F4EE] transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-xl bg-[#464858]/50 border border-[#A56F63]/40 text-[#D99B7F]">
+              <div className="p-2.5 rounded-xl bg-[#173B46]/10 border border-[#E5DED2] text-[#173B46]">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white font-heading">
+                <h3 className="text-lg font-bold text-[#173B46] font-heading">
                   Google OAuth Integration
                 </h3>
-                <p className="text-xs text-[#D99B7F]">Ready for Live Production Client ID</p>
+                <p className="text-xs text-[#C98772]">Ready for Live Production Client ID</p>
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#464858]/25 border border-[#A56F63]/25 text-xs text-slate-300 leading-relaxed mb-4">
-              <p className="font-semibold text-white mb-1 flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 text-[#D99B7F]" />
+            <div className="p-3 rounded-xl bg-[#F7F4EE] border border-[#E5DED2] text-xs text-[#68777A] leading-relaxed mb-4">
+              <p className="font-semibold text-[#173B46] mb-1 flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 text-[#C98772]" />
                 OAuth Client ID Status
               </p>
               Per prompt specifications, genuine authentication is ready and will not pretend success without real credentials. To connect your university Google Workspace credentials:
@@ -163,7 +163,7 @@ export default function GoogleAuthButton({ onGoogleSuccess, mode: _mode = 'login
 
             <form onSubmit={handleApplyCustomId} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#173B46] mb-1">
                   Google Client ID (optional)
                 </label>
                 <input
@@ -171,7 +171,7 @@ export default function GoogleAuthButton({ onGoogleSuccess, mode: _mode = 'login
                   placeholder="e.g. 123456789-abc.apps.googleusercontent.com"
                   value={customClientId}
                   onChange={(e) => setCustomClientId(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-lg bg-[#464858]/40 border border-[#A56F63]/40 text-white placeholder-slate-400 focus:outline-none focus:border-[#D99B7F]"
+                  className="w-full px-3 py-2 text-xs rounded-lg bg-white border border-[#E5DED2] text-[#173B46] placeholder-[#68777A]/60 focus:outline-none focus:border-[#173B46] focus:ring-2 focus:ring-[#173B46]/10"
                 />
               </div>
 
@@ -179,7 +179,7 @@ export default function GoogleAuthButton({ onGoogleSuccess, mode: _mode = 'login
                 <button
                   type="submit"
                   disabled={!customClientId.trim()}
-                  className="flex-1 py-2 px-3 text-xs font-semibold rounded-lg bg-[#D99B7F] hover:bg-[#c8886d] text-[#0F3040] disabled:opacity-40 transition-colors"
+                  className="flex-1 py-2 px-3 text-xs font-semibold rounded-lg bg-[#173B46] hover:bg-[#0F3040] text-white disabled:opacity-40 transition-colors shadow-sm"
                 >
                   Save & Connect
                 </button>
@@ -198,7 +198,7 @@ export default function GoogleAuthButton({ onGoogleSuccess, mode: _mode = 'login
                       });
                     }
                   }}
-                  className="py-2 px-3 text-xs font-medium rounded-lg bg-[#464858]/50 hover:bg-[#464858] text-slate-200 border border-[#A56F63]/30 transition-colors"
+                  className="py-2 px-3 text-xs font-medium rounded-lg bg-white hover:bg-[#F7F4EE] text-[#173B46] border border-[#E5DED2] hover:border-[#173B46] transition-colors"
                 >
                   Test Demo Profile
                 </button>

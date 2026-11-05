@@ -35,6 +35,7 @@ import { useNotifications } from '../../context/NotificationContext';
 import NotificationBell from '../notifications/NotificationBell';
 import AnalyticsDashboard from '../analytics/AnalyticsDashboard';
 import UnifiedSidebar from './UnifiedSidebar';
+import ErrorBoundary from '../ui/ErrorBoundary';
 
 // ─── Theme Colors ────────────────────────────────────────────────────────────
 const COLORS = {
@@ -1299,12 +1300,14 @@ export default function AdminDashboard({ onNotify, onOpenRoleTester }) {
   // ─── View: Reports & Analytics ──────────────────────────────────────────────
   const renderReportsTab = () => {
     return (
-      <AnalyticsDashboard
-        onNavigateToIncident={(id) => {
-          setSelectedTicketId(id);
-          setActiveTab('all-incidents');
-        }}
-      />
+      <ErrorBoundary>
+        <AnalyticsDashboard
+          onNavigateToIncident={(id) => {
+            setSelectedTicketId(id);
+            setActiveTab('all-incidents');
+          }}
+        />
+      </ErrorBoundary>
     );
   };
 
